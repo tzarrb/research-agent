@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration debug="false">
+
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <springProperty scope="context" name="appName" source="spring.application.name" defaultValue="researchagent"/>
+    <springProperty scope="context" name="profileActive" source="spring.profiles.active" defaultValue="default"/>
+<!--    <springProperty name="ServerIP" scope="context" source="spring.cloud.client.ip-address" defaultValue="0.0.0.0"/>-->
+<!--    <springProperty name="ServerPort" scope="context" source="server.port" defaultValue="0000"/>-->
+
+    <!-- 日志路径 -->
+    <property name="LOG_HOME" value="/home/admin/services/servicelogs/researchagent/"/>
+
+    <!-- 日志格式 -->
+    <!--    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS}|[%thread]|%-5level|[%X{tid}]|%X{eventId}|%X{callerIp}|%X{callerApp}|%X{memberID}|%X{merchantCode}|%X{areano}|%logger{100}-%M-%L| - %msg%n"/>-->
+    <property name="LOG_PATTERN" value="%boldRed(%d{yyyy-MM-dd HH:mm:ss.SSS}) %highlight(%-5level) %boldGreen([%thread]) %boldGreen([%X{traceId}]) %boldGreen([%X{eventId}]) %boldBlue(%X{callerIp}) %boldYellow(%X{callerApp}) %boldCyan(%X{memberID} %X{merchantCode}) %boldYellow(%X{areano}) %boldMagenta(%logger{100})-%boldCyan([%M:%L]) - %msg%n"/>
+
+
+    <!-- 控制台输出 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 异步输出 -->
+    <appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>256</queueSize>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref="STDOUT"/>
+    </appender>
+
+    <!-- 按照每天生成日志文件 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/researchagent.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/researchagent.%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+            <!--日志文件保留天数 -->
+            <MaxHistory>30</MaxHistory>
+            <!-- 日志文件不能超过10M，若超过，日志文件会以索引0开始，命名日志文件，例如log-2020-05-09.0.log -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFileNamingAndTriggeringPolicy">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <!-- 追加方式记录日志 -->
+        <append>true</append>
+
+        <springProfile name="default,dev,local,test1,test4,integration,pre">
+            <encoder charset="UTF-8" class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>${LOG_PATTERN}</pattern>
+            </encoder>
+        </springProfile>
+        <springProfile name="pro,prod">
+            <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <pattern>
+                        <pattern>
+                            {
+                                "timestamp": "%date{yyyy-MM-dd HH:mm:ss.SSS}",
+                                "level": "%level",
+                                "appName": "${appName}",
+                                "profile": "${profileActive}",
+                                "traceId": "%X{traceId:-}",
+                                "eventId": "%X{eventId:-}",
+                                "pid": "${PID:-}",
+                                "thread": "%thread",
+                            <!--"ServerIP": "${ServerIP}:${ServerPort}",-->
+                                "callerIp": "%X{callerIp}",
+                                "callerApp": "%X{callerApp}",
+                                "class": "%logger{100}",
+                                "method":"%method",
+                                "line": "%line",
+                                "message": "%message",
+                                "exception": "%ex"
+                            }
+                        </pattern>
+                    </pattern>
+                    <stackTrace>
+                        <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                            <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                            <maxLength>4096</maxLength>
+                            <shortenedClassNameLength>20</shortenedClassNameLength>
+                            <exclusions>java.lang.reflect.*,sun.reflect.*</exclusions>
+                            <rootCauseFirst>true</rootCauseFirst>
+                        </throwableConverter>
+                    </stackTrace>
+                </providers>
+            </encoder>
+        </springProfile>
+    </appender>
+
+    <!-- 异步输出 -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>256</queueSize>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref="FILE"/>
+    </appender>
+
+
+    <!--error 按照每天生成日志文件 -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/researchagent-error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/researchagent-error.%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+            <!--日志文件保留天数 -->
+            <MaxHistory>30</MaxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFileNamingAndTriggeringPolicy">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <!-- 追加方式记录日志 -->
+        <append>true</append>
+
+        <springProfile name="default,dev,local,test1,test4,integration,pre">
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>${LOG_PATTERN}</pattern>
+            </encoder>
+        </springProfile>
+        <springProfile name="prod">
+            <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <pattern>
+                        <pattern>
+                            {
+                                "timestamp": "%date{yyyy-MM-dd HH:mm:ss.SSS}",
+                                "level": "%level",
+                                "appName": "${appName}",
+                                "profile": "${profileActive}",
+                                "traceId": "%X{traceId:-}",
+                                "eventId": "%X{eventId:-}",
+                                "pid": "${PID:-}",
+                                "thread": "%thread",
+                            <!--"ServerIP": "${ServerIP}:${ServerPort}",-->
+                                "callerIp": "%X{callerIp}",
+                                "callerApp": "%X{callerApp}",
+                                "class": "%logger{100}",
+                                "method":"%method",
+                                "line": "%line",
+                                "message": "%message",
+                                "exception": "%ex"
+                            }
+                        </pattern>
+                    </pattern>
+                    <stackTrace>
+                        <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                            <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                            <maxLength>4096</maxLength>
+                            <shortenedClassNameLength>20</shortenedClassNameLength>
+                            <exclusions>java.lang.reflect.*,sun.reflect.*</exclusions>
+                            <rootCauseFirst>true</rootCauseFirst>
+                        </throwableConverter>
+                    </stackTrace>
+                </providers>
+            </encoder>
+        </springProfile>
+
+        <!-- 只打印错误日志 -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- 异步输出 -->
+    <appender name="ASYNC_ERROR_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>256</queueSize>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref="ERROR_FILE"/>
+    </appender>
+
+    <!-- 日志输出级别 -->
+
+    <root level="INFO">
+<!--        <appender-ref ref="STDOUT"/>-->
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="ERROR_FILE"/>
+    </root>
+
+</configuration>

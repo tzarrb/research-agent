@@ -1,0 +1,49 @@
+# curl --location --request GET 'localhost:8080/research-agent/ai/agent/stream'
+#--header 'Content-Type: application/json'
+#--data '{
+#    "llm":"deepseek",
+#    "model":"deepseek-chat",
+#    "stream":true,
+#    "memory":true,
+#    "sessionId":"",
+#    "messages":[
+#        {
+#            "role":"user",
+#            "content":"请帮我查询井泉医生的信息"
+#        }
+#    ]
+#}'
+
+GET localhost:8081/research-agent/ai/agent/stream
+Content-Type: application/json; charset=UTF-8
+Accept-Language: zh-CN
+
+
+{
+  "llm": "deepseek",
+  "model": "deepseek-chat",
+  "stream": true,
+  "memory": true,
+  "sessionId": "",
+  "messages": [
+    {
+      "role": "user",
+      "content": "请帮我查询井泉医生的信息"
+    }
+  ]
+}
+
+###多智能体聊天
+GET http://127.0.0.1:8081/research-agent/ai/agent/chat?userMessage=小孩咳嗽怎么办
+
+###多智能体流式数据聊天
+GET http://localhost:8081/research-agent/ai/agent/stream/chat?userMessage=小孩咳嗽怎么办
+
+###聊天
+GET http://localhost:8081/research-agent/ai/chat?userMessage=小孩咳嗽怎么办
+
+###流式数据聊天
+GET http://localhost:8081/research-agent/ai/chat/steam?userMessage=小孩咳嗽怎么办
+
+###
+
