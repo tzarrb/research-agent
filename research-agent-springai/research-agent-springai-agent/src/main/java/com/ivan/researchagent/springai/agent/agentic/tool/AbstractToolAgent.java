@@ -1,4 +1,4 @@
-package com.ivan.researchagent.springai.agent.agentic.toolagent;
+package com.ivan.researchagent.springai.agent.agentic.tool;
 
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.metadata.ToolMetadata;

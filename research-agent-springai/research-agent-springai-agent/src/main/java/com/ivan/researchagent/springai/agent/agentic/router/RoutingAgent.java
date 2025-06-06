@@ -1,29 +1,32 @@
-package com.ivan.researchagent.springai.agent.router;
+package com.ivan.researchagent.springai.agent.agentic.router;
 
+import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.ivan.researchagent.springai.agent.anno.ToolAgent;
 import com.ivan.researchagent.springai.llm.model.ChatMessage;
 import com.ivan.researchagent.springai.llm.model.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;
+import com.ivan.researchagent.springai.agent.model.tool.AgentRequest;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.tool.ToolCallback;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Copyright (c) 2024 research-agent.
+ * Copyright (c) 2024 Ivan, Inc.
  * All Rights Reserved.
+ * Choice Proprietary and Confidential.
  *
- * @version 1.0
- * @description:
  * @author: ivan
- * @since: 2025/4/7/周一
- **/
+ * @since: 2025/1/4 16:15
+ */
 @Slf4j
 @Service
 public class RoutingAgent {
@@ -34,7 +37,7 @@ public class RoutingAgent {
     @Resource
     private ApplicationContext applicationContext;
 
-    private final String systemPromptC = """
+    private final String systemPrompt = """
             #角色:
             你是一个专门的路由分发agent，职责是将用户的输入精确地分发给适当的专业agent处理。你需要严格遵循以下规则：
                             
@@ -127,9 +130,9 @@ public class RoutingAgent {
             
             """;
 
-    private final String systemPrompt =  """
+    private final String systemPrompt1 =  """
             #角色(Role):
-            您是一个智能体路由,负责根据用户的输入指令分发给合适的工具进行处理。
+            您是一个智能助手,负责根据用户的输入指令进行相关操作。
             
             # 配置(Profile):
             - author: 伊凡Ivan
@@ -138,7 +141,7 @@ public class RoutingAgent {
             - description: 根据用户的输入指令进行相关操作。
             
             ##功能(Skills):
-            - 根据用户输入的指令，调用合适的工具处理并返回结果给用户
+            - 根据用户输入的指令，调用合适的函数处理并返回结果给用户
                         
             ##规则约束(Constrains):
             - 不要对用户输入的指令进行任何修改
@@ -149,6 +152,7 @@ public class RoutingAgent {
     public ChatResult call(ChatMessage chatMessage) {
         buildChatMessage(chatMessage);
 
+        //ChatResult distributionResult =  distributionAgent(chatMessage);
         ChatResult distributionResult =  chatService.chat(chatMessage);
 
         return distributionResult;
@@ -157,10 +161,58 @@ public class RoutingAgent {
     public Flux<ChatResult> stream(ChatMessage chatMessage) {
         buildChatMessage(chatMessage);
 
+        //Flux<ChatResult> distributionResult = streamDistributionAgent(chatMessage);
         Flux<ChatResult> distributionResult =  chatService.steamChat(chatMessage)
                 .flatMap(chatResult -> {
-                    log.info("sessionId:{}, routing agent action stream request:{}, result：{}", chatMessage.getSessionId(), chatMessage.getUserMessage(), chatResult.getContent());
+                    log.info("sessionId:{}, agent router action stream request:{}, result：{}", chatMessage.getSessionId(), chatMessage.getUserMessage(), chatResult.getContent());
                     return Flux.just(chatResult);
+                });
+
+        return distributionResult;
+    }
+
+
+    private ChatResult distributionAgent(ChatMessage chatMessage) {
+        AgentRequest agentRequest = new AgentRequest();
+        agentRequest.setTargetAgent(chatMessage.getAgent());
+        agentRequest.setOriginalInput(chatMessage.getUserMessage());
+        chatMessage.setUserMessage(JSON.toJSONString(agentRequest));
+
+        ChatResult distributionResult =  chatService.chat(chatMessage);
+        String distributionContent = distributionResult.getContent();
+        if (distributionContent.contains("targetAgent")) {
+            agentRequest = JSON.parseObject(distributionContent, AgentRequest.class);
+            chatMessage.setAgent(agentRequest.getTargetAgent());
+            chatMessage.setUserMessage(agentRequest.getOriginalInput());
+
+            log.info("sessionId:{}, agent router distribution request:{}, result：{}", chatMessage.getSessionId(), chatMessage.getUserMessage(), distributionContent);
+            return distributionAgent(chatMessage);
+        } else {
+            log.info("sessionId:{}, agent router action request:{}, result：{}", chatMessage.getSessionId(), chatMessage.getUserMessage(), distributionResult.getContent());
+            return distributionResult;
+        }
+    }
+
+    private Flux<ChatResult> streamDistributionAgent(ChatMessage chatMessage) {
+        AtomicReference<AgentRequest> agentRequest = new AtomicReference<>(new AgentRequest());
+        agentRequest.get().setTargetAgent(chatMessage.getAgent());
+        agentRequest.get().setOriginalInput(chatMessage.getUserMessage());
+        chatMessage.setUserMessage(JSON.toJSONString(agentRequest));
+
+        Flux<ChatResult> distributionResult =  chatService.steamChat(chatMessage)
+                .flatMap(chatResult -> {
+                    String distributionContent = chatResult.getContent();
+                    if (distributionContent.contains("targetAgent")) {
+                        agentRequest.set(JSON.parseObject(distributionContent, AgentRequest.class));
+                        chatMessage.setAgent(agentRequest.get().getTargetAgent());
+                        chatMessage.setUserMessage(agentRequest.get().getOriginalInput());
+
+                        log.info("sessionId:{}, agent router distribution stream request:{}, result：{}", chatMessage.getSessionId(), chatMessage.getUserMessage(), distributionContent);
+                        return streamDistributionAgent(chatMessage);
+                    } else {
+                        log.info("sessionId:{}, agent router action stream request:{}, result：{}", chatMessage.getSessionId(), chatMessage.getUserMessage(), chatResult.getContent());
+                        return Flux.just(chatResult);
+                    }
                 });
 
         return distributionResult;
@@ -170,21 +222,22 @@ public class RoutingAgent {
         // 如果启用Agent则获取Agent的bean
         if (chatMessage.getEnableAgent()) {
             // 构建系统角色提示词
-            chatMessage.setSystemMessage(systemPrompt);
+            chatMessage.setSystemMessage(systemPrompt1);
 
             // 获取带有Agent注解的bean
             Map<String, Object> beansWithAnnotation = applicationContext.getBeansWithAnnotation(ToolAgent.class);
-//            List<String> functionBeanNames = beansWithAnnotation.keySet().stream().toList();
-//            List<String> inputFunctions = Optional.ofNullable(chatMessage.getFunctions()).orElse(Lists.newArrayList());
-//            List<String> functions = CollectionUtils.union(inputFunctions, functionBeanNames).stream().toList();
+            List<String> toolBeanNames = beansWithAnnotation.keySet().stream().toList();
+            List<String> inputFunctions = Optional.ofNullable(chatMessage.getToolNames()).orElse(Lists.newArrayList());
+            List<String> functions = CollectionUtils.union(inputFunctions, toolBeanNames).stream().toList();
+            chatMessage.setToolNames(functions);
 
-            List<ToolCallback> toolCallbacks = new ArrayList<>();
-            for (Map.Entry<String, Object> entry : beansWithAnnotation.entrySet()) {
-                if (entry.getValue() instanceof ToolCallback) {
-                    toolCallbacks.add((ToolCallback) entry.getValue());
-                }
-            }
-            chatMessage.setToolCallBacks(toolCallbacks);
+//            List<ToolCallback> toolCallbacks = new ArrayList<>();
+//            for (Map.Entry<String, Object> entry : beansWithAnnotation.entrySet()) {
+//                if (entry.getValue() instanceof ToolCallback) {
+//                    toolCallbacks.add((ToolCallback) entry.getValue());
+//                }
+//            }
+//            chatMessage.setToolCallBacks(toolCallbacks);
         }
     }
 }

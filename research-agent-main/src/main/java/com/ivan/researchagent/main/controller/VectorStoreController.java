@@ -25,7 +25,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/vector")
 @CrossOrigin(origins = "*") // 支持所有来源的跨域请求
-@Tag(name = "向量存储控制器", description = "向量存储控制器")
+//@Tag(name = "向量存储控制器", description = "向量存储控制器")
 public class VectorStoreController {
 
     @Resource
@@ -34,20 +34,20 @@ public class VectorStoreController {
     @Resource
     RerankModel rerankModel;
 
-    @PostMapping("store")
-    @Operation(summary = "存储", description = "存储向量数据")
+    @PostMapping("/store")
+//    @Operation(summary = "存储", description = "存储向量数据")
     public void store(@RequestBody VectorStoreData vectorStoreData) {
         vectorStore.add(List.of(new Document(vectorStoreData.getContent(), vectorStoreData.getMetadata())));
     }
 
-    @PostMapping("update")
-    @Operation(summary = "更新", description = "更新向量数据")
+    @PostMapping("/update")
+//    @Operation(summary = "更新", description = "更新向量数据")
     public void update(@RequestBody VectorStoreData vectorStoreData) {
         vectorStore.accept(List.of(new Document(vectorStoreData.getId(), vectorStoreData.getContent(), vectorStoreData.getMetadata())));
     }
 
-    @PostMapping("delete")
-    @Operation(summary = "删除", description = "删除向量数据")
+    @PostMapping("/delete")
+//    @Operation(summary = "删除", description = "删除向量数据")
     public void delete(@RequestBody VectorStoreData vectorStoreData) {
         vectorStore.delete(List.of(vectorStoreData.getId()));
     }

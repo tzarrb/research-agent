@@ -167,7 +167,7 @@ const sendMessage = async () => {
   })
 
   try {
-    const response = await fetch(`http://localhost:8081/research-agent/ai/chat/sse/chat?userMessage=${encodeURIComponent(message)}&enableLocal=${useLocal.value}&enableWeb=${useWeb.value}`, {
+    const response = await fetch(`http://localhost:18080/research-agent/ai/chat/sse/chat?userMessage=${encodeURIComponent(message)}&enableLocal=${useLocal.value}&enableWeb=${useWeb.value}`, {
       headers: {
         'Accept': 'text/event-stream',
         'sessionId': conversantId.value

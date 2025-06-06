@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.mcp.AsyncMcpToolCallbackProvider;
+import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
@@ -39,7 +40,7 @@ import java.util.List;
         allowedHeaders = "*",
         exposedHeaders = {"sessionId"} // 暴露自定义Header
 )
-@Tag(name = "聊天体控制器", description = "聊天体控制器")
+//@Tag(name = "聊天体控制器", description = "聊天体控制器")
 public class ChatController {
 
     private final String systemPrompt =  """
@@ -60,7 +61,7 @@ public class ChatController {
     }
 
     @GetMapping("")
-    @Operation(summary = "聊天", description = "返回聊天消息")
+//    @Operation(summary = "聊天", description = "返回聊天消息")
     public String chat(@RequestBody ChatMessage chatMessage, HttpServletRequest request, HttpServletResponse response) {
 
         String sessionId = chatMessage.getSessionId();
@@ -75,8 +76,8 @@ public class ChatController {
         return chatResult.getContent();
     }
 
-    @GetMapping("chat")
-    @Operation(summary = "聊天", description = "返回聊天消息")
+    @GetMapping("/chat")
+    @Operation(summary = "聊天-简单参数", description = "返回聊天消息")
     public String chatGet(@RequestParam String userMessage, HttpServletRequest request, HttpServletResponse response) {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setProvider("dashscope");
@@ -88,9 +89,9 @@ public class ChatController {
         chatMessage.setEnableAgent(false);
         chatMessage.setEnableLocal(true);
 
-//        AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
-//        //SyncMcpToolCallbackProvider toolCallbackProvider = new SyncMcpToolCallbackProvider(mcpSyncClients);
-//        chatMessage.setToolCallbackProviders(Lists.newArrayList(toolCallbackProvider));
+        AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
+        //SyncMcpToolCallbackProvider toolCallbackProvider = new SyncMcpToolCallbackProvider(mcpSyncClients);
+        chatMessage.setToolCallbackProviders(Lists.newArrayList(toolCallbackProvider));
 
         String sessionId = request.getHeader(Constant.SESSION_ID);
         chatMessage.setSessionId(sessionId);
@@ -101,11 +102,11 @@ public class ChatController {
     }
 
     @GetMapping("/stream")
-    @Operation(summary = "流式聊天", description = "返回流式聊天消息")
-    public Flux<String> streamChat(@RequestParam ChatMessage chatMessage, HttpServletRequest request, HttpServletResponse response) {
-//        AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
-//        //SyncMcpToolCallbackProvider toolCallbackProvider = new SyncMcpToolCallbackProvider(mcpSyncClients);
-//        chatMessage.setToolCallbackProviders(Lists.newArrayList(toolCallbackProvider));
+//    @Operation(summary = "流式聊天", description = "返回流式聊天消息")
+    public Flux<String> streamChat(@RequestBody ChatMessage chatMessage, HttpServletRequest request, HttpServletResponse response) {
+        AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
+        //SyncMcpToolCallbackProvider toolCallbackProvider = new SyncMcpToolCallbackProvider(mcpSyncClients);
+        chatMessage.setToolCallbackProviders(Lists.newArrayList(toolCallbackProvider));
 
         String sessionId = request.getHeader(Constant.SESSION_ID);
         chatMessage.setSessionId(sessionId);
@@ -120,7 +121,7 @@ public class ChatController {
     }
 
     @GetMapping("/stream/chat")
-    @Operation(summary = "流式聊天", description = "返回流式聊天消息")
+//    @Operation(summary = "流式聊天-简单参数", description = "返回流式聊天消息")
     public Flux<String> steamChatGet(@RequestParam String userMessage, HttpServletRequest request, HttpServletResponse response) {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setProvider("dashscope");
@@ -131,9 +132,9 @@ public class ChatController {
         chatMessage.setEnableStream(true);
         chatMessage.setEnableAgent(false);
 
-//        AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
-//        //SyncMcpToolCallbackProvider toolCallbackProvider = new SyncMcpToolCallbackProvider(mcpSyncClients);
-//        chatMessage.setToolCallbackProviders(Lists.newArrayList(toolCallbackProvider));
+        AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
+        //SyncMcpToolCallbackProvider toolCallbackProvider = new SyncMcpToolCallbackProvider(mcpSyncClients);
+        chatMessage.setToolCallbackProviders(Lists.newArrayList(toolCallbackProvider));
 
         String sessionId = request.getHeader(Constant.SESSION_ID);
         chatMessage.setSessionId(sessionId);
@@ -149,7 +150,7 @@ public class ChatController {
 
 
     @GetMapping("/sse/chat")
-    @Operation(summary = "流式聊天", description = "返回流式聊天消息")
+//    @Operation(summary = "SSE流式聊天", description = "返回流式聊天消息")
     public SseEmitter sseChatGet(UserInputVO userInput, HttpServletRequest request, HttpServletResponse response) {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setSystemMessage(systemPrompt);
@@ -158,6 +159,7 @@ public class ChatController {
         chatMessage.setEnableLocal(userInput.getEnableLocal());
         chatMessage.setEnableMemory(true);
         chatMessage.setEnableStream(true);
+        chatMessage.setEnableFormat(false);
         chatMessage.setEnableAgent(false);
 
         AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);

@@ -1,4 +1,4 @@
-package com.ivan.researchagent.springai.agent.model.func.doctor;
+package com.ivan.researchagent.springai.agent.model.tool.doctor;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;

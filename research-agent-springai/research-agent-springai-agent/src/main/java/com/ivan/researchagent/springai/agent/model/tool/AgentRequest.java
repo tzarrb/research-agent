@@ -1,4 +1,4 @@
-package com.ivan.researchagent.springai.agent.model.func;
+package com.ivan.researchagent.springai.agent.model.tool;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;

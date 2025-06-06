@@ -43,6 +43,9 @@ public class ChatMessage implements Serializable {
     @JsonPropertyDescription("是否流式对话方法")
     private Boolean enableStream = false;
 
+    @JsonPropertyDescription("是否格式化输出")
+    private Boolean enableFormat = false;
+
     @JsonPropertyDescription("是否使用智能体")
     private Boolean enableAgent = false;
 
@@ -55,11 +58,11 @@ public class ChatMessage implements Serializable {
     @JsonPropertyDescription("对话会话ID，也是对话记忆的唯一标识")
     private String sessionId;
 
-    @JsonPropertyDescription("大模型调用函数")
-    private List<String> functions;
-
     @JsonPropertyDescription("大模型调用工具")
     private List<Object> tools;
+
+    @JsonPropertyDescription("大模型调用工具名称")
+    private List<String> toolNames;
 
     @JsonPropertyDescription("大模型调用工具回调")
     private List<ToolCallback> toolCallBacks;

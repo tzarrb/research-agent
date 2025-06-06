@@ -1,4 +1,4 @@
-package com.ivan.researchagent.springai.agent.agentic.toolagent;
+package com.ivan.researchagent.springai.agent.agentic.tool;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;

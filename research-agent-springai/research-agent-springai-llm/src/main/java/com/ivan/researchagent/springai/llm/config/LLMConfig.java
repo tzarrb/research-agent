@@ -22,4 +22,5 @@ public class LLMConfig {
 
     @Value("${custom.ai.model:qwen-max}")
     private String defaultModel;
+
 }

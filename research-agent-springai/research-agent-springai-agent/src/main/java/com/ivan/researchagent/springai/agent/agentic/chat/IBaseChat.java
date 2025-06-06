@@ -1,4 +1,4 @@
-package com.ivan.researchagent.springai.agent.chat;
+package com.ivan.researchagent.springai.agent.agentic.chat;
 
 import com.ivan.researchagent.springai.llm.model.ChatMessage;
 import com.ivan.researchagent.springai.llm.model.ChatResult;

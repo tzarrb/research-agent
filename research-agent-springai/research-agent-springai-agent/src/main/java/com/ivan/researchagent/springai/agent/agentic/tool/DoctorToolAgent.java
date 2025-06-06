@@ -1,34 +1,36 @@
-package com.ivan.researchagent.springai.agent.agentic.funcagent;
+package com.ivan.researchagent.springai.agent.agentic.tool;
 
 import com.alibaba.fastjson.JSON;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.google.common.collect.Lists;
+import com.ivan.researchagent.springai.agent.anno.ToolAgent;
+import com.ivan.researchagent.springai.agent.tool.DoctorTools;
 import com.ivan.researchagent.common.constant.Constant;
-import com.ivan.researchagent.springai.agent.anno.FuncAgent;
-import com.ivan.researchagent.springai.agent.model.func.AgentRequest;
+import com.ivan.researchagent.springai.llm.model.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.ChatResult;
+import com.ivan.researchagent.springai.llm.service.ChatService;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.ToolContext;
-import org.springframework.context.annotation.Description;
-
-import java.util.LinkedHashMap;
-import java.util.List;
+import org.springframework.ai.tool.definition.ToolDefinition;
 
 /**
- * Copyright (c) 2024 Ivan, Inc.
+ * Copyright (c) 2024 research-agent.
  * All Rights Reserved.
- * Choice Proprietary and Confidential.
  *
+ * @version 1.0
+ * @description:
  * @author: ivan
- * @since: 2025/1/4 15:13
- */
+ * @since: 2025/4/7/周一
+ **/
 @Slf4j
-@FuncAgent
-@Description("提供根据手机号或姓名查询医生信息并可以对信息进行操作管理功能的智能体")
-public class DoctorFuncAgent extends AbstractFuncAgent<LinkedHashMap<String, String>, ToolContext, String> {
+@ToolAgent
+public class DoctorToolAgent extends AbstractToolAgent {
+
+    @Resource
+    private ChatService chatService;
+
+    @Resource
+    private DoctorTools doctorTools;
 
     private final String systemPrompt =  """
             #角色(Role):
@@ -257,29 +259,35 @@ public class DoctorFuncAgent extends AbstractFuncAgent<LinkedHashMap<String, Str
             
     """;
 
-
-
-    @NotNull
     @Override
-    public String apply(@NotNull LinkedHashMap<String, String> request, @NotNull ToolContext toolContext)  {
-        AgentRequest agentRequest = JSON.parseObject(JSON.toJSONString(request), AgentRequest.class);
-        String input = agentRequest.getOriginalInput();
-        ChatClient.ChatClientRequestSpec requestSpec = buildRequestSpec(input, systemPromptClaude, toolContext);
-        ChatResponse response = requestSpec.call().chatResponse();
-        String content = response.getResult().getOutput().getText();
-
-        String sessionId = (String) toolContext.getContext().get(Constant.CONVERSANT_ID);
-        log.info("sessionId:{}, agent request:{}, response: {}", sessionId, JSON.toJSONString(request), content);
-        return content;
+    public ToolDefinition getToolDefinition() {
+        ToolDefinition toolDefinition = ToolDefinition.builder()
+                .name("DoctorToolAgent")
+                .description("医生信息的查询、删除、更新、创建等管理功能的智能体")
+                .inputSchema("""
+                    {
+                        "type": "string",
+                        "required": true
+                    }
+                """)
+                .build();
+        return toolDefinition;
     }
 
     @Override
-    List<String> getFunctions() {
-        return Lists.newArrayList("queryDoctorFunction", "operateDoctorFunction", "updateDoctorFunction");
-    }
+    public String call(String toolInput, ToolContext toolContext) {
+        String conversantId = (String)toolContext.getContext().get(Constant.CONVERSANT_ID);
+        String originalInput = (String)toolContext.getContext().get(Constant.ORIGINAL_INPUT);
+        ChatMessage chatMessage = JSON.parseObject(JSON.toJSONString(toolContext.getContext().get(Constant.CHAT_MESSAGE)), ChatMessage.class);
 
-    public record Request(
-            @JsonProperty(required = true) @JsonPropertyDescription(value = "用户原始的输入指令") String input) {
-    }
+        chatMessage.setEnableAgent(false);
+        chatMessage.setUserMessage(originalInput);
+        chatMessage.setSystemMessage(systemPromptClaude);
+        chatMessage.setTools(Lists.newArrayList(doctorTools));
+        chatMessage.setToolCallBacks(null);
+        ChatResult chatResult = chatService.chat(chatMessage);
 
+        log.info("sessionId:{}, doctorToolAgent request:{}, response: {}", conversantId, JSON.toJSONString(originalInput), chatResult.getContent());
+        return chatResult.getContent();
+    }
 }

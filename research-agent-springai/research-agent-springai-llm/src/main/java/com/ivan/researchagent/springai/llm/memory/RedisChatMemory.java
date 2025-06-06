@@ -30,6 +30,11 @@ public class RedisChatMemory implements ChatMemory {
     }
 
     @Override
+    public void add(String conversationId, Message message) {
+        ChatMemory.super.add(conversationId, message);
+    }
+
+    @Override
     public void add(String conversationId, List<Message> messages) {
         String redisKey = String.format(Constant.KEY_CHAT_MEMORY, conversationId);
         log.debug("Adding {} messages to memoryId: {}", messages.size(), conversationId);
@@ -58,6 +63,10 @@ public class RedisChatMemory implements ChatMemory {
     }
 
     @Override
+    public List<Message> get(String conversationId) {
+        return get(conversationId, 100);
+    }
+
     public List<Message> get(String conversationId, int lastN) {
         String redisKey = String.format(Constant.KEY_CHAT_MEMORY, conversationId);
         log.debug("Getting last {} messages for memoryId: {}", lastN, conversationId);

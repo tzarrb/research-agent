@@ -52,16 +52,9 @@ public class Swagger3Config {
                 .license(license)                                  // 设置联系人信息
                 .contact(contact);                                 // 授权许可信息
         // 返回信息
-//        return new OpenAPI()
-//                .openapi("3.0.1")  // Open API 3.0.1(默认)
-//                .info(info);       // 配置Swagger3.0描述信息
-
         return new OpenAPI()
-                .openapi("3.1.0")
-                .info(new Info()
-                        .title("API 文档")
-                        .version("1.0")
-                        .description("示例项目"));
+                .openapi("3.0.1")  // Open API 3.0.1(默认)
+                .info(info);       // 配置Swagger3.0描述信息
 
     }
 

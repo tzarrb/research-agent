@@ -1,12 +1,9 @@
 package com.ivan.researchagent.main.controller;
 
-import com.ivan.researchagent.springai.agent.router.AgentRouter;
-import com.ivan.researchagent.springai.agent.router.RoutingAgent;
+import com.ivan.researchagent.springai.agent.agentic.router.RoutingAgent;
 import com.ivan.researchagent.springai.llm.model.ChatMessage;
 import com.ivan.researchagent.springai.llm.model.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,21 +26,18 @@ import reactor.core.publisher.Flux;
 @RestController
 @RequestMapping("/agent")
 @CrossOrigin(origins = "*") // 支持所有来源的跨域请求
-@Tag(name = "智能体控制器", description = "智能体控制器")
+//@Tag(name = "智能体控制器", description = "智能体控制器")
 public class AgentController {
 
     @Resource
     private ChatService chatService;
 
     @Resource
-    private AgentRouter agentRouter;
-
-    @Resource
     private RoutingAgent routingAgent;
 
 
     @GetMapping("")
-    @Operation(summary = "聊天", description = "返回聊天消息")
+//    @Operation(summary = "聊天", description = "返回聊天消息")
     public String chat(@RequestBody ChatMessage chatMessage, HttpServletRequest request, HttpServletResponse response) {
 
         String sessionId = chatMessage.getSessionId();
@@ -59,7 +53,7 @@ public class AgentController {
     }
 
     @GetMapping("/chat")
-    @Operation(summary = "聊天", description = "返回聊天消息")
+//    @Operation(summary = "聊天-简单参数", description = "返回聊天消息")
     public String chatMessage(String userMessage, HttpServletRequest request, HttpServletResponse response) {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setProvider("dashscope");
@@ -79,7 +73,7 @@ public class AgentController {
     }
 
     @GetMapping("/stream")
-    @Operation(summary = "流式聊天", description = "返回流式聊天消息")
+//    @Operation(summary = "流式聊天", description = "返回流式聊天消息")
     public Flux<String> streamChat(@RequestBody ChatMessage chatMessage, HttpServletRequest request, HttpServletResponse response) {
 
         String sessionId = chatMessage.getSessionId();
@@ -99,7 +93,7 @@ public class AgentController {
 
     //@GetMapping(value = "/stream/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8")
     @GetMapping(value = "/stream/chat")
-    @Operation(summary = "流式聊天", description = "返回流式聊天消息")
+//    @Operation(summary = "流式聊天-简单参数", description = "返回流式聊天消息")
     public Flux<String> streamChatGet(String userMessage, HttpServletRequest request, HttpServletResponse response) {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setProvider("dashscope");

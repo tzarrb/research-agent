@@ -1,68 +1,28 @@
-package com.ivan.researchagent.springai.agent.agentic.funcagent;
+package com.ivan.researchagent.springai.agent.agentic.tool;
 
 import com.alibaba.fastjson.JSON;
+import com.ivan.researchagent.springai.agent.anno.ToolAgent;
 import com.ivan.researchagent.common.constant.Constant;
-import com.ivan.researchagent.springai.agent.anno.FuncAgent;
-import com.ivan.researchagent.springai.agent.model.func.AgentRequest;
+import com.ivan.researchagent.springai.llm.model.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.ChatResult;
+import com.ivan.researchagent.springai.llm.service.ChatService;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.ToolContext;
-import org.springframework.context.annotation.Description;
-
-import java.util.LinkedHashMap;
-import java.util.List;
+import org.springframework.ai.tool.definition.ToolDefinition;
 
 /**
- * Copyright (c) 2024 Ivan, Inc.
+ * Copyright (c) 2024 research-agent.
  * All Rights Reserved.
- * Choice Proprietary and Confidential.
  *
+ * @version 1.0
+ * @description:
  * @author: ivan
- * @since: 2025/1/4 23:42
- */
+ * @since: 2025/4/7/周一
+ **/
 @Slf4j
-@FuncAgent
-@Description("提供医疗咨询诊断和问答的智能体")
-public class MedicalFuncAgent extends AbstractFuncAgent<LinkedHashMap<String, String>, ToolContext, String> {
-
-    private final String systemPrompt1 =  """
-            你是一个专业的医疗智能体，拥有广泛的医学知识，包括但不限于解剖学、生理学、病理学、药理学、诊断学、治疗学等。你的目标是为用户提供准确、可靠、易懂的医疗咨询、初步诊断建议和健康信息。
-                                                 
-             你需要遵循以下原则：
-             1. **严谨性：** 提供的所有信息必须基于可靠的医学文献和指南，避免使用未经证实的疗法或信息。
-             2. **安全性：** 始终强调你的建议仅为参考，不能替代专业医生的诊断和治疗。 强烈建议用户在做出任何医疗决策前咨询医生。
-             3. **同理心：** 以友好的态度与用户交流，理解他们的担忧和痛苦，提供支持和鼓励。
-             4. **清晰性：** 使用简洁明了的语言解释医学概念，避免使用晦涩的术语。
-             5. **保密性：** 严格保护用户提供的个人信息和病史。
-             
-             你的能力包括：
-             *   **回答用户关于疾病、症状、治疗方法、药物等方面的问题。**
-             *   **根据用户描述的症状，提供初步的诊断建议和可能的病因。** （强调这只是初步建议，不能作为最终诊断）
-             *   **提供健康生活方式的建议，包括饮食、运动、睡眠、心理健康等方面。**
-             *   **解释医学检查报告和化验单。** （仅限于解释，不能进行最终诊断）
-             *   **提供就医指导，包括如何选择合适的科室和医生。**
-             *   **提供常用医学术语的解释。**
-             
-             你需要避免：
-             *   **进行最终的医学诊断。**
-             *   **开处方或推荐具体的药物。**
-             *   **提供紧急医疗建议。** （例如，对于急性胸痛、呼吸困难等症状，应立即拨打急救电话）
-             *   **讨论有争议的医学话题。**
-             
-             当用户向你提问时，请按照以下步骤进行：
-             1. **理解用户的问题。**
-             2. **根据你的医学知识，提供准确、全面的回答。**
-             3. **强调你的建议仅为参考，不能替代专业医生的诊断和治疗。**
-             4. **鼓励用户咨询医生以获得更专业的帮助。**
-             
-             例如，当用户问“我最近总是头痛，可能是什么原因？”时，你的回答应类似：
-             “头痛的原因有很多，例如感冒、压力、睡眠不足、偏头痛等。根据您描述的症状，我无法做出准确的诊断。建议您及时就医，让医生进行详细检查，以确定病因并接受相应的治疗。同时，您可以注意休息，保持规律的作息，避免过度劳累。”
-             
-             请记住，你的目标是成为一个有用的医疗信息提供者，而不是替代医生。
-                        
-            """;
-
+@ToolAgent
+public class MedicalToolAgent extends AbstractToolAgent {
 
     private final String systemPrompt =  """
             你是一个专业的医疗咨询助手，由顶尖的医疗AI团队训练而成。你需要始终遵循以下原则和指导：
@@ -156,21 +116,37 @@ public class MedicalFuncAgent extends AbstractFuncAgent<LinkedHashMap<String, St
                         
             """;
 
+    @Resource
+    private ChatService chatService;
+
     @Override
-    List<String> getFunctions() {
-        return null;
+    public ToolDefinition getToolDefinition() {
+        ToolDefinition toolDefinition = ToolDefinition.builder()
+                .name("MedicalToolAgent")
+                .description("提供医疗咨询诊断和问答的智能体")
+                .inputSchema("""
+                    {
+                        "type": "string", 
+                        "required": true
+                    }
+                """)
+                .build();
+        return toolDefinition;
     }
 
     @Override
-    public String apply(LinkedHashMap<String, String> request, ToolContext toolContext) {
-        AgentRequest agentRequest = JSON.parseObject(JSON.toJSONString(request), AgentRequest.class);
-        String input = agentRequest.getOriginalInput();
-        ChatClient.ChatClientRequestSpec requestSpec = buildRequestSpec(input, systemPrompt, toolContext);
-        ChatResponse response = requestSpec.call().chatResponse();
-        String content = response.getResult().getOutput().getText();
+    public String call(String toolInput, ToolContext toolContext) {
+        String conversantId = (String)toolContext.getContext().get(Constant.CONVERSANT_ID);
+        String originalInput = (String)toolContext.getContext().get(Constant.ORIGINAL_INPUT);
+        ChatMessage chatMessage = JSON.parseObject(JSON.toJSONString(toolContext.getContext().get(Constant.CHAT_MESSAGE)), ChatMessage.class);
 
-        String sessionId = (String) toolContext.getContext().get(Constant.CONVERSANT_ID);
-        log.info("sessionId:{}, agent request:{}, response: {}", sessionId, JSON.toJSONString(request), content);
-        return content;
+        chatMessage.setEnableAgent(false);
+        chatMessage.setUserMessage(originalInput);
+        chatMessage.setSystemMessage(systemPrompt);
+        chatMessage.setToolCallBacks(null);
+        ChatResult chatResult = chatService.chat(chatMessage);
+
+        log.info("sessionId:{}, medicalToolAgent request:{}, response: {}", conversantId, JSON.toJSONString(originalInput), chatResult.getContent());
+        return chatResult.getContent();
     }
 }

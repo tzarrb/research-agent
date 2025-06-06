@@ -2,9 +2,9 @@ package com.ivan.researchagent.springai.agent.tool;
 
 import com.ivan.researchagent.springai.agent.anno.ToolWarpper;
 import com.ivan.researchagent.springai.agent.model.bo.doctor.DoctorInfoBO;
-import com.ivan.researchagent.springai.agent.model.func.doctor.DoctorOperateRequest;
-import com.ivan.researchagent.springai.agent.model.func.doctor.DoctorQueryRequest;
-import com.ivan.researchagent.springai.agent.model.func.doctor.DoctorUpdateRequest;
+import com.ivan.researchagent.springai.agent.model.tool.doctor.DoctorOperateRequest;
+import com.ivan.researchagent.springai.agent.model.tool.doctor.DoctorQueryRequest;
+import com.ivan.researchagent.springai.agent.model.tool.doctor.DoctorUpdateRequest;
 import com.ivan.researchagent.springai.agent.service.doctor.DoctorService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;

@@ -21,22 +21,22 @@ import java.util.List;
  * @since: 2024/12/02 17:22
  **/
 @RestController
-@RequestMapping("/function")
+@RequestMapping("/tool")
 @CrossOrigin(origins = "*")
-public class FunctionController {
+public class ToolController {
 
     @jakarta.annotation.Resource
     private ChatService chatService;
 
     @GetMapping("/provider-by-mobile")
     public DoctorInfoBO getProviderByMobile(String input) {
-        DoctorInfoBO doctorInfoBO = chatService.functionChatObject(input, Lists.newArrayList("getProviderByMobileFunction"), DoctorInfoBO.class);
+        DoctorInfoBO doctorInfoBO = chatService.toolChatObject(input, Lists.newArrayList("getProviderByMobileFunction"), DoctorInfoBO.class);
         return doctorInfoBO;
     }
 
     @GetMapping("/provider-by-name")
     public List<DoctorInfoBO> listProviderByName(String input) {
-        return chatService.functionChatArray(input, Lists.newArrayList("listProviderByNameFunction"));
+        return chatService.toolChatArray(input, Lists.newArrayList("listProviderByNameFunction"));
     }
 
 }

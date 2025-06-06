@@ -11,3 +11,39 @@ services:
       - POSTGRES_PASSWORD=123456
     volumes:
       - E:\WorkFiles\docker\pgvector\data:/var/lib/postgresql/data
+
+  nacos:
+    image: nacos/nacos-server:v3.0.0
+    container_name: nacos3
+    restart: "always" # 容器总是重启，可选值：no / on-failure[:max-retries] / always / unless-stopped
+    privileged: false
+    ports:
+      - 8080:8080
+      - 8848:8848
+      - 9848:9848
+      - 9849:9849
+    volumes:
+      - E:\WorkFiles\nacos\conf:/home/nacos/conf
+      - E:\WorkFiles\nacos\logs:/home/nacos/logs
+    environment:
+      - TZ=Asia/Shanghai
+      - MODE=standalone
+      - PREFER_HOST_MODE=hostname
+      - SPRING_DATASOURCE_PLATFORM=mysql
+      - MYSQL_SERVICE_HOST=host.docker.internal
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_DB_NAME=nacos
+      - MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=TRUE
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=123456
+      - NACOS_AUTH_ENABLE=false    #打开鉴权开关
+      - NACOS_AUTH_SYSTEM_TYPE=nacos  #鉴权类型
+      - NACOS_AUTH_TOKEN=VGhpc0lzTXlDdXN0b21TZWNyZXRLZXkwMTIzNDU2Nzg=
+      - NACOS_AUTH_IDENTITY_KEY=nacos
+      - NACOS_AUTH_IDENTITY_VALUE=nacos
+      - JVM_XMS=256m
+      - JVM_XMX=512m
+      - JVM_XMN=256m
+networks:
+  test-net:
+    external: true

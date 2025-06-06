@@ -1,4 +1,4 @@
-package com.ivan.researchagent.springai.agent.model.func;
+package com.ivan.researchagent.springai.agent.model.tool;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;

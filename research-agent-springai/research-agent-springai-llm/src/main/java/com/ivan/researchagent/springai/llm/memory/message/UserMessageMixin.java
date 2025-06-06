@@ -2,7 +2,8 @@ package com.ivan.researchagent.springai.llm.memory.message;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.ai.model.Media;
+import org.springframework.ai.content.Media;
+
 
 import java.util.Collection;
 import java.util.Map;

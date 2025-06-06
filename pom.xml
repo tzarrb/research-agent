@@ -5,14 +5,16 @@
 
     <groupId>com.ivan.ai</groupId>
     <artifactId>research-agent</artifactId>
+    <version>${research-agent.version}</version>
     <packaging>pom</packaging>
-    <version>0.0.1-SNAPSHOT</version>
     <name>research-agent</name>
-    <description>research-agent</description>
+    <description>Research Agent, Make AI smarter and more usable</description>
 
     <modules>
         <module>research-agent-common</module>
         <module>research-agent-springai</module>
+        <module>research-agent-springai/research-agent-springai-llm</module>
+        <module>research-agent-springai/research-agent-springai-agent</module>
         <module>research-agent-langchain</module>
         <module>research-agent-plugin</module>
         <module>research-agent-main</module>
@@ -30,17 +32,18 @@
         <spring-cloud.version>2023.0.1</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
 
-        <spring-ai.version>1.0.0-M6</spring-ai.version>
-        <spring-ai-alibaba.version>1.0.0-M6.1</spring-ai-alibaba.version>
-        <spring-ai-mcp.version>0.1.0</spring-ai-mcp.version>
-
+        <spring-ai.version>1.0.0</spring-ai.version>
+        <spring-ai-alibaba.version>1.0.0.2</spring-ai-alibaba.version>
         <langchain4j.version>1.0.0</langchain4j.version>
+
+        <spring-ai-mcp.version>0.1.0</spring-ai-mcp.version>
         <agents-flex.version>1.0.0-rc.3</agents-flex.version>
         <deepseek-spring-boot.version>1.4.3</deepseek-spring-boot.version>
 
         <amazon-awssdk-auth.version>2.23.9</amazon-awssdk-auth.version>
         <javacv-platform.version>1.5.9</javacv-platform.version>
         <pinecone.version>3.0.0</pinecone.version>
+        <jedis.version>5.2.0</jedis.version>
 
         <h2.version>1.4.200</h2.version>
         <commons-collections.version>3.2.2</commons-collections.version>
@@ -49,23 +52,12 @@
         <logback.version>1.5.8</logback.version>
 
         <swagger.version>2.9.2</swagger.version>
+        <knife4j.version>4.4.0</knife4j.version>
         <springdoc-openapi.version>2.5.0</springdoc-openapi.version>
     </properties>
 
     <dependencies>
         <!-- springboot依赖项... start -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jdbc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jdbc</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -78,6 +70,19 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
 
 <!--        <dependency>-->
@@ -125,6 +130,10 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
         </dependency>
     </dependencies>
 
@@ -192,15 +201,10 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <dependency>
-                <groupId>org.springframework.ai</groupId>
-                <artifactId>spring-ai-core</artifactId>
-                <version>${spring-ai.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>com.alibaba.cloud.ai</groupId>
-                <artifactId>spring-ai-alibaba-starter</artifactId>
+                <artifactId>spring-ai-alibaba-bom</artifactId>
                 <version>${spring-ai-alibaba.version}</version>
             </dependency>
             <!-- spring ai 依赖项... end -->
@@ -257,6 +261,11 @@
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
                 <version>${springdoc-openapi.version}</version>
             </dependency>
+<!--            <dependency>-->
+<!--                <groupId>com.github.xiaoymin</groupId>-->
+<!--                <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>-->
+<!--                <version>${knife4j.version}</version>-->
+<!--            </dependency>-->
             <!--  Swagger End -->
 
         </dependencies>
@@ -280,11 +289,20 @@
             </releases>
         </repository>
         <repository>
-            <id>sonatype-snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <id>sonatype</id>
+            <name>OSS Sonatype</name>
+            <url>https://oss.sonatype.org/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
+        </repository>
+        <repository>
+            <id>aliyunmaven</id>
+            <name>aliyun</name>
+            <url>https://maven.aliyun.com/repository/public</url>
         </repository>
     </repositories>
 
@@ -294,8 +312,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <release>${java.version}</release>
+                    <compilerArgs>
+                        <compilerArg>-parameters</compilerArg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>

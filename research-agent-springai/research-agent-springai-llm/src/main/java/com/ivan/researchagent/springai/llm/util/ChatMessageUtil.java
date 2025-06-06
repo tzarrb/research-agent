@@ -9,12 +9,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.messages.*;
-import org.springframework.ai.model.Media;
+import org.springframework.ai.content.Media;
 import org.springframework.util.MimeTypeUtils;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Copyright (c) 2024 Ivan, Inc.
@@ -37,10 +39,10 @@ public class ChatMessageUtil {
             switch (MessageType.fromValue(roleMessage.getRole())) {
                 case USER:
                     List<Media> mediaList = buildMedia(chatMessage.getMessageType(), roleMessage);
-                    UserMessage userMessage = new UserMessage(roleMessage.getContent(), mediaList);
+                    UserMessage userMessage = UserMessage.builder().text(roleMessage.getContent()).media(mediaList).build();
                     if (MessageTypeEnum.isMedia(chatMessage.getMessageType())) {
-                        MessageFormat messageFormat = MessageFormat.valueOf(chatMessage.getMessageType());
-                        userMessage.getMetadata().put(DashScopeChatModel.MESSAGE_FORMAT, messageFormat);
+//                        MessageFormat messageFormat = MessageFormat.valueOf(chatMessage.getMessageType());
+//                        userMessage.getMetadata().put(DashScopeChatModel.MESSAGE_FORMAT, messageFormat);
                     }
                     messages.add(userMessage);
                     break;
@@ -77,7 +79,7 @@ public class ChatMessageUtil {
             }
 
             for (String url : imgUrlList) {
-                mediaList.add(new Media(MimeTypeUtils.IMAGE_PNG, new URI(url).toURL()));
+                mediaList.add(new Media(MimeTypeUtils.IMAGE_PNG, new URI(url)));
             }
         } catch (Exception e) {
             log.error("buildMedia error", e);
