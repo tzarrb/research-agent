@@ -1,10 +1,7 @@
-# curl --location --request GET 'localhost:8080/research-agent/ai/agent/stream'
+# curl --location --request GET 'localhost:18080/research-agent/ai/agent/doctor'
 #--header 'Content-Type: application/json'
 #--data '{
-#    "llm":"deepseek",
-#    "model":"deepseek-chat",
-#    "stream":true,
-#    "memory":true,
+#    "enableStream":false,
 #    "sessionId":"",
 #    "messages":[
 #        {
@@ -14,16 +11,13 @@
 #    ]
 #}'
 
-GET localhost:8081/research-agent/ai/agent/stream
+GET localhost:18080/research-agent/ai/agent/doctor
 Content-Type: application/json; charset=UTF-8
 Accept-Language: zh-CN
 
-
 {
-  "llm": "deepseek",
-  "model": "deepseek-chat",
-  "stream": true,
-  "memory": true,
+  "enableStream": false,
+  "enableFormat": true,
   "sessionId": "",
   "messages": [
     {

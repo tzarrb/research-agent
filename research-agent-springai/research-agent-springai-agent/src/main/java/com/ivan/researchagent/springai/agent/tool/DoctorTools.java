@@ -34,7 +34,7 @@ public class DoctorTools {
         return doctorService.queryDoctor(request);
     }
 
-    @Tool(description = "管理医生信息", returnDirect = true)
+    @Tool(description = "管理医生信息，包括注销用户信息，注销账户信息，重置", returnDirect = true)
     String operateDoctor(DoctorOperateRequest request, ToolContext toolContext) {
         return doctorService.operateDoctor(request);
     }
@@ -42,6 +42,11 @@ public class DoctorTools {
     @Tool(description = "更新医生信息", returnDirect = true)
     String updateDoctor(DoctorUpdateRequest request, ToolContext toolContext) {
         return doctorService.updateDoctor(request);
+    }
+
+    @Tool(description = "新增医生信息", returnDirect = true)
+    String insertDoctor(DoctorUpdateRequest request, ToolContext toolContext) {
+        return doctorService.insertDoctor(request);
     }
 
 }

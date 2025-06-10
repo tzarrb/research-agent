@@ -3,6 +3,7 @@ package com.ivan.researchagent.springai.llm.provider;
 import com.alibaba.cloud.ai.dashscope.api.DashScopeResponseFormat;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
+import com.ivan.researchagent.common.enumerate.FormatTypeEnum;
 import com.ivan.researchagent.common.enumerate.LLMTypeEnum;
 import com.ivan.researchagent.common.enumerate.MessageTypeEnum;
 import com.ivan.researchagent.common.model.ModelOptions;
@@ -11,6 +12,7 @@ import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.deepseek.DeepSeekChatModel;
@@ -56,9 +58,11 @@ public class ModelFactory {
     //@Resource
     //private QianFanChatModel qianFanChatModel;
 
-    @Autowired
-    @Qualifier("redisMessageChatMemoryAdvisor")
+    @Resource(name = "redisMessageChatMemoryAdvisor")
     private MessageChatMemoryAdvisor redisMessageChatMemoryAdvisor;
+
+    @Resource(name = "redisPromptChatMemoryAdvisor")
+    private PromptChatMemoryAdvisor redisPromptChatMemoryAdvisor;
 
     @Value("${spring.ai.dashscope.multi.options.model:qwen-vl-max-latest}")
     private String multiModel;
@@ -87,6 +91,7 @@ public class ModelFactory {
     private ChatClient createChatClient(ModelOptions modelOptions) {
         ChatModel chatModel;
         ChatOptions chatOptions;
+        boolean formatJson = FormatTypeEnum.isJson(modelOptions.getFormatType());
         switch (LLMTypeEnum.valueOf(modelOptions.getProvider().toUpperCase())) {
             case DASHSCOPE:
                 chatModel = dashScopeChatModel;
@@ -108,7 +113,7 @@ public class ModelFactory {
                 dashScopeChatOptions.setEnableSearch(modelOptions.getEnableSearch());
 
                 //返回内容的格式。可选值：{"type": "text"}或{"type": "json_object"}
-                if (modelOptions.getEnableFormat()) {
+                if (formatJson) {
                     dashScopeChatOptions.setResponseFormat(DashScopeResponseFormat.builder().type(DashScopeResponseFormat.Type.JSON_OBJECT).build());
                 }
 
@@ -165,7 +170,7 @@ public class ModelFactory {
                     deepSeekChatOptions.setModel(modelOptions.getModel());
                 }
                 //返回内容的格式。可选值：{"type": "text"}或{"type": "json_object"}
-                if (modelOptions.getEnableFormat()) {
+                if (formatJson) {
                     deepSeekChatOptions.setResponseFormat(ResponseFormat.builder().type(ResponseFormat.Type.JSON_OBJECT).build());
                 }
 
@@ -179,7 +184,7 @@ public class ModelFactory {
                 }
                 openAiChatOptions.setStreamUsage(modelOptions.getEnableStream());
                 //返回内容的格式。可选值：{"type": "text"}或{"type": "json_object"}
-                if (modelOptions.getEnableFormat()) {
+                if (formatJson) {
                     openAiChatOptions.setResponseFormat(org.springframework.ai.openai.api.ResponseFormat.builder().type(org.springframework.ai.openai.api.ResponseFormat.Type.JSON_OBJECT).build());
                 }
 
@@ -206,7 +211,7 @@ public class ModelFactory {
 
         if (modelOptions.getEnableMemory()) {
             //初始化基于内存的对话记忆
-            builder.defaultAdvisors(redisMessageChatMemoryAdvisor);
+            builder.defaultAdvisors(redisPromptChatMemoryAdvisor);
         }
         if (modelOptions.getEnableLogging()) {
             //启用日志记录，org.springframework.ai.chat.client.advisor=DEBUG

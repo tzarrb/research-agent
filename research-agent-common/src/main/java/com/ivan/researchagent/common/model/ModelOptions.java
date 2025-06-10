@@ -44,8 +44,8 @@ public class ModelOptions {
     @JsonPropertyDescription("是否联网搜索")
     private Boolean enableSearch;
 
-    @JsonPropertyDescription("是否格式化输出")
-    private Boolean enableFormat = false;
+    @JsonPropertyDescription("输出格式")
+    private String formatType;
 
     @JsonPropertyDescription("系统提示词")
     private String systemText;

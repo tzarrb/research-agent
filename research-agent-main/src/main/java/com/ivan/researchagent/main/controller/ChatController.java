@@ -40,7 +40,7 @@ import java.util.List;
         allowedHeaders = "*",
         exposedHeaders = {"sessionId"} // 暴露自定义Header
 )
-//@Tag(name = "聊天体控制器", description = "聊天体控制器")
+@Tag(name = "聊天体控制器", description = "聊天体控制器")
 public class ChatController {
 
     private final String systemPrompt =  """
@@ -61,7 +61,7 @@ public class ChatController {
     }
 
     @GetMapping("")
-//    @Operation(summary = "聊天", description = "返回聊天消息")
+    @Operation(summary = "聊天", description = "返回聊天消息")
     public String chat(@RequestBody ChatMessage chatMessage, HttpServletRequest request, HttpServletResponse response) {
 
         String sessionId = chatMessage.getSessionId();
@@ -159,7 +159,6 @@ public class ChatController {
         chatMessage.setEnableLocal(userInput.getEnableLocal());
         chatMessage.setEnableMemory(true);
         chatMessage.setEnableStream(true);
-        chatMessage.setEnableFormat(false);
         chatMessage.setEnableAgent(false);
 
         AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);

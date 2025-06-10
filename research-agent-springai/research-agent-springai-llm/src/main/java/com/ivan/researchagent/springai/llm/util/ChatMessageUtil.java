@@ -1,7 +1,5 @@
 package com.ivan.researchagent.springai.llm.util;
 
-import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
-import com.alibaba.cloud.ai.dashscope.chat.MessageFormat;
 import com.ivan.researchagent.common.enumerate.MessageTypeEnum;
 import com.ivan.researchagent.springai.llm.model.ChatMessage;
 import com.ivan.researchagent.common.model.ChatRoleMessage;
@@ -14,9 +12,7 @@ import org.springframework.util.MimeTypeUtils;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Copyright (c) 2024 Ivan, Inc.

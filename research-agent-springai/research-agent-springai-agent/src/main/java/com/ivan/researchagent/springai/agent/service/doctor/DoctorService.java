@@ -165,10 +165,17 @@ public class DoctorService {
     }
 
     public String updateDoctor(DoctorUpdateRequest request) {
-        return "操作成功";
+        log.info("updateDoctor param:{}", JSON.toJSONString(request));
+        return "更新操作成功";
+    }
+
+    public String insertDoctor(DoctorUpdateRequest request) {
+        log.info("insertDoctor param:{}", JSON.toJSONString(request));
+        return "新增操作成功";
     }
 
     public String operateDoctor(DoctorOperateRequest request) {
+        log.info("operateDoctor param:{}", JSON.toJSONString(request));
         DoctorOperateType operateType = DoctorOperateType.valueOfCode(request.getOperateType());
         if (operateType == null) {
             log.warn("Invalid operateType: {}, returning false", request.getOperateType());

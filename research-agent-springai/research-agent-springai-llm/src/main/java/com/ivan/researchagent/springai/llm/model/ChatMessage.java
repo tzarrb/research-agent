@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.google.common.collect.Lists;
 import com.ivan.researchagent.common.model.ChatRoleMessage;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
  * @since: 2024/12/03 15:20
  **/
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatMessage implements Serializable {
@@ -42,9 +44,6 @@ public class ChatMessage implements Serializable {
 
     @JsonPropertyDescription("是否流式对话方法")
     private Boolean enableStream = false;
-
-    @JsonPropertyDescription("是否格式化输出")
-    private Boolean enableFormat = false;
 
     @JsonPropertyDescription("是否使用智能体")
     private Boolean enableAgent = false;
@@ -69,6 +68,9 @@ public class ChatMessage implements Serializable {
 
     @JsonPropertyDescription("大模型调用工具回调提供者")
     private List<ToolCallbackProvider> toolCallbackProviders;
+
+    @JsonPropertyDescription("输出格式, 如：bean, list, map, json")
+    private String formatType;
 
     @JsonPropertyDescription("智能体")
     private String agent;
@@ -100,6 +102,10 @@ public class ChatMessage implements Serializable {
     }
 
     public String getSystemMessage() {
+        if (Objects.isNull(this.messages)) {
+            return "";
+        }
+
         return this.messages.stream()
                 .filter(message -> MessageType.SYSTEM.getValue().equals(message.getRole()))
                 .findFirst()
@@ -126,6 +132,10 @@ public class ChatMessage implements Serializable {
     }
 
     public String getUserMessage() {
+        if (Objects.isNull(this.messages)) {
+            return "";
+        }
+
         return this.messages.stream()
                 .filter(message -> MessageType.USER.getValue().equals(message.getRole()))
                 .findFirst()

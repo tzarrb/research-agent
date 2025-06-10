@@ -2,7 +2,6 @@ package com.ivan.researchagent.springai.llm.service;
 
 import com.alibaba.cloud.ai.advisor.RetrievalRerankAdvisor;
 import com.alibaba.cloud.ai.model.RerankModel;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ivan.researchagent.common.constant.Constant;
 import com.ivan.researchagent.common.model.ModelOptions;
@@ -29,16 +28,13 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -117,7 +113,7 @@ public class ChatService implements InitializingBean {
                 .conversantId(chatMessage.getSessionId())
                 .enableStream(chatMessage.getEnableStream())
                 .enableSearch(chatMessage.getEnableWeb())
-                .enableFormat(chatMessage.getEnableFormat())
+                .formatType(chatMessage.getFormatType())
                 .build();
 
         ChatClient chatClient = modelFactory.get(modelOptions);
@@ -214,6 +210,14 @@ public class ChatService implements InitializingBean {
                 .call()
                 .chatResponse();
         return response.getResult().getOutput().getText();
+    }
+
+    public ChatResponse chat(Prompt prompt) {
+        ChatClient chatClient = modelFactory.get(modelOptionsBuilder.build());
+        ChatResponse response = chatClient.prompt(prompt)
+                .call()
+                .chatResponse();
+        return response;
     }
 
     public ChatResult chat(ChatMessage chatMessage) {
@@ -347,14 +351,6 @@ public class ChatService implements InitializingBean {
                 .user(input)
                 .call()
                 .entity(new ParameterizedTypeReference<List<T>>() {});
-    }
-
-    public ChatResponse chat(Prompt prompt) {
-        ChatClient chatClient = modelFactory.get(modelOptionsBuilder.build());
-        ChatResponse response = chatClient.prompt(prompt)
-                .call()
-                .chatResponse();
-        return response;
     }
 
 }

@@ -6,6 +6,7 @@ import com.ivan.researchagent.springai.llm.memory.RedisChatMemory;
 import jakarta.annotation.Resource;
 import okhttp3.OkHttpClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.messages.Message;
@@ -56,6 +57,11 @@ public class LLMConfiguration {
     @Bean
     public MessageChatMemoryAdvisor redisMessageChatMemoryAdvisor(ChatMemory redisChatMemory) {
         return MessageChatMemoryAdvisor.builder(redisChatMemory).build();
+    }
+
+    @Bean
+    public PromptChatMemoryAdvisor redisPromptChatMemoryAdvisor(ChatMemory redisChatMemory) {
+        return PromptChatMemoryAdvisor.builder(redisChatMemory).build();
     }
 
     @Bean
