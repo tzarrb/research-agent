@@ -116,41 +116,9 @@ spring:
         # 记录 prompt
         include-prompt: true
         include-error-logging: true
-    #    openai:
-    #      api-key: {openai.api-key}
-    #      chat:
-    #        options:
-    #          model: "gpt-4o-mini" #gpt-3.5-turbo gpt-4o-mini gpt-4-turbo
-    anthropic:
-      base-url: "https://api.anthropic.com"
-      api-key: {client.api-key}
-      chat:
-        options:
-          model: "Claude-3.5-Sonnet" #Claude-3.5-Sonnet Claude-Haiku
-      embedding:
-        enabled: false
-    mistralai:
-      base-url: "https://api.mistralai.com/v1"
-      api-key: {mistralai.api-key}
-      chat:
-        api-key: {mistralai.api-key}
-        options:
-          model: "mistral-large-latest" #open-mistral-7b, open-mixtral-8x7b, open-mixtral-8x22b, mistral-small-latest, mistral-large-latest
-      embedding:
-        enabled: false
-    qianfan:
-      base-url: "api.qianfan.chat"
-      api-key: {qianfan.api-key}
-      secret-key: {qianfan.secret-key}
-      chat:
-        options:
-          model: 'ERNIE-4.0-8K'  #ERNIE-4.0-8K ERNIE-3.5-8K ERNIE-Speed-8K ERNIE-Lite-8K
-      embedding:
-        enabled: false
     dashscope:
-      api-key: {dashscope.api-key}
+      api-key: ${DASHSCOPE_API_KEY}
       chat:
-        api-key: {dashscope.api-key}
         options:
           model: "qwen-max-latest" #qwen-max qwen-plus qwen-turbo deepseek-r1 deepseek-v3
       image:
@@ -163,9 +131,67 @@ spring:
         enabled: true
         options:
           model: "text-embedding-v1" #text-embedding-v3 text-embedding-v2 text-embedding-v1 multimodal-embedding-v1
+    deepseek:
+      base-url: "https://api.deepseek.com/v1"
+      api-key: ${DEEPSEEK_API_KEY}
+      chat:
+        options:
+          model: "deepseek-chat" #deepseek-coder deepseek-chat deepseek-reasoner
+      embedding:
+        enabled: false
+    openai:
+      base-url: "https://openrouter.ai/api/v1/chat/completions"
+      api-key: ${OPENROUTER_API_KEY}
+      chat:
+        options:
+          model: "anthropic/claude-sonnet-4" #
+          # anthropic/claude-sonnet-4，anthropic/claude-opus-4
+          # openai/gpt-4.5-preview，openai/gpt-4.1，openai/gpt-4.1-mini，openai/gpt-4.1-nano，
+          # openai/o4-mini，openai/o4-mini-high，openai/o3，openai/o3-mini，openai/o3-pro
+          # google/gemini-2.5-pro-preview，google/gemini-2.5-flash-preview-05-20，google/gemini-2.5-flash-preview-05-20:thinking
+      embedding:
+        enabled: false
+#    openai:
+#      api-key: {OPENAI_API_KEY}
+#      chat:
+#        options:
+#          model: "gpt-4o-mini" # gpt-4o-mini gpt-4-turbo
+#    openai:
+#      base-url: "https://ark.cn-beijing.volces.com/api/v3" #火山引擎
+#      api-key: ${OPENAI_API_KEY}
+#      chat:
+#        options:
+#          model: "deepseek-v3-241226" #deepseek-r1-250120,deepseek-v3-241226
+#      embedding:
+#        enabled: false
+    anthropic:
+      base-url: "https://api.anthropic.com"
+      api-key: ${ANTHROPIC_API_KEY}
+      chat:
+        options:
+          model: "Claude-3.5-Sonnet" #Claude-3.5-Sonnet Claude-Haiku
+      embedding:
+        enabled: false
+    mistralai:
+      base-url: "https://api.mistralai.com/v1"
+      api-key: ${MISTRALAI_API_KEY}
+      chat:
+        options:
+          model: "mistral-large-latest" #open-mistral-7b, open-mixtral-8x7b, open-mixtral-8x22b, mistral-small-latest, mistral-large-latest
+      embedding:
+        enabled: false
+    qianfan:
+      base-url: "api.qianfan.chat"
+      api-key: ${QIANFAN_API_KEY}
+      secret-key: ${QIANFAN_API_KEY}
+      chat:
+        options:
+          model: 'ERNIE-4.0-8K'  #ERNIE-4.0-8K ERNIE-3.5-8K ERNIE-Speed-8K ERNIE-Lite-8K
+      embedding:
+        enabled: false
     zhipuai:
       base-url: 'open.bigmodel.cn/api/paas'
-      api_key: {zhipuai.api-key}
+      api_key: ${ZHIPUAI_API_KEY}
       model: 'glm-4-0520' #glm-4-0520、glm-4 、glm-4-air、glm-4-airx、 glm-4-flash
       chat:
         options:
@@ -183,28 +209,13 @@ spring:
           model: "qwen2.5-coder:32b" #qwen2.5-coder:32b Deepseek-Coder-V2
       embedding:
         enabled: false
-    deepseek:
-      base-url: "https://api.deepseek.com/v1"
-      api-key: {deepseek.api-key}
-      chat:
-        api-key: {deepseek.api-key}
-        options:
-          model: "deepseek-chat" #deepseek-coder deepseek-chat deepseek-reasoner
-      embedding:
-        enabled: false
-    openai:
-      base-url: "https://ark.cn-beijing.volces.com/api/v3"
-      api-key: {openai.api-key}
-      chat:
-        api-key: {openai.api-key}
-        options:
-          model: "deepseek-v3-241226" #deepseek-r1-250120,deepseek-v3-241226
-      embedding:
-        enabled: false
     mcp:
       client:
+        enabled: true
+        name: research-agent
+        version: 1.0.0
         type: ASYNC #SYNC/ASYNC
-        request-timeout: 20s
+        request-timeout: 60s
         toolcallback:
           enabled: true
         stdio:
@@ -216,25 +227,25 @@ spring:
 #              url: http://localhost:8080
 
 deepseek:
-  api-key: {deepseek.api-key}  # 必填项：你的 API 密钥
+  api-key: ${DEEPSEEK_API_KEY}  # 必填项：你的 API 密钥
   model: deepseek-reasoner
   base-url: https://api.deepseek.com  # 可选，默认为官方 API 地址
 
 coze:
-  access-token: {coze.access-token}
+  access-token: ${COZE_ACCESS_TOKEN}
   work-flow:
     base-url: "https://api.coze.cn/v1/workflow/run"
     traveling-planner: "7447428622988542004"
     sources:
       traveling-planner: "7447428622988542004"
 
-custom:
+llm:
   ai:
     provider: "dashscope"
-    model: "qwen-max"
+    model: "deepseek-v3"
 
 doctor:
-  token: { doctor.token }
+  token: ${DOCTOR_TOKEN}
   providerPageUrl: "https://test1.myweimai.com/medicalprovider/ums/provider/page"
   providerCancelUrl: "https://test1.myweimai.com/medicalprovider/provider/cancel"
 

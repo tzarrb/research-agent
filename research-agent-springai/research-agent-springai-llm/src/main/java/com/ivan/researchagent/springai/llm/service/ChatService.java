@@ -66,6 +66,7 @@ public class ChatService implements InitializingBean {
     private VectorStore vectorStore;
     @Resource
     private RerankModel rerankModel;
+
     @Value("classpath:prompts/system-qa.st")
     private org.springframework.core.io.Resource systemQaResource;
 

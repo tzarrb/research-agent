@@ -15,6 +15,7 @@
         <module>research-agent-springai</module>
         <module>research-agent-springai/research-agent-springai-llm</module>
         <module>research-agent-springai/research-agent-springai-agent</module>
+        <module>research-agent-springai/research-agent-springai-mcp</module>
         <module>research-agent-langchain</module>
         <module>research-agent-plugin</module>
         <module>research-agent-main</module>
@@ -206,6 +207,8 @@
                 <groupId>com.alibaba.cloud.ai</groupId>
                 <artifactId>spring-ai-alibaba-bom</artifactId>
                 <version>${spring-ai-alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <!-- spring ai 依赖项... end -->
 

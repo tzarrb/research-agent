@@ -102,7 +102,7 @@ public class ChatController {
     }
 
     @GetMapping("/stream")
-//    @Operation(summary = "流式聊天", description = "返回流式聊天消息")
+    @Operation(summary = "流式聊天", description = "返回流式聊天消息")
     public Flux<String> streamChat(@RequestBody ChatMessage chatMessage, HttpServletRequest request, HttpServletResponse response) {
         AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
         //SyncMcpToolCallbackProvider toolCallbackProvider = new SyncMcpToolCallbackProvider(mcpSyncClients);
@@ -121,7 +121,7 @@ public class ChatController {
     }
 
     @GetMapping("/stream/chat")
-//    @Operation(summary = "流式聊天-简单参数", description = "返回流式聊天消息")
+    @Operation(summary = "流式聊天-简单参数", description = "返回流式聊天消息")
     public Flux<String> steamChatGet(@RequestParam String userMessage, HttpServletRequest request, HttpServletResponse response) {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setProvider("dashscope");
@@ -150,7 +150,7 @@ public class ChatController {
 
 
     @GetMapping("/sse/chat")
-//    @Operation(summary = "SSE流式聊天", description = "返回流式聊天消息")
+    @Operation(summary = "SSE流式聊天", description = "返回流式聊天消息")
     public SseEmitter sseChatGet(UserInputVO userInput, HttpServletRequest request, HttpServletResponse response) {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setSystemMessage(systemPrompt);

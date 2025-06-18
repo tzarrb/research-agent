@@ -1,0 +1,18 @@
+# Compose a postgres database together with the extension pgvector
+services:
+  pgvector:
+    image: pgvector/pgvector:pg17
+    container_name: pgvector-v17
+    restart: always
+    ports:
+     - 5433:5432
+    environment:
+      - POSTGRES_DB=researchagent
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=123456
+    volumes:
+      - E:\WorkFiles\docker\pgvector\data:/var/lib/postgresql/data
+
+networks:
+  test-net:
+    external: true

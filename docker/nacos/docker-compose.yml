@@ -1,0 +1,75 @@
+# Compose a postgres database together with the extension pgvector
+services:
+  nacos:
+    image: nacos/nacos-server:latest
+    container_name: nacos-v3
+    restart: "always" # 容器总是重启，可选值：no / on-failure[:max-retries] / always / unless-stopped
+    privileged: false
+    ports:
+      - 8080:8080
+      - 8848:8848
+      - 9848:9848
+      - 9849:9849
+    volumes:
+      - E:\WorkFiles\nacos\conf:/home/nacos/conf
+      - E:\WorkFiles\nacos\logs:/home/nacos/logs
+#    env_file:
+#      - ./env/nacos-standalone-mysql.env
+    environment:
+      - TZ=Asia/Shanghai
+      - MODE=standalone
+      - PREFER_HOST_MODE=hostname
+      - SPRING_DATASOURCE_PLATFORM=mysql
+      - MYSQL_SERVICE_HOST=host.docker.internal
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_DB_NAME=nacos
+      - MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=TRUE
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=123456
+      - NACOS_AUTH_ENABLE=false    #打开鉴权开关
+      - NACOS_AUTH_SYSTEM_TYPE=nacos  #鉴权类型
+      - NACOS_AUTH_TOKEN=VGhpc0lzTXlDdXN0b21TZWNyZXRLZXkwMTIzNDU2Nzg=
+      - NACOS_AUTH_IDENTITY_KEY=nacos
+      - NACOS_AUTH_IDENTITY_VALUE=nacos
+      - JVM_XMS=256m
+      - JVM_XMX=512m
+      - JVM_XMN=256m
+
+  nacos-mcp-router:
+    image: nacos/nacos-mcp-router:latest
+    container_name: nacos-mcp-router
+    #network_mode: host
+    restart: always
+    ports:
+      - 8000:8000
+    environment:
+      - NACOS_ADDR=127.0.0.1:8848
+      - NACOS_USERNAME=nacos
+      - NACOS_PASSWORD=nacos
+      #- NACOS_NAMESPACE=nacos-default-mcp
+      - TRANSPORT_TYPE=streamable_http # stdio, sse, streamable_http
+      - MODE=router # router, proxy
+    stdin_open: true  # 相当于 docker run 的 -i 参数
+    tty: true         # 分配一个伪终端（可选，通常与 -i 一起使用）
+
+  nacos-baidu-map:
+    image: nacos/nacos-mcp-router:latest
+    container_name: nacos-baidu-map
+    #network_mode: host
+    restart: always  # 可选值：no/ on-failure[:max-retries]/ always:总是重启/ unless-stopped:容器退出时自动重启（除非手动停止）
+    ports:
+      - 8000:8000
+    environment:
+      - NACOS_ADDR=127.0.0.1:8848
+      - NACOS_USERNAME=nacos
+      - NACOS_PASSWORD=nacos
+      - TRANSPORT_TYPE=streamable_http
+      - MODE=proxy
+      - PROXIED_MCP_NAME=baidu-map-mcp-server
+    stdin_open: true  # 相当于 docker run 的 -i 参数
+    tty: true         # 分配一个伪终端（可选，通常与 -i 一起使用）
+
+networks:
+  test-net:
+    external: true
+

@@ -20,8 +20,7 @@
     </properties>
 
     <modules>
-        <module>research-agent-springai-llm</module>
-        <module>research-agent-springai-agent</module>
+
     </modules>
 
 </project>
