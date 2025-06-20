@@ -1,4 +1,4 @@
-package com.ivan.researchagent.main.model.vo;
+package com.ivan.researchagent.springai.llm.model.rag;
 
 import lombok.Data;
 

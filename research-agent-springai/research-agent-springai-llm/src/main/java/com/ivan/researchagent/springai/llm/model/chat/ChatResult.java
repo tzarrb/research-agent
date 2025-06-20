@@ -1,4 +1,4 @@
-package com.ivan.researchagent.springai.llm.model;
+package com.ivan.researchagent.springai.llm.model.chat;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

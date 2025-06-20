@@ -1,7 +1,7 @@
 package com.ivan.researchagent.springai.agent.agentic.biz;
 
-import com.ivan.researchagent.springai.llm.model.ChatMessage;
-import com.ivan.researchagent.springai.llm.model.ChatResult;
+import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import reactor.core.publisher.Flux;
 
 /**

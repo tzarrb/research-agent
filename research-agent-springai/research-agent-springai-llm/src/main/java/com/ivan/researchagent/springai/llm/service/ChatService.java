@@ -6,8 +6,8 @@ import com.google.common.collect.Maps;
 import com.ivan.researchagent.common.constant.Constant;
 import com.ivan.researchagent.common.model.ModelOptions;
 import com.ivan.researchagent.springai.llm.config.LLMConfig;
-import com.ivan.researchagent.springai.llm.model.ChatMessage;
-import com.ivan.researchagent.springai.llm.model.ChatResult;
+import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.provider.ModelFactory;
 import com.ivan.researchagent.springai.llm.util.ChatMessageUtil;
 import jakarta.annotation.Resource;
@@ -22,6 +22,15 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
+import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
+import org.springframework.ai.rag.preretrieval.query.expansion.MultiQueryExpander;
+import org.springframework.ai.rag.preretrieval.query.transformation.CompressionQueryTransformer;
+import org.springframework.ai.rag.preretrieval.query.transformation.QueryTransformer;
+import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQueryTransformer;
+import org.springframework.ai.rag.preretrieval.query.transformation.TranslationQueryTransformer;
+import org.springframework.ai.rag.retrieval.join.ConcatenationDocumentJoiner;
+import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -152,6 +161,53 @@ public class ChatService implements InitializingBean {
         if(chatMessage.getEnableLocal()) {
             //RAG检索增强生成
             //requestSpec.advisors(new QuestionAnswerAdvisor(vectorStore));
+
+            // 使用VectorStoreDocumentRetriever进行文档检索
+            var documentRetriever = VectorStoreDocumentRetriever.builder()
+                    .vectorStore(vectorStore)
+                    .similarityThreshold(0.50) // 相似度阈值
+                    .topK(3) // 相似度阈值
+                    .build();
+
+            // 用于生成多个相关的查询变体，以获得更全面的搜索结果
+            MultiQueryExpander queryExpander = MultiQueryExpander.builder()
+                    .chatClientBuilder(chatClient.mutate())
+                    .includeOriginal(false) // 不包含原始查询
+                    .numberOfQueries(3) // 生成3个查询变体
+                    .build();
+
+            //查询扩展器，用于生成多个相关的查询变体，以获得更全面的搜索结果
+            QueryTransformer rewriteQueryTransformer = RewriteQueryTransformer.builder()
+                    .chatClientBuilder(chatClient.mutate())// 假设builder是之前定义好的ChatClient构建器
+                    .build();
+
+            // 负责将含有上下文的查询转换为一个完整的独立查询
+            var compressionQueryTransformer = CompressionQueryTransformer.builder()
+                    .chatClientBuilder(chatClient.mutate())
+                    .build();
+
+            // 查询翻译转换器，用于将查询翻译为目标语言
+            var translationQueryTransformer = TranslationQueryTransformer.builder()
+                    .chatClientBuilder(chatClient.mutate())
+                    .targetLanguage("english")
+                    .build();
+
+            // 实例化文档合并器
+            var documentJoiner = new ConcatenationDocumentJoiner();
+
+            // 边界情况处理，处理文档未找到情况：处理相似度过低情况；处理查询超时情况。
+            var queryAugmenter = ContextualQueryAugmenter.builder().allowEmptyContext(true).build();
+
+            //  RAG检索增强生成
+            var retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
+                    .documentRetriever(documentRetriever) // 文档检索
+                    .documentJoiner(documentJoiner) // 文档合并
+                    .queryAugmenter(queryAugmenter) //边界情况处理
+                    .queryExpander(queryExpander) // 查询扩展器
+                    .queryTransformers(rewriteQueryTransformer, compressionQueryTransformer) // 查询转换器
+                    .build();
+
+            //使用RerankModel进行重排序
             String promptString = "";
             try {
                 promptString = systemQaResource.getContentAsString(StandardCharsets.UTF_8);
@@ -160,7 +216,10 @@ public class ChatService implements InitializingBean {
             }
             PromptTemplate promptTemplate = PromptTemplate.builder().template(promptString).build();
             SearchRequest searchRequest = SearchRequest.builder().topK(2).build();
-            requestSpec.advisors(new RetrievalRerankAdvisor(vectorStore, rerankModel, searchRequest, promptTemplate, 0.1));
+            RetrievalRerankAdvisor retrievalRerankAdvisor = new RetrievalRerankAdvisor(vectorStore, rerankModel, searchRequest, promptTemplate, 0.1);
+
+            // 设置增强拦截
+            requestSpec.advisors(retrievalAugmentationAdvisor, retrievalRerankAdvisor);
         }
 
         //tool call

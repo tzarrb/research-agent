@@ -13,6 +13,7 @@ package com.ivan.researchagent.common.enumerate;
 public enum LLMTypeEnum {
     OPENAI("openai", "openai"),
     CLAUDE("claude", "claude"),
+    GEMINI("gemini", "gemini"),
     QIANFAN("qianfan", "百度千帆大模型平台"),
     DASHSCOPE("dashscope", "阿里百炼大模型平台"),
     ZHIPUAI("zhipuai", "智谱AI"),

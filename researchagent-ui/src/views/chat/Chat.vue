@@ -1,4 +1,5 @@
 <template>
+  <nav_bar/>
   <div class="chat-container">
     <div class="chat-messages" ref="messagesContainer">
       <div v-if="messages.length === 0" class="welcome-message">
@@ -114,6 +115,12 @@ import { ref, onMounted, nextTick } from 'vue'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github.css'
+// 导入组件
+import nav_bar from '@/components/bar/NavBar.vue'
+//全局缓存
+import { useMainStore } from '@/store';
+
+const mainStore = useMainStore();
 
 // 配置 marked
 marked.setOptions({
@@ -131,7 +138,7 @@ const messages = ref([])
 const userInput = ref('')
 const isLoading = ref(false)
 const messagesContainer = ref(null)
-const useLocal = ref(true)
+const useLocal = ref(false)
 const useWeb = ref(false)
 const conversantId = ref('')
 
@@ -235,22 +242,12 @@ onMounted(() => {
 })
 </script>
 
-
 <style>
-#app {
-  /* min-height: 100vh;
-  display: flex; */
-  width: 100%;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
 .chat-container {
   width: 100%;
   max-width: 1000px;
-  height: 100vh;
-  margin: 0 auto;
+  height: 90vh;
+  margin: 10px auto;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 4px 32px rgba(0,0,0,0.08);

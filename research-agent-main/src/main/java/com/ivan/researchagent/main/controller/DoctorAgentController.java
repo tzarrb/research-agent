@@ -1,7 +1,7 @@
 package com.ivan.researchagent.main.controller;
 
-import com.ivan.researchagent.springai.llm.model.ChatMessage;
-import com.ivan.researchagent.springai.llm.model.ChatResult;
+import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.agent.agentic.biz.DoctorOperateAgent;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,7 +1,7 @@
 package com.ivan.researchagent.springai.llm.util;
 
 import com.ivan.researchagent.common.enumerate.MessageTypeEnum;
-import com.ivan.researchagent.springai.llm.model.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
 import com.ivan.researchagent.common.model.ChatRoleMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;

@@ -1,8 +1,8 @@
 package com.ivan.researchagent.main.controller;
 
 import com.ivan.researchagent.springai.agent.agentic.router.RoutingAgent;
-import com.ivan.researchagent.springai.llm.model.ChatMessage;
-import com.ivan.researchagent.springai.llm.model.ChatResult;
+import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

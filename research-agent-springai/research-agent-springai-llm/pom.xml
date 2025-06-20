@@ -17,6 +17,8 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <tika.version>2.4.1</tika.version>
     </properties>
 
     <dependencies>
@@ -68,6 +70,18 @@
             <artifactId>spring-ai-starter-vector-store-pgvector</artifactId>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.ai</groupId>-->
+<!--            <artifactId>spring-ai-document-reader</artifactId>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-jsoup-document-reader</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-markdown-document-reader</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-pdf-document-reader</artifactId>
@@ -77,6 +91,10 @@
             <artifactId>spring-ai-tika-document-reader</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
+        </dependency>
         <!-- spring ai依赖项... end -->
 
         <!-- spring ai alibaba依赖项... start -->
@@ -85,8 +103,8 @@
             <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
             <exclusions>
                 <exclusion>
-                    <artifactId>spring-alibaba-nacos-config</artifactId>
                     <groupId>com.alibaba.cloud</groupId>
+                    <artifactId>spring-alibaba-nacos-config</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -95,6 +113,18 @@
             <artifactId>spring-ai-alibaba-starter-memory</artifactId>
         </dependency>
         <!-- spring ai alibaba依赖项... end -->
+
+        <!-- Tika核心依赖 -->
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>${tika.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-parsers-standard-package</artifactId>
+            <version>${tika.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>redis.clients</groupId>

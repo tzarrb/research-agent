@@ -1,4 +1,4 @@
-package com.ivan.researchagent.springai.llm.model;
+package com.ivan.researchagent.springai.llm.model.chat;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.google.common.collect.Lists;

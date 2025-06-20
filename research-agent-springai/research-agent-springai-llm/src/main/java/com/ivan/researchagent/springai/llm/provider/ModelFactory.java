@@ -22,6 +22,7 @@ import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,6 +58,9 @@ public class ModelFactory {
     private DashScopeChatModel dashScopeChatModel;
     //@Resource
     //private QianFanChatModel qianFanChatModel;
+
+    //@Resource
+    //private OpenAiApi baseOpenAiApi;
 
     @Resource(name = "redisMessageChatMemoryAdvisor")
     private MessageChatMemoryAdvisor redisMessageChatMemoryAdvisor;
@@ -106,6 +110,7 @@ public class ModelFactory {
                 }
                 //设置流式对话
                 dashScopeChatOptions.setStream(modelOptions.getEnableStream());
+
                 //模型在生成文本时是否使用互联网搜索结果进行参考。取值如下：
                 //true：启用互联网搜索，模型会将搜索结果作为文本生成过程中的参考信息，但模型会基于其内部逻辑判断是否使用互联网搜索结果。
                 //如果模型没有搜索互联网，建议优化Prompt。
@@ -177,6 +182,8 @@ public class ModelFactory {
                 chatOptions = deepSeekChatOptions;
                 break;
             case OPENAI:
+            case CLAUDE:
+            case GEMINI:
                 chatModel = openAiChatModel;
                 OpenAiChatOptions openAiChatOptions = (OpenAiChatOptions)openAiChatModel.getDefaultOptions();
                 if (StringUtils.isNotBlank(modelOptions.getModel())) {
@@ -190,6 +197,25 @@ public class ModelFactory {
 
                 chatOptions = openAiChatOptions;
                 break;
+//            case GEMINI:
+//                // 为 Gemini 派生新的 OpenAiApi
+//                OpenAiApi geminiApi = baseOpenAiApi.mutate()
+//                        .baseUrl(System.getenv("spring.ai.gemini.base-url"))
+//                        .apiKey(System.getenv("spring.ai.gemini.api-key"))
+//                        .build();
+//                chatModel = openAiChatModel.mutate().openAiApi(geminiApi).build();
+//                OpenAiChatOptions geminiChatOptions = (OpenAiChatOptions)openAiChatModel.getDefaultOptions();
+//                if (StringUtils.isNotBlank(modelOptions.getModel())) {
+//                    geminiChatOptions.setModel(modelOptions.getModel());
+//                }
+//                geminiChatOptions.setStreamUsage(modelOptions.getEnableStream());
+//                //返回内容的格式。可选值：{"type": "text"}或{"type": "json_object"}
+//                if (formatJson) {
+//                    geminiChatOptions.setResponseFormat(org.springframework.ai.openai.api.ResponseFormat.builder().type(org.springframework.ai.openai.api.ResponseFormat.Type.JSON_OBJECT).build());
+//                }
+//
+//                chatOptions = geminiChatOptions;
+//                break;
             case OLLAMA:
                 chatModel = ollamaChatModel;
                 OllamaOptions ollamaOptions = (OllamaOptions)ollamaChatModel.getDefaultOptions();
