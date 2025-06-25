@@ -5,6 +5,7 @@ import com.alibaba.cloud.ai.model.RerankModel;
 import com.google.common.collect.Maps;
 import com.ivan.researchagent.common.constant.Constant;
 import com.ivan.researchagent.common.model.ModelOptions;
+import com.ivan.researchagent.springai.llm.advisors.ReasoningContentAdvisor;
 import com.ivan.researchagent.springai.llm.config.LLMConfig;
 import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
@@ -35,6 +36,7 @@ import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -76,8 +78,22 @@ public class ChatService implements InitializingBean {
     @Resource
     private RerankModel rerankModel;
 
-    @Value("classpath:prompts/system-qa.st")
-    private org.springframework.core.io.Resource systemQaResource;
+    @Resource
+    @Qualifier("vectorStoreRagAdvisor")
+    private RetrievalAugmentationAdvisor vectorStoreRagAdvisor;
+    @Resource
+    @Qualifier("webSearchRagAdvisor")
+    private RetrievalAugmentationAdvisor webSearchRagAdvisor;
+    @Resource
+    private RetrievalRerankAdvisor retrievalRerankAdvisor;
+    @Resource
+    private ReasoningContentAdvisor reasoningContentAdvisor;
+
+//    @Value("classpath:prompts/system-qa.st")
+//    private org.springframework.core.io.Resource systemQaResource;
+
+    @Resource(name = "qaPromptTemplate")
+    PromptTemplate qsPromptTemplate;
 
 
     @Resource
@@ -99,9 +115,7 @@ public class ChatService implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        modelOptionsBuilder
-                .provider(llmConfig.getDefaultProvider())
-                .model(llmConfig.getDefaultModel());
+
     }
 
     /**
@@ -110,6 +124,9 @@ public class ChatService implements InitializingBean {
      * @return
      */
     public ChatClient getchatClient(ChatMessage chatMessage) {
+        modelOptionsBuilder
+                .provider(llmConfig.getDefaultProvider())
+                .model(llmConfig.getDefaultModel());
         if (StringUtils.isNotBlank(chatMessage.getProvider())) {
             modelOptionsBuilder.provider(chatMessage.getProvider());
         }
@@ -158,6 +175,7 @@ public class ChatService implements InitializingBean {
             requestSpec.advisors(spec -> spec.param(CONVERSATION_ID, conversantId)
                     .param(TOP_K, CHAT_MEMORY_RETRIEVE_SIZE));
         }
+        //本地文档搜索增强
         if(chatMessage.getEnableLocal()) {
             //RAG检索增强生成
             //requestSpec.advisors(new QuestionAnswerAdvisor(vectorStore));
@@ -173,7 +191,7 @@ public class ChatService implements InitializingBean {
             MultiQueryExpander queryExpander = MultiQueryExpander.builder()
                     .chatClientBuilder(chatClient.mutate())
                     .includeOriginal(false) // 不包含原始查询
-                    .numberOfQueries(3) // 生成3个查询变体
+                    .numberOfQueries(2) // 生成3个查询变体
                     .build();
 
             //查询扩展器，用于生成多个相关的查询变体，以获得更全面的搜索结果
@@ -208,18 +226,17 @@ public class ChatService implements InitializingBean {
                     .build();
 
             //使用RerankModel进行重排序
-            String promptString = "";
-            try {
-                promptString = systemQaResource.getContentAsString(StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                log.error("读取RAG Advisor Prompt模板失败", e);
-            }
-            PromptTemplate promptTemplate = PromptTemplate.builder().template(promptString).build();
+            PromptTemplate promptTemplate = PromptTemplate.builder().template(qsPromptTemplate.getTemplate()).build();
             SearchRequest searchRequest = SearchRequest.builder().topK(2).build();
-            RetrievalRerankAdvisor retrievalRerankAdvisor = new RetrievalRerankAdvisor(vectorStore, rerankModel, searchRequest, promptTemplate, 0.1);
+            RetrievalRerankAdvisor retrievalRerankAdvisor1 = new RetrievalRerankAdvisor(vectorStore, rerankModel, searchRequest, promptTemplate, 0.1);
 
             // 设置增强拦截
-            requestSpec.advisors(retrievalAugmentationAdvisor, retrievalRerankAdvisor);
+            requestSpec.advisors(vectorStoreRagAdvisor, retrievalRerankAdvisor);
+        }
+
+        // 网络搜索增强
+        if(chatMessage.getEnableWeb()) {
+            requestSpec.advisors(webSearchRagAdvisor, reasoningContentAdvisor);
         }
 
         //tool call

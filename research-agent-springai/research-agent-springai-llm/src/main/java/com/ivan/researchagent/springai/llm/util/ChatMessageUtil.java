@@ -1,5 +1,8 @@
 package com.ivan.researchagent.springai.llm.util;
 
+import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
+import com.alibaba.cloud.ai.dashscope.chat.MessageFormat;
+import com.alibaba.cloud.ai.dashscope.common.DashScopeApiConstants;
 import com.ivan.researchagent.common.enumerate.MessageTypeEnum;
 import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
 import com.ivan.researchagent.common.model.ChatRoleMessage;
@@ -37,8 +40,8 @@ public class ChatMessageUtil {
                     List<Media> mediaList = buildMedia(chatMessage.getMessageType(), roleMessage);
                     UserMessage userMessage = UserMessage.builder().text(roleMessage.getContent()).media(mediaList).build();
                     if (MessageTypeEnum.isMedia(chatMessage.getMessageType())) {
-//                        MessageFormat messageFormat = MessageFormat.valueOf(chatMessage.getMessageType());
-//                        userMessage.getMetadata().put(DashScopeChatModel.MESSAGE_FORMAT, messageFormat);
+                        MessageFormat messageFormat = MessageFormat.valueOf(chatMessage.getMessageType());
+                        userMessage.getMetadata().put(DashScopeApiConstants.MESSAGE_FORMAT, messageFormat);
                     }
                     messages.add(userMessage);
                     break;
@@ -58,7 +61,7 @@ public class ChatMessageUtil {
         return messages;
     }
 
-    public static   List<Media> buildMedia(String messageType, ChatRoleMessage roleMessage) {
+    public static List<Media> buildMedia(String messageType, ChatRoleMessage roleMessage) {
         List<Media> mediaList = new ArrayList<>();
         List<String> imgUrlList = new ArrayList<>();
         List<String> mediaUrlList = roleMessage.getMediaUrls();

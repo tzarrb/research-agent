@@ -233,6 +233,15 @@ spring:
 #          connections:
 #            mysql-dbhub:
 #              url: http://localhost:8080
+    alibaba:
+      toolcalling:
+        tavilysearch:
+            enabled: true
+            api-key: ${TAVILY_API_KEY}  # 必填项：你的 API 密钥
+            base-url: https://api.tavily.com/search  # 可选，默认为官方 API 地址
+        baidusearch:
+            enabled: true
+            base-url: https://www.baidu.com/  # 可选，则为官方 API 地址
 
 deepseek:
   api-key: ${DEEPSEEK_API_KEY}  # 必填项：你的 API 密钥
