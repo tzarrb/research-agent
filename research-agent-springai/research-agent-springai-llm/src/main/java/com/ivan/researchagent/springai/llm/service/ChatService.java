@@ -314,7 +314,7 @@ public class ChatService implements InitializingBean {
                                     if (StringUtils.isNotBlank(content)) {
                                         // 发送消息到客户端
                                         // 注意这里，我们直接发送 JSON 字符串，让 SseEmitter 自动添加 data: 前缀
-                                        sseEmitter.send(Map.of("content", content));
+                                        sseEmitter.send(Map.of("content", content, "sessionId", chatMessage.getSessionId()));
                                         log.info("sessionId:{}, stream chat content: {}, response: {}", chatMessage.getSessionId(), content, JSON.toJSONString(chunk));
                                     }
                                 }

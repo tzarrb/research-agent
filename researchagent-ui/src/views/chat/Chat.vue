@@ -8,7 +8,6 @@
           </div>
           <div class="conversation-container">
             <Conversations
-                v-model:active="activeKey4"
                 :items="conversationItems"
                 row-key="key"
                 :label-max-width="200"
@@ -97,14 +96,14 @@
                   </div>
                 </template> -->
 
-                <!-- 自定义气泡内容 -->
-                <template #content="{ item }">
+                <!-- 自定义气泡内容 Markdown渲染需手动处理-->
+                <!-- <template #content="{ item }">
                   <div class="content-wrapper">
                     <div class="content-text">
                       {{item.content}}
                     </div>
                   </div>
-                </template>
+                </template> -->
 
                 <!-- 自定义底部 -->
                 <template #footer="{ item }">
@@ -177,7 +176,7 @@
 import { ref, onMounted, nextTick, computed } from 'vue'
 // 导入组件
 import {ElMessage} from "element-plus";
-import { useXStream, useSend, XRequest } from 'vue-element-plus-x';
+import { useSend, XRequest } from 'vue-element-plus-x';
 
 // 全局缓存
 import { useMainStore } from '@/store';
@@ -187,8 +186,6 @@ import router from '@/router'
 
 // 全局缓存
 const mainStore = useMainStore();
-
-const { startStream, data, cancel, error, isLoading } = useXStream()
 
 const avatarUser = ref('http://gips3.baidu.com/it/u=3886271102,3123389489&fm=3028&app=3028&f=JPEG&fmt=auto?w=1280&h=960')
 const avatarAi = ref('https://mdn.alipayobjects.com/huamei_iwk9zp/afts/img/A*s5sNRo5LjfQAAAAAAAAAAAAADgCCAQ/fmt.webp')
@@ -233,8 +230,6 @@ const conversationMenuItems = [
   },
 ]
 
-const activeKey4 = ref('m1')
-
 // 处理菜单点击
 function handleMenuClick(menuKey: string, item: any) {
   console.log('菜单点击', menuKey, item)
@@ -262,14 +257,15 @@ function handleMenuClick(menuKey: string, item: any) {
 //   placement, // start | end 气泡位置
 //   content, // 消息内容 流式接受的时候，只需要改这个值即可
 //   loading, // 当前气泡的加载状态
-//   shape, // 气泡的形状
-//   variant, // 气泡的样式
+//   shape, // 气泡的形状，可选值为 'round'（圆角）或 'corner'（有角）。
+//   variant, // 气泡的样式变体，可选值为 'filled'（填充）、'borderless'（无边框）、'outlined'（轮廓）、'shadow'（阴影）
 //   isMarkdown, // 是否渲染为 markdown
 //   typing, // 是否开启打字器效果 该属性不会和流式接受冲突
 //   isFog: role === 'ai', // 是否开启打字雾化效果，该效果 v1.1.6 新增，且在 typing 为 true 时生效，该效果会覆盖 typing 的 suffix 属性
-//   avatar,
+//   avatar, // 头像地址
 //   avatarSize: '24px', // 头像占位大小
 //   avatarGap: '12px', // 头像与气泡之间的距离
+//   maxWidth: '500px', // 气泡最大宽度
 //   done: false, //流消息加载完成
 // })
 
@@ -286,7 +282,8 @@ const sendHandler = () => {
     key: `${conversationItems.value.length + 1}`,
     role: 'user',
     placement: 'end',
-    content: message
+    content: message,
+    isMarkdown: true
   })
 
   // 添加AI消息占位
@@ -294,20 +291,13 @@ const sendHandler = () => {
     key: `${conversationItems.value.length + 1}`,
     role: 'ai',
     content: '',
-    placement: 'start',
-    isMarkdown: true,
-    isFog: true,
-    typing: true,
-    loading: true,
-    error: false,
-    done: false
-  })
-
-  // 添加消息记录
-  conversationItems.value.push({
-    key: `m${conversationItems.value.length + 1}`,
-    label: message,
-    disabled: false,
+    placement: 'start', // start | end 气泡位置,
+    isMarkdown: true, // 是否渲染为 markdown
+    isFog: true, // 是否开启打字雾化效果，该效果 v1.1.6 新增，且在 typing 为 true 时生效，该效果会覆盖 typing 的 suffix 属性
+    typing: true, // 是否开启打字器效果 { step: 5, interval: 35, suffix: '🍆' }
+    loading: true, // 当前气泡的加载状态
+    error: false, // 消息是否报错
+    done: false // 流消息加载完成
   })
 
   return message;
@@ -440,6 +430,20 @@ const sseRequest = new XRequest({
         messages.value[messages.value.length - 1].loading = false
         messages.value[messages.value.length - 1].content += data.content
         scrollToBottom()
+      }
+
+      if (data.sessionId) {
+        conversantId.value = data.sessionId
+      }
+
+      // 添加消息记录
+      if (!conversationItems.value.some(item => item.key === conversantId.value)) {
+        const message = inputValue.value.length > 20 ? `${inputValue.value.slice(0, 50)}...` : inputValue.value
+        conversationItems.value.push({
+          key: conversantId.value,
+          label: message,
+          disabled: false,
+        })
       }
     } catch (e) {
       console.error('Error parsing JSON:', e)

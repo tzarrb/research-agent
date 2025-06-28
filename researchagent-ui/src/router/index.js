@@ -3,6 +3,7 @@ import ChatView from "@/views/chat/ChatView.vue";
 import Chat from "@/views/chat/Chat.vue";
 import Home from "@/views/home/Index.vue";
 import Login from "@/views/login/Login.vue";
+import Test from "@/views/test/Test.vue";
 import UploadFile from '../views/upload/UploadFile.vue';
 
 const routes = [
@@ -30,6 +31,11 @@ const routes = [
     path: '/upload',
     name: 'Upload',
     component: UploadFile
+  },
+  {
+    path: '/test',
+    name: 'Test',
+    component: Test
   }
 ];
 
