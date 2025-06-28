@@ -6,11 +6,11 @@
     <parent>
         <groupId>com.ivan.ai</groupId>
         <artifactId>research-agent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>${research-agent.version}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>research-agent-springai</artifactId>
-    <version>${parent.version}</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -20,8 +20,7 @@
     </properties>
 
     <modules>
-        <module>research-agent-springai-llm</module>
-        <module>research-agent-springai-agent</module>
+
     </modules>
 
 </project>

@@ -1,9 +1,8 @@
 package com.ivan.researchagent.main.controller;
 
-import com.ivan.researchagent.springai.agent.router.AgentRouter;
-import com.ivan.researchagent.springai.agent.router.RoutingAgent;
-import com.ivan.researchagent.springai.llm.model.ChatMessage;
-import com.ivan.researchagent.springai.llm.model.ChatResult;
+import com.ivan.researchagent.springai.agent.agentic.router.RoutingAgent;
+import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,9 +35,6 @@ public class AgentController {
     private ChatService chatService;
 
     @Resource
-    private AgentRouter agentRouter;
-
-    @Resource
     private RoutingAgent routingAgent;
 
 
@@ -59,7 +55,7 @@ public class AgentController {
     }
 
     @GetMapping("/chat")
-    @Operation(summary = "聊天", description = "返回聊天消息")
+    @Operation(summary = "聊天-简单参数", description = "返回聊天消息")
     public String chatMessage(String userMessage, HttpServletRequest request, HttpServletResponse response) {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setProvider("dashscope");
@@ -99,7 +95,7 @@ public class AgentController {
 
     //@GetMapping(value = "/stream/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8")
     @GetMapping(value = "/stream/chat")
-    @Operation(summary = "流式聊天", description = "返回流式聊天消息")
+    @Operation(summary = "流式聊天-简单参数", description = "返回流式聊天消息")
     public Flux<String> streamChatGet(String userMessage, HttpServletRequest request, HttpServletResponse response) {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setProvider("dashscope");

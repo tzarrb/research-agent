@@ -2,14 +2,15 @@ package com.ivan.researchagent.springai.llm.util;
 
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
 import com.alibaba.cloud.ai.dashscope.chat.MessageFormat;
+import com.alibaba.cloud.ai.dashscope.common.DashScopeApiConstants;
 import com.ivan.researchagent.common.enumerate.MessageTypeEnum;
-import com.ivan.researchagent.springai.llm.model.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
 import com.ivan.researchagent.common.model.ChatRoleMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.messages.*;
-import org.springframework.ai.model.Media;
+import org.springframework.ai.content.Media;
 import org.springframework.util.MimeTypeUtils;
 
 import java.net.URI;
@@ -37,10 +38,10 @@ public class ChatMessageUtil {
             switch (MessageType.fromValue(roleMessage.getRole())) {
                 case USER:
                     List<Media> mediaList = buildMedia(chatMessage.getMessageType(), roleMessage);
-                    UserMessage userMessage = new UserMessage(roleMessage.getContent(), mediaList);
+                    UserMessage userMessage = UserMessage.builder().text(roleMessage.getContent()).media(mediaList).build();
                     if (MessageTypeEnum.isMedia(chatMessage.getMessageType())) {
                         MessageFormat messageFormat = MessageFormat.valueOf(chatMessage.getMessageType());
-                        userMessage.getMetadata().put(DashScopeChatModel.MESSAGE_FORMAT, messageFormat);
+                        userMessage.getMetadata().put(DashScopeApiConstants.MESSAGE_FORMAT, messageFormat);
                     }
                     messages.add(userMessage);
                     break;
@@ -60,7 +61,7 @@ public class ChatMessageUtil {
         return messages;
     }
 
-    public static   List<Media> buildMedia(String messageType, ChatRoleMessage roleMessage) {
+    public static List<Media> buildMedia(String messageType, ChatRoleMessage roleMessage) {
         List<Media> mediaList = new ArrayList<>();
         List<String> imgUrlList = new ArrayList<>();
         List<String> mediaUrlList = roleMessage.getMediaUrls();
@@ -77,7 +78,7 @@ public class ChatMessageUtil {
             }
 
             for (String url : imgUrlList) {
-                mediaList.add(new Media(MimeTypeUtils.IMAGE_PNG, new URI(url).toURL()));
+                mediaList.add(new Media(MimeTypeUtils.IMAGE_PNG, new URI(url)));
             }
         } catch (Exception e) {
             log.error("buildMedia error", e);

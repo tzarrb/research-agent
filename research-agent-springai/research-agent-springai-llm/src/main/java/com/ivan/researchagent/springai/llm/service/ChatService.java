@@ -2,12 +2,14 @@ package com.ivan.researchagent.springai.llm.service;
 
 import com.alibaba.cloud.ai.advisor.RetrievalRerankAdvisor;
 import com.alibaba.cloud.ai.model.RerankModel;
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.ivan.researchagent.common.constant.Constant;
 import com.ivan.researchagent.common.model.ModelOptions;
+import com.ivan.researchagent.springai.llm.advisors.ReasoningContentAdvisor;
 import com.ivan.researchagent.springai.llm.config.LLMConfig;
-import com.ivan.researchagent.springai.llm.model.ChatMessage;
-import com.ivan.researchagent.springai.llm.model.ChatResult;
+import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.provider.ModelFactory;
 import com.ivan.researchagent.springai.llm.util.ChatMessageUtil;
 import jakarta.annotation.Resource;
@@ -19,11 +21,23 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
+import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
+import org.springframework.ai.rag.preretrieval.query.expansion.MultiQueryExpander;
+import org.springframework.ai.rag.preretrieval.query.transformation.CompressionQueryTransformer;
+import org.springframework.ai.rag.preretrieval.query.transformation.QueryTransformer;
+import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQueryTransformer;
+import org.springframework.ai.rag.preretrieval.query.transformation.TranslationQueryTransformer;
+import org.springframework.ai.rag.retrieval.join.ConcatenationDocumentJoiner;
+import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -37,8 +51,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY;
-import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_RETRIEVE_SIZE_KEY;
+import static org.springframework.ai.chat.client.advisor.vectorstore.VectorStoreChatMemoryAdvisor.TOP_K;
+import static org.springframework.ai.chat.memory.ChatMemory.CONVERSATION_ID;
 
 /**
  * Copyright (c) 2024 Ivan, Inc.
@@ -64,8 +78,23 @@ public class ChatService implements InitializingBean {
     private VectorStore vectorStore;
     @Resource
     private RerankModel rerankModel;
-    @Value("classpath:prompts/system-qa.st")
-    private org.springframework.core.io.Resource systemQaResource;
+
+    @Resource
+    @Qualifier("vectorStoreRagAdvisor")
+    private RetrievalAugmentationAdvisor vectorStoreRagAdvisor;
+    @Resource
+    @Qualifier("webSearchRagAdvisor")
+    private RetrievalAugmentationAdvisor webSearchRagAdvisor;
+    @Resource
+    private RetrievalRerankAdvisor retrievalRerankAdvisor;
+    @Resource
+    private ReasoningContentAdvisor reasoningContentAdvisor;
+
+//    @Value("classpath:prompts/system-qa.st")
+//    private org.springframework.core.io.Resource systemQaResource;
+
+    @Resource(name = "qaPromptTemplate")
+    PromptTemplate qsPromptTemplate;
 
 
     @Resource
@@ -87,9 +116,7 @@ public class ChatService implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        modelOptionsBuilder
-                .provider(llmConfig.getDefaultProvider())
-                .model(llmConfig.getDefaultModel());
+
     }
 
     /**
@@ -98,6 +125,9 @@ public class ChatService implements InitializingBean {
      * @return
      */
     public ChatClient getchatClient(ChatMessage chatMessage) {
+        modelOptionsBuilder
+                .provider(llmConfig.getDefaultProvider())
+                .model(llmConfig.getDefaultModel());
         if (StringUtils.isNotBlank(chatMessage.getProvider())) {
             modelOptionsBuilder.provider(chatMessage.getProvider());
         }
@@ -111,6 +141,7 @@ public class ChatService implements InitializingBean {
                 .conversantId(chatMessage.getSessionId())
                 .enableStream(chatMessage.getEnableStream())
                 .enableSearch(chatMessage.getEnableWeb())
+                .formatType(chatMessage.getFormatType())
                 .build();
 
         ChatClient chatClient = modelFactory.get(modelOptions);
@@ -142,25 +173,21 @@ public class ChatService implements InitializingBean {
             String conversantId = chatMessage.getSessionId();
 
             //对话增强，默认使用MemoryMemoryAdvisor
-            requestSpec.advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, conversantId)
-                    .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, CHAT_MEMORY_RETRIEVE_SIZE));
+            requestSpec.advisors(spec -> spec.param(CONVERSATION_ID, conversantId)
+                    .param(TOP_K, CHAT_MEMORY_RETRIEVE_SIZE));
         }
+        //本地文档搜索增强
         if(chatMessage.getEnableLocal()) {
             //RAG检索增强生成
             //requestSpec.advisors(new QuestionAnswerAdvisor(vectorStore));
-            String promptTemplate = "";
-            try {
-                promptTemplate = systemQaResource.getContentAsString(StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                log.error("读取RAG Advisor Prompt模板失败", e);
-            }
-            SearchRequest searchRequest = SearchRequest.builder().topK(2).build();
-            requestSpec.advisors(new RetrievalRerankAdvisor(vectorStore, rerankModel, searchRequest, promptTemplate, 0.1));
+
+            // 设置增强拦截
+            requestSpec.advisors(vectorStoreRagAdvisor, retrievalRerankAdvisor);
         }
 
-        //function call @Deprecated
-        if(CollectionUtils.isNotEmpty(chatMessage.getFunctions())) {
-            requestSpec.functions(chatMessage.getFunctions().toArray(new String[0]));
+        // 网络搜索增强
+        if(chatMessage.getEnableWeb()) {
+            requestSpec.advisors(webSearchRagAdvisor, reasoningContentAdvisor);
         }
 
         //tool call
@@ -168,17 +195,25 @@ public class ChatService implements InitializingBean {
             requestSpec.tools(chatMessage.getTools().toArray(new Object[0]));
         }
 
+        //tool call
+        if (CollectionUtils.isNotEmpty(chatMessage.getToolNames())) {
+            requestSpec.toolNames(chatMessage.getToolNames().toArray(new String[0]));
+        }
+
         //tool callback
         if (CollectionUtils.isNotEmpty(chatMessage.getToolCallBacks())) {
-            requestSpec.tools(chatMessage.getToolCallBacks());
+            requestSpec.toolCallbacks(chatMessage.getToolCallBacks());
         }
 
         // tool callback provider
         if (CollectionUtils.isNotEmpty(chatMessage.getToolCallbackProviders())) {
-            requestSpec.tools(chatMessage.getToolCallbackProviders().toArray(new ToolCallbackProvider[0]));
+            requestSpec.toolCallbacks(chatMessage.getToolCallbackProviders().toArray(new ToolCallbackProvider[0]));
         }
 
-        if (CollectionUtils.isEmpty(chatMessage.getToolCallbackProviders())) {
+        if (CollectionUtils.isNotEmpty(chatMessage.getTools())
+                || CollectionUtils.isNotEmpty(chatMessage.getToolNames())
+                || CollectionUtils.isNotEmpty(chatMessage.getToolCallBacks())
+                || CollectionUtils.isNotEmpty(chatMessage.getToolCallbackProviders())) {
             Map<String, Object> toolContext = Maps.newHashMap();
             toolContext.put(Constant.CONVERSANT_ID, sessionId);
             toolContext.put(Constant.CHAT_CLIENT, chatClient);
@@ -205,6 +240,14 @@ public class ChatService implements InitializingBean {
         return response.getResult().getOutput().getText();
     }
 
+    public ChatResponse chat(Prompt prompt) {
+        ChatClient chatClient = modelFactory.get(modelOptionsBuilder.build());
+        ChatResponse response = chatClient.prompt(prompt)
+                .call()
+                .chatResponse();
+        return response;
+    }
+
     public ChatResult chat(ChatMessage chatMessage) {
         ChatClient.ChatClientRequestSpec requestSpec = buildRequestSpec(chatMessage);
 
@@ -218,12 +261,6 @@ public class ChatService implements InitializingBean {
     }
 
     public Flux<ChatResult> steamChat(String input) {
-//        ChatClient chatClient = modelFactory.get(modelOptionsBuilder.build());
-//        return chatClient.prompt().
-//                user(input)
-//                .stream()
-//                .chatResponse();
-
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setProvider("dashscope");
         chatMessage.setModel("qwen-max");
@@ -271,12 +308,15 @@ public class ChatService implements InitializingBean {
                 .subscribe(
                         chunk -> {
                             try {
-                                String content = chunk.getResult().getOutput().getText();
-                                if (StringUtils.isNotBlank(content)) {
-                                    // 发送消息到客户端
-                                    // 注意这里，我们直接发送 JSON 字符串，让 SseEmitter 自动添加 data: 前缀
-                                    sseEmitter.send(Map.of("content", content));
-                                    log.info("sessionId:{}, stream chat content：{}, response: {}", chatMessage.getSessionId(), content, chunk);
+                                Generation generation = chunk.getResult();
+                                if (ObjectUtils.isNotEmpty(generation)) {
+                                    String content = generation.getOutput().getText();
+                                    if (StringUtils.isNotBlank(content)) {
+                                        // 发送消息到客户端
+                                        // 注意这里，我们直接发送 JSON 字符串，让 SseEmitter 自动添加 data: 前缀
+                                        sseEmitter.send(Map.of("content", content, "sessionId", chatMessage.getSessionId()));
+                                        log.info("sessionId:{}, stream chat content: {}, response: {}", chatMessage.getSessionId(), content, JSON.toJSONString(chunk));
+                                    }
                                 }
                             } catch (IOException e) {
                                 sseEmitter.completeWithError(e);
@@ -313,40 +353,32 @@ public class ChatService implements InitializingBean {
                 .entity(new ParameterizedTypeReference<List<T>>() {});
     }
 
-    public String functionChat(String input, List<String> functionNames) {
+    public String functionChat(String input, List<String> toolNames) {
         ChatClient chatClient = modelFactory.get(modelOptionsBuilder.build());
         ChatResponse response = chatClient.prompt()
-                .functions(functionNames.toArray(new String[0]))
+                .toolNames(toolNames.toArray(new String[0]))
                 .user(input)
                 .call()
                 .chatResponse();
         return response.getResult().getOutput().getText();
     }
 
-    public <T> T functionChatObject(String input, List<String> functionNames, Class<T> clazz) {
+    public <T> T toolChatObject(String input, List<String> toolNames, Class<T> clazz) {
         ChatClient chatClient = modelFactory.get(modelOptionsBuilder.build());
         return chatClient.prompt()
-                .functions(functionNames.toArray(new String[0]))
+                .toolNames(toolNames.toArray(new String[0]))
                 .user(input)
                 .call()
                 .entity(clazz);
     }
 
-    public <T> List<T> functionChatArray(String input, List<String> functionNames) {
+    public <T> List<T> toolChatArray(String input, List<String> functionNames) {
         ChatClient chatClient = modelFactory.get(modelOptionsBuilder.build());
         return chatClient.prompt()
-                .functions(functionNames.toArray(new String[0]))
+                .toolNames(functionNames.toArray(new String[0]))
                 .user(input)
                 .call()
                 .entity(new ParameterizedTypeReference<List<T>>() {});
-    }
-
-    public ChatResponse chat(Prompt prompt) {
-        ChatClient chatClient = modelFactory.get(modelOptionsBuilder.build());
-        ChatResponse response = chatClient.prompt(prompt)
-                .call()
-                .chatResponse();
-        return response;
     }
 
 }

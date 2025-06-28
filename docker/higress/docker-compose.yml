@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+
+  # Higress AI Cache Use
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - E:\WorkFiles\docker\redis\data:/data
+      - E:\WorkFiles\docker\redis\conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - higress
+
+  higress:
+    image: higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/all-in-one:latest
+    container_name: higress
+    pull_policy: always
+    tty: true
+    restart: unless-stopped
+    volumes:
+      - E:\WorkFiles\docker\higress\data:/data
+    ports:
+      - "8001:8001"
+      - "8443:8443"
+      - "8080:8080"
+    networks:
+      - higress
+
+networks:
+  higress:
+    driver: bridge

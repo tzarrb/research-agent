@@ -5,9 +5,9 @@ import com.ivan.researchagent.springai.agent.config.DoctorProperties;
 import com.ivan.researchagent.springai.agent.enums.DoctorOperateType;
 import com.ivan.researchagent.springai.agent.model.bo.doctor.DoctorCancelReqBO;
 import com.ivan.researchagent.springai.agent.model.bo.doctor.DoctorInfoBO;
-import com.ivan.researchagent.springai.agent.model.func.doctor.DoctorOperateRequest;
-import com.ivan.researchagent.springai.agent.model.func.doctor.DoctorQueryRequest;
-import com.ivan.researchagent.springai.agent.model.func.doctor.DoctorUpdateRequest;
+import com.ivan.researchagent.springai.agent.model.tool.doctor.DoctorOperateRequest;
+import com.ivan.researchagent.springai.agent.model.tool.doctor.DoctorQueryRequest;
+import com.ivan.researchagent.springai.agent.model.tool.doctor.DoctorUpdateRequest;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -165,10 +165,17 @@ public class DoctorService {
     }
 
     public String updateDoctor(DoctorUpdateRequest request) {
-        return "操作成功";
+        log.info("updateDoctor param:{}", JSON.toJSONString(request));
+        return "更新操作成功";
+    }
+
+    public String insertDoctor(DoctorUpdateRequest request) {
+        log.info("insertDoctor param:{}", JSON.toJSONString(request));
+        return "新增操作成功";
     }
 
     public String operateDoctor(DoctorOperateRequest request) {
+        log.info("operateDoctor param:{}", JSON.toJSONString(request));
         DoctorOperateType operateType = DoctorOperateType.valueOfCode(request.getOperateType());
         if (operateType == null) {
             log.warn("Invalid operateType: {}, returning false", request.getOperateType());

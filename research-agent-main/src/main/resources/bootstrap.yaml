@@ -1,10 +1,8 @@
 spring:
+  profiles:
+    active: local #开发环境，local,dev,test,prod
   main:
     allow-circular-references: true
-  profiles:
-    active: dev #开发环境，dev,test,prod
-  application:
-    name: research-agent
   cloud:
     nacos:
       serverAddr: 127.0.0.1:8848 #对应 Nacos 服务端地址
@@ -18,3 +16,6 @@ spring:
         group: DEFAULT_GROUP #对应 Group 参数，默认值为DEFAULT_GROUP
         #namespace:  #对应配置的命名空间，默认为空；值为空间id
         refresh-enabled: true #是否支持动态刷新
+        max-retry: 5      # 最大重试次数
+        retry-timeout: 3  # 单次重试间隔(秒)
+

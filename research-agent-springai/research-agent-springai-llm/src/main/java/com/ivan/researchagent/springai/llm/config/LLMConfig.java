@@ -17,9 +17,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class LLMConfig {
 
-    @Value("${custom.ai.provider:dashscope}")
+    @Value("${llm.ai.provider:dashscope}")
     private String defaultProvider;
 
-    @Value("${custom.ai.model:qwen-max}")
+    @Value("${llm.ai.model:qwen-max}")
     private String defaultModel;
+
 }

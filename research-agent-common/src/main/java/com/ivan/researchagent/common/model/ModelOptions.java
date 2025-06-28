@@ -44,13 +44,13 @@ public class ModelOptions {
     @JsonPropertyDescription("是否联网搜索")
     private Boolean enableSearch;
 
+    @JsonPropertyDescription("输出格式")
+    private String formatType;
+
     @JsonPropertyDescription("系统提示词")
     private String systemText;
 
     @JsonPropertyDescription("用户提示词")
     private String userText;
-
-//    @JsonPropertyDescription("大模型调用函数")
-//    private List<String> functions;
 
 }

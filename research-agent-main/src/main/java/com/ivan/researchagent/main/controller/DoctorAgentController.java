@@ -1,8 +1,8 @@
 package com.ivan.researchagent.main.controller;
 
-import com.ivan.researchagent.springai.llm.model.ChatMessage;
-import com.ivan.researchagent.springai.llm.model.ChatResult;
-import com.ivan.researchagent.springai.agent.chat.DoctorOperateChat;
+import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
+import com.ivan.researchagent.springai.agent.agentic.biz.DoctorOperateAgent;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,7 +28,7 @@ import reactor.core.publisher.Flux;
 public class DoctorAgentController {
 
     @Resource
-    private DoctorOperateChat doctorOperateAgent;
+    private DoctorOperateAgent doctorOperateAgent;
 
 
     @GetMapping("")

@@ -2,7 +2,7 @@ package com.ivan.researchagent.architectagent.springai.rag;
 
 import com.google.common.collect.Lists;
 import com.ivan.researchagent.main.AgentApplication;
-import com.ivan.researchagent.springai.llm.model.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
 import jakarta.annotation.Resource;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

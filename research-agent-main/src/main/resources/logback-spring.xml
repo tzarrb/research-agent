@@ -49,7 +49,7 @@
         <!-- 追加方式记录日志 -->
         <append>true</append>
 
-        <springProfile name="default,dev,local,test1,test4,integration,pre">
+        <springProfile name="default,dev,local,test,test1,test4,integration,pre">
             <encoder charset="UTF-8" class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
                 <pattern>${LOG_PATTERN}</pattern>
             </encoder>
@@ -118,7 +118,7 @@
         <!-- 追加方式记录日志 -->
         <append>true</append>
 
-        <springProfile name="default,dev,local,test1,test4,integration,pre">
+        <springProfile name="default,dev,local,test,test1,test4,integration,pre">
             <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
                 <pattern>${LOG_PATTERN}</pattern>
             </encoder>

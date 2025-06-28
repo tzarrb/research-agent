@@ -1,7 +1,5 @@
 package com.ivan.researchagent.main.controller;
 
-import com.alibaba.cloud.ai.prompt.ConfigurablePromptTemplate;
-import com.alibaba.cloud.ai.prompt.ConfigurablePromptTemplateFactory;
 import com.ivan.researchagent.main.model.prompt.PromptTemplateQuery;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import org.apache.commons.collections.MapUtils;
@@ -40,8 +38,8 @@ public class PromptController {
 
     @jakarta.annotation.Resource
     private ChatService chatService;
-    @jakarta.annotation.Resource
-    private ConfigurablePromptTemplateFactory configurablePromptTemplateFactory;
+//    @jakarta.annotation.Resource
+//    private ConfigurablePromptTemplateFactory configurablePromptTemplateFactory;
 
     @Value("classpath:/doc/wikipedia-curling.md")
     private Resource docToStuffResource;
@@ -83,23 +81,23 @@ public class PromptController {
         return response.getResult().getOutput();
     }
 
-    @GetMapping("/prompt-template")
-    public AssistantMessage generate(@RequestBody PromptTemplateQuery templateQuery) {
-        ConfigurablePromptTemplate template = configurablePromptTemplateFactory.getTemplate(templateQuery.getTemplateName());
-        if (template == null) {
-            template = configurablePromptTemplateFactory.create(templateQuery.getTemplateName(),
-                    templateQuery.getTemplateContent());
-        }
-        Prompt prompt;
-        if (MapUtils.isNotEmpty(templateQuery.getTemplateParam())) {
-            prompt = template.create(templateQuery.getTemplateParam());
-        } else {
-            prompt = template.create();
-        }
-
-        ChatResponse response = chatService.chat(prompt);
-        return response.getResult().getOutput();
-    }
+//    @GetMapping("/prompt-template")
+//    public AssistantMessage generate(@RequestBody PromptTemplateQuery templateQuery) {
+//        ConfigurablePromptTemplate template = configurablePromptTemplateFactory.getTemplate(templateQuery.getTemplateName());
+//        if (template == null) {
+//            template = configurablePromptTemplateFactory.create(templateQuery.getTemplateName(),
+//                    templateQuery.getTemplateContent());
+//        }
+//        Prompt prompt;
+//        if (MapUtils.isNotEmpty(templateQuery.getTemplateParam())) {
+//            prompt = template.create(templateQuery.getTemplateParam());
+//        } else {
+//            prompt = template.create();
+//        }
+//
+//        ChatResponse response = chatService.chat(prompt);
+//        return response.getResult().getOutput();
+//    }
 
     @GetMapping("/context-template")
     public AssistantMessage completion(@RequestParam(value = "message", defaultValue = "") String message,
