@@ -1,5 +1,6 @@
 package com.ivan.researchagent.springai.llm.tools.search.tavilysearch;
 
+import com.alibaba.fastjson.JSON;
 import com.ivan.researchagent.springai.llm.model.tool.TavilySearchRequest;
 import com.ivan.researchagent.springai.llm.model.tool.WebSearchResponse;
 import com.ivan.researchagent.springai.llm.tools.search.WebSearchApi;
@@ -67,7 +68,7 @@ public class TavilySearchApiApi extends WebSearchApi {
                 .retrieve()
                 .bodyToMono(WebSearchResponse.class)
                 .block();
-        log.debug("TavilySearchApiApi search response: {}", response);
+        log.debug("TavilySearchApiApi search response: {}", JSON.toJSONString(response));
         return response;
     }
 

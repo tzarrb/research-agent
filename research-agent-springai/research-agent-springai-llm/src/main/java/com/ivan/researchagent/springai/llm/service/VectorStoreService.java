@@ -1,11 +1,9 @@
 package com.ivan.researchagent.springai.llm.service;
 
-import com.google.common.collect.Maps;
 import com.ivan.researchagent.springai.llm.model.rag.VectorStoreData;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
@@ -13,7 +11,6 @@ import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -79,7 +76,7 @@ public class VectorStoreService {
         return Boolean.TRUE;
     }
 
-    public String storeFiles(MultipartFile file) {
+    public String storeFile(MultipartFile file) {
         try {
             // 1. file verification
             if (file == null || file.isEmpty()) {

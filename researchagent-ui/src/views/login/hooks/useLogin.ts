@@ -28,6 +28,7 @@ export default function () {
 
         // 保存账号到store
         mainStore.user.account = accountVal;
+        mainStore.user.avatar = "http://gips2.baidu.com/it/u=3944689179,983354166&fm=3028&app=3028&f=JPEG&fmt=auto?w=1024&h=1024";
 
         await router.push('/');
     }

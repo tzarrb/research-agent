@@ -8,6 +8,7 @@ export const useMainStore = defineStore('main', {
         user: {
             token: '',
             account: '',
+            avatar: '',
             msgCount: 0
         },
         menu: {

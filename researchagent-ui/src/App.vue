@@ -2,8 +2,8 @@
     <RouterView/>
 </template>
 
-<script>
+<script setup lang="ts">
 </script>
 
-<style scoped>
+<style scoped lang="less">
 </style>

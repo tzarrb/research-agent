@@ -53,7 +53,7 @@ const {
     }
 
     &__input {
-      width: 100%;
+      width: 50%;
       font-size: 16px;
       margin-bottom: 16px;
       :deep(.el-input__wrapper) {

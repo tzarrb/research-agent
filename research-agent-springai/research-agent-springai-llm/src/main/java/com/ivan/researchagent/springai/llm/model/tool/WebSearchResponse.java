@@ -31,19 +31,24 @@ public class WebSearchResponse {
     private double responseTime;
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ImageInfo {
+
+        // 添加字符串参数的构造函数
+        public ImageInfo(String url) {
+            this.url = url;
+        }
 
         private String url;
 
         private String description;
-
     }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ResultInfo {
-
         private String title;
 
         private String content;
@@ -54,7 +59,6 @@ public class WebSearchResponse {
 
         @JsonProperty("raw_content")
         private String rawContent;
-
     }
 
 }

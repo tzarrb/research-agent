@@ -2,6 +2,7 @@ const getters = {
   isLogin: state => Boolean(state.apiKey.trim()),
   token: state => state.user.token,
   account: state => state.user.account,
+  avatar: state => state.user.avatar,
   msgCount: state => state.user.msgCount,
   menuTree: state => state.menu.menuTree,
   openMenuList: state => state.menu.openMenuList,

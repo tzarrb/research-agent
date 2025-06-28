@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,7 +53,19 @@ public class VectorStoreController {
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> insertFiles(@RequestPart(value = "file", required = false) MultipartFile file) {
-        String msg = vectorStoreService.storeFiles(file);
+        String msg = vectorStoreService.storeFile(file);
         return ResponseEntity.ok(msg);
+    }
+
+    @PostMapping(value = "/batch-upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<String>> batchInsertFiles(@RequestPart(value = "files", required = false) List<MultipartFile> files) {
+        List<String> fileNames = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (file != null && !file.isEmpty()) {
+                String fileName = vectorStoreService.storeFile(file);
+                fileNames.add(fileName);
+            }
+        }
+        return ResponseEntity.ok(fileNames);
     }
 }

@@ -1,6 +1,9 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia';
 import ElementPlus from 'element-plus';
+import 'element-plus/dist/index.css'
+import ElementPlusX from 'vue-element-plus-x'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
 // 同步全局的信息
@@ -40,9 +43,19 @@ import './styles/main.css'
 
 
 const app = createApp(App)
-app.use(router)
+// 批量注册图标的方法
+function registerIcons(app) {
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+        app.component(key, component)
+    }
+}
 
+// 注册路由
+app.use(router)
+// 调用函数批量注册所有图标
+registerIcons(app)
 app.use(ElementPlus);
+app.use(ElementPlusX);
 app.use(createPinia());
 
 app.mount('#app')

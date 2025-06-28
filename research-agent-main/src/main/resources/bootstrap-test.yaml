@@ -239,6 +239,8 @@ spring:
             enabled: true
             api-key: ${TAVILY_API_KEY}  # 必填项：你的 API 密钥
             base-url: https://api.tavily.com/search  # 可选，默认为官方 API 地址
+            maxResults: 5
+            includeImages: true
         baidusearch:
             enabled: true
             base-url: https://www.baidu.com/  # 可选，则为官方 API 地址
