@@ -68,7 +68,7 @@ public class ReasoningContentAdvisor  implements BaseAdvisor {
                             output.getToolCalls(),
                             output.getMedia()
                     );
-                    return new Generation(thinkAssistantMessage, generation.getMetadata());
+                    return new Generation(output, generation.getMetadata());
                 }).toList();
 
         ChatResponse thinkChatResp = ChatResponse.builder().from(resp).generations(thinkGenerations).build();

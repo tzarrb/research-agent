@@ -47,6 +47,7 @@ import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -310,13 +311,25 @@ public class ChatService implements InitializingBean {
                             try {
                                 Generation generation = chunk.getResult();
                                 if (ObjectUtils.isNotEmpty(generation)) {
+                                    Map<String, Object> result = new HashMap<String, Object>();
+                                    result.put("sessionId", chatMessage.getSessionId());
+
                                     String content = generation.getOutput().getText();
                                     if (StringUtils.isNotBlank(content)) {
-                                        // 发送消息到客户端
-                                        // 注意这里，我们直接发送 JSON 字符串，让 SseEmitter 自动添加 data: 前缀
-                                        sseEmitter.send(Map.of("content", content, "sessionId", chatMessage.getSessionId()));
+                                        result.put("content", content);
                                         log.info("sessionId:{}, stream chat content: {}, response: {}", chatMessage.getSessionId(), content, JSON.toJSONString(chunk));
                                     }
+
+                                    String reasoningContent = String.valueOf(generation.getOutput().getMetadata().get("reasoningContent"));
+                                    if (StringUtils.isNotBlank(reasoningContent)) {
+                                        result.put("reasoningContent", reasoningContent);
+                                        log.info("sessionId:{}, stream chat content: {}, reasoningContent:{}, response: {}",
+                                                chatMessage.getSessionId(), content, reasoningContent, JSON.toJSONString(chunk));
+                                    }
+
+                                    // 发送消息到客户端
+                                    // 注意这里，我们直接发送 JSON 字符串，让 SseEmitter 自动添加 data: 前缀
+                                    sseEmitter.send(result);
                                 }
                             } catch (IOException e) {
                                 sseEmitter.completeWithError(e);

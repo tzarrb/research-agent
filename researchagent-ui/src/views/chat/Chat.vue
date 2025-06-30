@@ -88,22 +88,31 @@
                 </template>
 
                 <!-- 自定义头部 -->
-                <!-- <template #header="{ item }">
+                <template #header="{ item }">
                   <div class="header-wrapper">
-                    <div class="header-name">
+                    <!-- <div class="header-name">
                       {{ item.role === 'ai' ? '智能体 🍧' : '🧁 用户' }}
+                    </div> -->
+                    <div class="thinking-wrapper" style="height: 100px"  v-if="item.role === 'ai' && item.thinkingStatus" >
+                      <Thinking
+                          :status="item.thinkingStatus"
+                          :content="item.thinkingContent"
+                          auto-collapse
+                          button-width="250px"
+                          max-width="100%"
+                      />
                     </div>
                   </div>
-                </template> -->
+                </template>
 
                 <!-- 自定义气泡内容 Markdown渲染需手动处理-->
-                <!-- <template #content="{ item }">
+                <template #content="{ item }">
                   <div class="content-wrapper">
                     <div class="content-text">
-                      {{item.content}}
+                      <Typewriter :content="item.content" :is-markdown="true" :md-plugins="mdPlugins" :highlight="highlight" />
                     </div>
                   </div>
-                </template> -->
+                </template>
 
                 <!-- 自定义底部 -->
                 <template #footer="{ item }">
@@ -137,7 +146,7 @@
                   <el-button icon="Paperclip" round plain color="#626aef">
                   </el-button>
 
-                  <div :class="{ isDeep }" style="display: flex; align-items: center; gap: 4px; padding: 2px 12px; border: 1px solid silver; border-radius: 15px; cursor: pointer; font-size: 12px;" @click="isDeep = !isDeep">
+                  <div :class="{ isThink }" style="display: flex; align-items: center; gap: 4px; padding: 2px 12px; border: 1px solid silver; border-radius: 15px; cursor: pointer; font-size: 12px;" @click="isThink = !isThink">
                     <el-icon><ElementPlus/></el-icon>
                     <span>深度思考</span>
                   </div>
@@ -178,6 +187,12 @@ import { ref, onMounted, nextTick, computed } from 'vue'
 import {ElMessage} from "element-plus";
 import { useSend, XRequest } from 'vue-element-plus-x';
 
+import markdownItMermaid from '@jsonlee_12138/markdown-it-mermaid'
+// 这里是组件库内置的一个 代码高亮库 Prismjs，自定义的 hooks 例子。(仅供集成参考)代码地址：https://github.com/HeJiaYue520/Element-Plus-X/blob/main/packages/components/src/hooks/usePrism.ts
+import { usePrism } from 'vue-element-plus-x'
+// 这里可以引入 Prism 的核心样式，也可以自己引入其他第三方主题样式
+import 'vue-element-plus-x/styles/prism.min.css'
+
 // 全局缓存
 import { useMainStore } from '@/store';
 // 全局路由
@@ -186,6 +201,9 @@ import router from '@/router'
 
 // 全局缓存
 const mainStore = useMainStore();
+
+const mdPlugins = [markdownItMermaid({ delay: 100, forceLegacyMathML: true })]
+const highlight = usePrism()
 
 const avatarUser = ref('http://gips3.baidu.com/it/u=3886271102,3123389489&fm=3028&app=3028&f=JPEG&fmt=auto?w=1280&h=960')
 const avatarAi = ref('https://mdn.alipayobjects.com/huamei_iwk9zp/afts/img/A*s5sNRo5LjfQAAAAAAAAAAAAADgCCAQ/fmt.webp')
@@ -197,7 +215,7 @@ const inputValue = ref('')
 const conversantId = ref('')
 
 const isLoad = ref(false)
-const isDeep = ref(false)
+const isThink = ref(false)
 const isLocal = ref(false)
 const isWeb = ref(false)
 
@@ -296,8 +314,10 @@ const sendHandler = () => {
     isFog: true, // 是否开启打字雾化效果，该效果 v1.1.6 新增，且在 typing 为 true 时生效，该效果会覆盖 typing 的 suffix 属性
     typing: true, // 是否开启打字器效果 { step: 5, interval: 35, suffix: '🍆' }
     loading: true, // 当前气泡的加载状态
-    error: false, // 消息是否报错
-    done: false // 流消息加载完成
+    error: false, // 当前气泡的消息是否报错
+    done: false, // 当前气泡的流消息加载完成
+    thinkingStatus: isThink.value ? 'start' : '', // start | thinking | end | error
+    thinkingContent: '', // 推理内容
   })
 
   return message;
@@ -305,10 +325,10 @@ const sendHandler = () => {
 
 const httpRequest = async (message: string) => {
   try {
-    const response = await fetch(`http://localhost:18080/research-agent/ai/chat/sse/chat?userMessage=${encodeURIComponent(message)}&enableLocal=${isLocal.value}&enableWeb=${isWeb.value}`, {
+    const response = await fetch(`http://localhost:18080/research-agent/ai/chat/sse/chat?userMessage=${encodeURIComponent(message)}&enableLocal=${isLocal.value}&enableWeb=${isWeb.value}&enableThink=${isThink.value}`, {
       headers: {
-      'Accept': 'text/event-stream',
-      'sessionId': conversantId.value
+        'Accept': 'text/event-stream',
+        'sessionId': conversantId.value
       }
     })
 
@@ -426,14 +446,27 @@ const sseRequest = new XRequest({
 
     try {
       const data = JSON.parse(jsonStr)
+
+      if (data.sessionId) {
+        conversantId.value = data.sessionId
+      }
+
+      // 更新气泡消息内容和状态
       if (data.content) {
         messages.value[messages.value.length - 1].loading = false
         messages.value[messages.value.length - 1].content += data.content
         scrollToBottom()
       }
 
-      if (data.sessionId) {
-        conversantId.value = data.sessionId
+      // 更新推理内容和状态
+      if (isThink.value) {
+        messages.value[messages.value.length - 1].thinkingStatus = 'thinking'
+        if (data.reasoningContent) {
+          messages.value[messages.value.length - 1].thinkingContent += data.reasoningContent
+          scrollToBottom()
+        } else if (messages.value[messages.value.length - 1].thinkingStatus === 'thinking') {
+          messages.value[messages.value.length - 1].thinkingStatus = 'end'
+        }
       }
 
       // 添加消息记录
@@ -452,8 +485,11 @@ const sseRequest = new XRequest({
   onError: (es, e) => {
     console.log('onError:', es, e)
     // '抱歉，发生了错误，请稍后重试。'
-    messages.value[messages.value.length - 1].content += e
+    isLoad.value = false
+    messages.value[messages.value.length - 1].content += es
     messages.value[messages.value.length - 1].error = true
+    messages.value[messages.value.length - 1].done = true
+    messages.value[messages.value.length - 1].loading = false
   },
   onOpen: () => {
     console.log('onOpen')
@@ -718,7 +754,7 @@ onMounted(() => {
 }
 
 // 用户输入容器样式
-.isDeep {
+.isThink {
   color: #626aef;
   border: 1px solid #626aef !important;
   border-radius: 15px;
