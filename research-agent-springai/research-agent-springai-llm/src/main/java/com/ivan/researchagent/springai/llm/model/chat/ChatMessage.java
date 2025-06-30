@@ -54,6 +54,9 @@ public class ChatMessage implements Serializable {
     @JsonPropertyDescription("是否联网搜索")
     private Boolean enableWeb = false;
 
+    @JsonPropertyDescription("是否深度思考")
+    private Boolean enableThink = false;
+
     @JsonPropertyDescription("对话会话ID，也是对话记忆的唯一标识")
     private String sessionId;
 

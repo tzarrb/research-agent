@@ -5,6 +5,7 @@ import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
 import com.alibaba.cloud.ai.model.RerankModel;
 import com.ivan.researchagent.springai.llm.advisors.ReasoningContentAdvisor;
+import com.ivan.researchagent.springai.llm.document.DocumentRanker;
 import com.ivan.researchagent.springai.llm.rag.retriever.WebSearchDocumentRetriever;
 import com.ivan.researchagent.springai.llm.tools.search.tavilysearch.TavilySearchApiApi;
 import jakarta.annotation.PostConstruct;
@@ -97,6 +98,10 @@ public class RagConfiguration {
         return documentRetriever;
     }
 
+    /**
+     * 多查询扩展器，用于生成多个相关的查询变体，以获得更全面的搜索结果
+     * @return
+     */
     @Bean(name = "multiQueryExpander")
     public MultiQueryExpander multiQueryExpander() {
 
@@ -109,9 +114,26 @@ public class RagConfiguration {
         return queryExpander;
     }
 
+    /**
+     * 压缩查询转换器，负责将含有上下文的查询转换为一个完整的独立查询
+     * @return
+     */
+    @Bean(name = "compressionQueryTransformer")
+    public CompressionQueryTransformer compressionQueryTransformer() {
+        // 负责将含有上下文的查询转换为一个完整的独立查询
+        var compressionQueryTransformer = CompressionQueryTransformer.builder()
+                .chatClientBuilder(chatClient.mutate())
+                .build();
+        return compressionQueryTransformer;
+    }
+
+    /**
+     * 重写查询转换器，将查询重写为更适合目标搜索系统的查询
+     * @return
+     */
     @Bean(name = "rewriteQueryTransformer")
     public RewriteQueryTransformer rewriteQueryTransformer() {
-        //查询扩展器，用于生成多个相关的查询变体，以获得更全面的搜索结果
+        // 重写查询转换器，将查询重写为更适合目标搜索系统的查询
         RewriteQueryTransformer rewriteQueryTransformer = RewriteQueryTransformer.builder()
                 .chatClientBuilder(chatClient.mutate())
                 .promptTemplate(transformerPromptTemplate)
@@ -120,6 +142,10 @@ public class RagConfiguration {
         return rewriteQueryTransformer;
     }
 
+    /**
+     * 重写查询转换器，将查询重写为更适合目标搜索系统的查询
+     * @return
+     */
     @Bean(name = "webSearchQueryTransformer")
     public RewriteQueryTransformer webSearchQueryTransformer() {
         // 查询翻译转换器，用于将查询翻译为目标语言
@@ -130,6 +156,10 @@ public class RagConfiguration {
                 .build();
     }
 
+    /**
+     * 英文查询翻译转换器，用于将查询翻译为英文
+     * @return
+     */
     @Bean(name = "englishQueryTransformer")
     public TranslationQueryTransformer englishQueryTransformer() {
         // 查询翻译转换器，用于将查询翻译为目标语言
@@ -140,15 +170,10 @@ public class RagConfiguration {
         return translationQueryTransformer;
     }
 
-    @Bean(name = "compressionQueryTransformer")
-    public CompressionQueryTransformer compressionQueryTransformer() {
-        // 负责将含有上下文的查询转换为一个完整的独立查询
-        var compressionQueryTransformer = CompressionQueryTransformer.builder()
-                .chatClientBuilder(chatClient.mutate())
-                .build();
-        return compressionQueryTransformer;
-    }
-
+    /**
+     * 合并多个数据源的文档
+     * @return
+     */
     @Bean(name = "concatenationDocumentJoiner")
     public ConcatenationDocumentJoiner concatenationDocumentJoiner() {
         // 文档合并器
@@ -156,7 +181,20 @@ public class RagConfiguration {
         return documentJoiner;
     }
 
+    /**
+     * 文档重排序器，使用RerankModel进行文档重排序
+     * @return
+     */
+    @Bean
+    public DocumentRanker documentRanker() {
+        // 使用RerankModel进行文档重排序
+        return new DocumentRanker(rerankModel, 0.1);
+    }
 
+    /**
+     * 上下文查询增强器，处理边界情况，处理文档未找到情况：处理相似度过低情况；处理查询超时情况。
+     * @return
+     */
     @Bean(name = "contextualQueryAugmenter")
     public ContextualQueryAugmenter contextualQueryAugmenter() {
         // 边界情况处理，处理文档未找到情况：处理相似度过低情况；处理查询超时情况。
@@ -169,36 +207,40 @@ public class RagConfiguration {
 
     @Bean(name = "vectorStoreRagAdvisor")
     public RetrievalAugmentationAdvisor vectorStoreRagAdvisor(VectorStoreDocumentRetriever vectorStoreDocumentRetriever,
-                                                                       ConcatenationDocumentJoiner concatenationDocumentJoiner,
-                                                                       ContextualQueryAugmenter contextualQueryAugmenter,
                                                                        MultiQueryExpander multiQueryExpander,
+                                                                       CompressionQueryTransformer compressionQueryTransformer,
                                                                        RewriteQueryTransformer rewriteQueryTransformer,
-                                                                       CompressionQueryTransformer compressionQueryTransformer) {
+                                                                       DocumentRanker documentRanker,
+                                                                       ConcatenationDocumentJoiner concatenationDocumentJoiner,
+                                                                       ContextualQueryAugmenter contextualQueryAugmenter) {
         //  RAG检索增强生成
         var retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
-                .documentRetriever(vectorStoreDocumentRetriever) // 本地文档检索
-                .documentJoiner(concatenationDocumentJoiner) // 文档合并
-                .queryAugmenter(contextualQueryAugmenter) //边界情况处理
+                .queryTransformers(compressionQueryTransformer, rewriteQueryTransformer) // 查询转换器
                 .queryExpander(multiQueryExpander) // 查询扩展器
-                .queryTransformers(rewriteQueryTransformer, compressionQueryTransformer) // 查询转换器
+                .documentRetriever(vectorStoreDocumentRetriever) // 本地文档检索
+                .documentPostProcessors(documentRanker) // 文档重排序
+                .documentJoiner(concatenationDocumentJoiner) // 文档合并
+                .queryAugmenter(contextualQueryAugmenter) //上下文增强
                 .build();
         return retrievalAugmentationAdvisor;
     }
 
     @Bean(name = "webSearchRagAdvisor")
     public RetrievalAugmentationAdvisor webSearchRagAdvisor(WebSearchDocumentRetriever webSearchDocumentRetriever,
-                                                              ConcatenationDocumentJoiner concatenationDocumentJoiner,
-                                                              ContextualQueryAugmenter contextualQueryAugmenter,
-                                                              MultiQueryExpander multiQueryExpander,
-                                                              RewriteQueryTransformer webSearchQueryTransformer,
-                                                              CompressionQueryTransformer compressionQueryTransformer) {
+                                                                MultiQueryExpander multiQueryExpander,
+                                                                CompressionQueryTransformer compressionQueryTransformer,
+                                                                RewriteQueryTransformer webSearchQueryTransformer,
+                                                                DocumentRanker documentRanker,
+                                                                ConcatenationDocumentJoiner concatenationDocumentJoiner,
+                                                                ContextualQueryAugmenter contextualQueryAugmenter) {
         //  RAG检索增强生成
         var retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
+                .queryExpander(multiQueryExpander) // 查询扩展器
+                .queryTransformers(compressionQueryTransformer, webSearchQueryTransformer) // 查询转换器
                 .documentRetriever(webSearchDocumentRetriever) // 网络文档检索
+                .documentPostProcessors(documentRanker) // 文档重排序
                 .documentJoiner(concatenationDocumentJoiner) // 文档合并
                 .queryAugmenter(contextualQueryAugmenter) //边界情况处理
-                .queryExpander(multiQueryExpander) // 查询扩展器
-                .queryTransformers(webSearchQueryTransformer, compressionQueryTransformer) // 查询转换器
                 .build();
         return retrievalAugmentationAdvisor;
     }

@@ -181,14 +181,21 @@ public class ChatService implements InitializingBean {
         if(chatMessage.getEnableLocal()) {
             //RAG检索增强生成
             //requestSpec.advisors(new QuestionAnswerAdvisor(vectorStore));
+            //requestSpec.advisors(retrievalRerankAdvisor);
 
-            // 设置增强拦截
-            requestSpec.advisors(vectorStoreRagAdvisor, retrievalRerankAdvisor);
+            // RAG检索增强生成
+            requestSpec.advisors(vectorStoreRagAdvisor);
         }
 
         // 网络搜索增强
         if(chatMessage.getEnableWeb()) {
-            requestSpec.advisors(webSearchRagAdvisor, reasoningContentAdvisor);
+            requestSpec.advisors(webSearchRagAdvisor);
+        }
+
+        //
+        if (chatMessage.getEnableThink()) {
+            // 深度思考增强
+            requestSpec.advisors(reasoningContentAdvisor);
         }
 
         //tool call
