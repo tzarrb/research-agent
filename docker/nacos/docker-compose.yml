@@ -6,7 +6,7 @@ services:
     restart: "always" # 容器总是重启，可选值：no / on-failure[:max-retries] / always / unless-stopped
     privileged: false
     ports:
-      - 8080:8080
+      - 8047:8080
       - 8848:8848
       - 9848:9848
       - 9849:9849

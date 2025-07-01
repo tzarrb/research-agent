@@ -1,21 +1,5 @@
 spring:
   profiles:
-    active: local #开发环境，local,dev,test,prod
+    active: test #开发环境，local,dev,test,prod
   main:
     allow-circular-references: true
-  cloud:
-    nacos:
-      serverAddr: 127.0.0.1:8848 #对应 Nacos 服务端地址
-      username: 'nacos' #对应 Nacos 用户名
-      password: 'nacos' #对应 Nacos 密码
-      config:
-        #默认情况下，Nacos Spring Cloud 加载出来的 dataId 完整格式如下：
-        #${spring.application.name}-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
-        prefix: research-agent #对应 DataId 的前缀，默认值为应用名称，即spring.application.name变量值
-        file-extension: yaml #对应 DataId 的后缀，同时也是配置内容的文件格式，默认值为properties
-        group: DEFAULT_GROUP #对应 Group 参数，默认值为DEFAULT_GROUP
-        #namespace:  #对应配置的命名空间，默认为空；值为空间id
-        refresh-enabled: true #是否支持动态刷新
-        max-retry: 5      # 最大重试次数
-        retry-timeout: 3  # 单次重试间隔(秒)
-

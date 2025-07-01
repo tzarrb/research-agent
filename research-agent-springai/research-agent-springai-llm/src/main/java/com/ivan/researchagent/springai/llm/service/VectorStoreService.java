@@ -59,7 +59,7 @@ public class VectorStoreService {
         List<Document> documents = List.of(new Document(vectorStoreData.getContent()));
 
         // 3.Splitting Text
-        List<Document> splitDocuments = new TokenTextSplitter().apply(documents);
+        List<Document> splitDocuments = tokenTextSplitter.apply(documents);
 
         // 4. add metadata to each document
         if (MapUtils.isNotEmpty(vectorStoreData.getMetadata())) {
@@ -86,7 +86,7 @@ public class VectorStoreService {
             List<Document> docs = new TikaDocumentReader(file.getResource()).get();
 
             // 3. Splitting Text
-            List<Document> splitDocs = new TokenTextSplitter().apply(docs);
+            List<Document> splitDocs = tokenTextSplitter.apply(docs);
 
             String fileId = UUID.randomUUID().toString();
             for (Document doc : splitDocs) {
@@ -118,7 +118,7 @@ public class VectorStoreService {
         Document document = new Document(vectorStoreData.getId(), vectorStoreData.getContent(), vectorStoreData.getMetadata());
 
         // 3. add metadata to document
-        List<Document> splitDocuments = new TokenTextSplitter().apply(List.of(document));
+        List<Document> splitDocuments = tokenTextSplitter.apply(List.of(document));
 
         // 4. update the document in the vector store
         vectorStore.accept(splitDocuments);

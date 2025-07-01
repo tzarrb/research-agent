@@ -116,6 +116,10 @@
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-starter-tool-calling-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-starter-nacos-mcp-client</artifactId>
+        </dependency>
         <!-- spring ai alibaba依赖项... end -->
 
         <!-- Tika核心依赖 -->
