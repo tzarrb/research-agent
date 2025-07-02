@@ -134,6 +134,7 @@
             <version>${tika.version}</version>
         </dependency>
 
+        <!-- Redis 依赖项... start -->
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>

@@ -76,11 +76,6 @@ public class ChatService implements InitializingBean {
     private ChatMemory chatMemory;
 
     @Resource
-    private VectorStore vectorStore;
-    @Resource
-    private RerankModel rerankModel;
-
-    @Resource
     @Qualifier("vectorStoreRagAdvisor")
     private RetrievalAugmentationAdvisor vectorStoreRagAdvisor;
     @Resource
@@ -93,9 +88,6 @@ public class ChatService implements InitializingBean {
 
 //    @Value("classpath:prompts/system-qa.st")
 //    private org.springframework.core.io.Resource systemQaResource;
-
-    @Resource(name = "qaPromptTemplate")
-    PromptTemplate qsPromptTemplate;
 
 
     @Resource

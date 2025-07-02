@@ -33,4 +33,6 @@ public interface Constant {
     String ORIGINAL_INPUT = "originalInput";
 
     String KEY_CHAT_MEMORY = "researchagent:chat:memory:%s";
+
+    String PREFIX = "research.agent";
 }

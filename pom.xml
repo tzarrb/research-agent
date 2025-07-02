@@ -41,13 +41,16 @@
         <spring-ai-mcp.version>0.1.0</spring-ai-mcp.version>
         <agents-flex.version>1.0.0-rc.3</agents-flex.version>
 
+        <micrometer-tracing.version>1.5.1</micrometer-tracing.version>
+        <zipkin-reporter.version>3.4.3</zipkin-reporter.version>
+
         <nacos-client.version>3.0.1</nacos-client.version>
         <amazon-awssdk-auth.version>2.23.9</amazon-awssdk-auth.version>
         <javacv-platform.version>1.5.9</javacv-platform.version>
         <pinecone.version>3.0.0</pinecone.version>
         <jedis.version>5.2.0</jedis.version>
-
         <h2.version>1.4.200</h2.version>
+
         <commons-collections.version>3.2.2</commons-collections.version>
         <fastjson.version>1.2.83</fastjson.version>
         <guava.version>29.0-android</guava.version>
@@ -243,12 +246,38 @@
             </dependency> -->
             <!-- agentsflex 依赖项... end -->
 
+            <!-- nacos 依赖项... start -->
             <dependency>
                 <groupId>com.alibaba.nacos</groupId>
                 <artifactId>nacos-client</artifactId>
                 <version>${nacos-client.version}</version>
                 <scope>compile</scope>
             </dependency>
+
+            <!-- 大模型可观测 依赖项... start -->
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-tracing-bom</artifactId>
+                <version>${micrometer-tracing.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>io.micrometer</groupId>-->
+<!--                <artifactId>micrometer-tracing-bridge-brave</artifactId>-->
+<!--                <version>${micrometer-tracing.version}</version>-->
+<!--                <exclusions>-->
+<!--                    <exclusion>-->
+<!--                        <artifactId>slf4j-api</artifactId>-->
+<!--                        <groupId>org.slf4j</groupId>-->
+<!--                    </exclusion>-->
+<!--                </exclusions>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>io.zipkin.reporter2</groupId>-->
+<!--                <artifactId>zipkin-reporter-brave</artifactId>-->
+<!--                <version>${zipkin-reporter.version}</version>-->
+<!--            </dependency>-->
 
             <dependency>
                 <groupId>org.bytedeco</groupId>

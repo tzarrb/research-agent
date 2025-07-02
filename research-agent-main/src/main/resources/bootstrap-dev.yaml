@@ -7,55 +7,6 @@ server:
       enabled: true
       force: true
 
-# 部署时不配置，使用默认配置
-management:
-  endpoints:
-    web:
-      exposure:
-        # 开放所有外部端点
-        include: "*"
-  endpoint:
-    health:
-      # 应用健康状态检查，携带详细信息
-      show-details: always
-  tracing:
-    sampling:
-      # trace 采样信息，记录每个请求
-      probability: 1.0
-
-#openapi: 3.1.0  # or 3.1.0
-#info:
-#  title: research agent 应用接口
-#  description: Research Agent 智能体探索
-#  version: 1.0.0
-
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha
-  api-docs:
-    path: /v3/api-docs
-  group-configs:
-    - group: 'default'
-      paths-to-match: '/**'
-      packages-to-scan: com.ivan.researchagent
-
-knife4j:
-  #是否启用增强设置
-  enable: true
-  #开启生产环境屏蔽
-  production: false
-  #是否启用登录认证
-  # basic:
-  #   enable: true
-  #  username: admin
-  #  password: 123456
-  setting:
-    language: zh_cn
-    enable-version: true
-    enable-swagger-models: true
-
 spring:
   main:
     allow-circular-references: true
@@ -64,6 +15,14 @@ spring:
   webflux:
     charset: UTF-8
     force-encoding: true
+  http:
+    client:
+      read-timeout: 60s
+  zipkin:
+    base-url: http://localhost:9411
+    enabled: true
+    sender:
+      type: web # 使用HTTP发送跟踪数据
   data:
     redis:
       host: localhost
@@ -87,6 +46,8 @@ spring:
     password: 123456
   ai:
     vectorstore:
+      observations:
+        log-query-response: true
       pgvector:
         index-type: HNSW
         distance-type: COSINE_DISTANCE
@@ -110,12 +71,11 @@ spring:
         observations:
           # 记录调用输入, 注意：观测数据可能存在敏感信息！
           include-input: true
-      observations:
-        # 记录 LLMs 输出
-        include-completion: true
-        # 记录 prompt
-        include-prompt: true
-        include-error-logging: true
+          # 记录 LLMs 输出
+          include-completion: true
+          # 记录 prompt
+          include-prompt: true
+          include-error-logging: true
     dashscope:
       api-key: ${DASHSCOPE_API_KEY}
       chat:
@@ -131,6 +91,9 @@ spring:
         enabled: true
         options:
           model: "text-embedding-v1" #text-embedding-v3 text-embedding-v2 text-embedding-v1 multimodal-embedding-v1
+      observations:
+        log-completion: true
+        log-prompt: true
     deepseek:
       base-url: "https://api.deepseek.com/v1"
       api-key: ${DEEPSEEK_API_KEY}
@@ -217,6 +180,9 @@ spring:
           model: "qwen2.5-coder:32b" #qwen2.5-coder:32b Deepseek-Coder-V2
       embedding:
         enabled: false
+    tools:
+      observations:
+        include-content: true
     mcp:
       client:
         enabled: true
@@ -266,19 +232,79 @@ coze:
     sources:
       traveling-planner: "7447428622988542004"
 
-llm:
-  ai:
-    provider: "dashscope"
-    model: "deepseek-v3"
+research:
+  agent:
+    llm:
+      provider: "dashscope"
+      model: "deepseek-v3"
+      observation:
+        enable: true
 
 doctor:
   token: ${DOCTOR_TOKEN}
   providerPageUrl: "https://test1.myweimai.com/medicalprovider/ums/provider/page"
   providerCancelUrl: "https://test1.myweimai.com/medicalprovider/provider/cancel"
 
+
+#openapi: 3.1.0  # or 3.1.0
+#info:
+#  title: research agent 应用接口
+#  description: Research Agent 智能体探索
+#  version: 1.0.0
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.ivan.researchagent
+
+knife4j:
+  #是否启用增强设置
+  enable: true
+  #开启生产环境屏蔽
+  production: false
+  #是否启用登录认证
+  # basic:
+  #   enable: true
+  #  username: admin
+  #  password: 123456
+  setting:
+    language: zh_cn
+    enable-version: true
+    enable-swagger-models: true
+
+# 管理端点配置，部署时不配置，使用默认配置
+management:
+  endpoints:
+    web:
+      exposure:
+        # 开放所有外部端点
+        include: "*"
+  endpoint:
+    health:
+      # 应用健康状态检查，携带详细信息
+      show-details: always
+  tracing:
+    sampling:
+      # trace 采样信息，记录每个请求
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+# 日志配置
 logging:
   level:
     root: "info"
     org.springframework.ai: "debug"
     com.alibaba.cloud.api: "debug"
     io.modelcontextprotocol: "debug"
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]" # 设置zipkin和brave配置和tracing的日志信息
+

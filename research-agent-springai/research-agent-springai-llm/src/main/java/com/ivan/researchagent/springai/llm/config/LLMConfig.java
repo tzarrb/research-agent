@@ -1,6 +1,8 @@
 package com.ivan.researchagent.springai.llm.config;
 
+import com.ivan.researchagent.common.constant.Constant;
 import lombok.Data;
+import org.glassfish.jaxb.runtime.v2.runtime.reflect.opt.Const;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,11 +18,12 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @Configuration
 public class LLMConfig {
+    public static final String PREFIX = Constant.PREFIX + "llm";
 
-    @Value("${llm.ai.provider:dashscope}")
+    @Value("${research.agent.llm.provider:dashscope}")
     private String defaultProvider;
 
-    @Value("${llm.ai.model:qwen-max}")
+    @Value("${research.agent.llm.model:qwen-max}")
     private String defaultModel;
 
 }
