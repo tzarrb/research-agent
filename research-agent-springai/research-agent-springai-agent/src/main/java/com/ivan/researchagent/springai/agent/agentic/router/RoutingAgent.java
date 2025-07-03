@@ -3,7 +3,7 @@ package com.ivan.researchagent.springai.agent.agentic.router;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.ivan.researchagent.springai.agent.anno.ToolAgent;
-import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import com.ivan.researchagent.springai.agent.model.tool.AgentRequest;
@@ -149,22 +149,22 @@ public class RoutingAgent {
             
             """;
 
-    public ChatResult call(ChatMessage chatMessage) {
-        buildChatMessage(chatMessage);
+    public ChatResult call(ChatRequest chatRequest) {
+        buildChatMessage(chatRequest);
 
         //ChatResult distributionResult =  distributionAgent(chatMessage);
-        ChatResult distributionResult =  chatService.chat(chatMessage);
+        ChatResult distributionResult =  chatService.chat(chatRequest);
 
         return distributionResult;
     }
 
-    public Flux<ChatResult> stream(ChatMessage chatMessage) {
-        buildChatMessage(chatMessage);
+    public Flux<ChatResult> stream(ChatRequest chatRequest) {
+        buildChatMessage(chatRequest);
 
         //Flux<ChatResult> distributionResult = streamDistributionAgent(chatMessage);
-        Flux<ChatResult> distributionResult =  chatService.steamChat(chatMessage)
+        Flux<ChatResult> distributionResult =  chatService.steamChat(chatRequest)
                 .flatMap(chatResult -> {
-                    log.info("sessionId:{}, agent router action stream request:{}, result：{}", chatMessage.getSessionId(), chatMessage.getUserMessage(), chatResult.getContent());
+                    log.info("sessionId:{}, agent router action stream request:{}, result：{}", chatRequest.getSessionId(), chatRequest.getUserMessage(), chatResult.getContent());
                     return Flux.just(chatResult);
                 });
 
@@ -172,45 +172,45 @@ public class RoutingAgent {
     }
 
 
-    private ChatResult distributionAgent(ChatMessage chatMessage) {
+    private ChatResult distributionAgent(ChatRequest chatRequest) {
         AgentRequest agentRequest = new AgentRequest();
-        agentRequest.setTargetAgent(chatMessage.getAgent());
-        agentRequest.setOriginalInput(chatMessage.getUserMessage());
-        chatMessage.setUserMessage(JSON.toJSONString(agentRequest));
+        agentRequest.setTargetAgent(chatRequest.getAgent());
+        agentRequest.setOriginalInput(chatRequest.getUserMessage());
+        chatRequest.setUserMessage(JSON.toJSONString(agentRequest));
 
-        ChatResult distributionResult =  chatService.chat(chatMessage);
+        ChatResult distributionResult =  chatService.chat(chatRequest);
         String distributionContent = distributionResult.getContent();
         if (distributionContent.contains("targetAgent")) {
             agentRequest = JSON.parseObject(distributionContent, AgentRequest.class);
-            chatMessage.setAgent(agentRequest.getTargetAgent());
-            chatMessage.setUserMessage(agentRequest.getOriginalInput());
+            chatRequest.setAgent(agentRequest.getTargetAgent());
+            chatRequest.setUserMessage(agentRequest.getOriginalInput());
 
-            log.info("sessionId:{}, agent router distribution request:{}, result：{}", chatMessage.getSessionId(), chatMessage.getUserMessage(), distributionContent);
-            return distributionAgent(chatMessage);
+            log.info("sessionId:{}, agent router distribution request:{}, result：{}", chatRequest.getSessionId(), chatRequest.getUserMessage(), distributionContent);
+            return distributionAgent(chatRequest);
         } else {
-            log.info("sessionId:{}, agent router action request:{}, result：{}", chatMessage.getSessionId(), chatMessage.getUserMessage(), distributionResult.getContent());
+            log.info("sessionId:{}, agent router action request:{}, result：{}", chatRequest.getSessionId(), chatRequest.getUserMessage(), distributionResult.getContent());
             return distributionResult;
         }
     }
 
-    private Flux<ChatResult> streamDistributionAgent(ChatMessage chatMessage) {
+    private Flux<ChatResult> streamDistributionAgent(ChatRequest chatRequest) {
         AtomicReference<AgentRequest> agentRequest = new AtomicReference<>(new AgentRequest());
-        agentRequest.get().setTargetAgent(chatMessage.getAgent());
-        agentRequest.get().setOriginalInput(chatMessage.getUserMessage());
-        chatMessage.setUserMessage(JSON.toJSONString(agentRequest));
+        agentRequest.get().setTargetAgent(chatRequest.getAgent());
+        agentRequest.get().setOriginalInput(chatRequest.getUserMessage());
+        chatRequest.setUserMessage(JSON.toJSONString(agentRequest));
 
-        Flux<ChatResult> distributionResult =  chatService.steamChat(chatMessage)
+        Flux<ChatResult> distributionResult =  chatService.steamChat(chatRequest)
                 .flatMap(chatResult -> {
                     String distributionContent = chatResult.getContent();
                     if (distributionContent.contains("targetAgent")) {
                         agentRequest.set(JSON.parseObject(distributionContent, AgentRequest.class));
-                        chatMessage.setAgent(agentRequest.get().getTargetAgent());
-                        chatMessage.setUserMessage(agentRequest.get().getOriginalInput());
+                        chatRequest.setAgent(agentRequest.get().getTargetAgent());
+                        chatRequest.setUserMessage(agentRequest.get().getOriginalInput());
 
-                        log.info("sessionId:{}, agent router distribution stream request:{}, result：{}", chatMessage.getSessionId(), chatMessage.getUserMessage(), distributionContent);
-                        return streamDistributionAgent(chatMessage);
+                        log.info("sessionId:{}, agent router distribution stream request:{}, result：{}", chatRequest.getSessionId(), chatRequest.getUserMessage(), distributionContent);
+                        return streamDistributionAgent(chatRequest);
                     } else {
-                        log.info("sessionId:{}, agent router action stream request:{}, result：{}", chatMessage.getSessionId(), chatMessage.getUserMessage(), chatResult.getContent());
+                        log.info("sessionId:{}, agent router action stream request:{}, result：{}", chatRequest.getSessionId(), chatRequest.getUserMessage(), chatResult.getContent());
                         return Flux.just(chatResult);
                     }
                 });
@@ -218,18 +218,18 @@ public class RoutingAgent {
         return distributionResult;
     }
 
-    private void buildChatMessage(ChatMessage chatMessage) {
+    private void buildChatMessage(ChatRequest chatRequest) {
         // 如果启用Agent则获取Agent的bean
-        if (chatMessage.getEnableAgent()) {
+        if (chatRequest.getEnableAgent()) {
             // 构建系统角色提示词
-            chatMessage.setSystemMessage(systemPrompt1);
+            chatRequest.setSystemMessage(systemPrompt1);
 
             // 获取带有Agent注解的bean
             Map<String, Object> beansWithAnnotation = applicationContext.getBeansWithAnnotation(ToolAgent.class);
             List<String> toolBeanNames = beansWithAnnotation.keySet().stream().toList();
-            List<String> inputFunctions = Optional.ofNullable(chatMessage.getToolNames()).orElse(Lists.newArrayList());
+            List<String> inputFunctions = Optional.ofNullable(chatRequest.getToolNames()).orElse(Lists.newArrayList());
             List<String> functions = CollectionUtils.union(inputFunctions, toolBeanNames).stream().toList();
-            chatMessage.setToolNames(functions);
+            chatRequest.setToolNames(functions);
 
 //            List<ToolCallback> toolCallbacks = new ArrayList<>();
 //            for (Map.Entry<String, Object> entry : beansWithAnnotation.entrySet()) {

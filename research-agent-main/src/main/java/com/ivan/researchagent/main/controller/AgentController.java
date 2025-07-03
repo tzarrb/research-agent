@@ -1,7 +1,7 @@
 package com.ivan.researchagent.main.controller;
 
 import com.ivan.researchagent.springai.agent.agentic.router.RoutingAgent;
-import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,15 +40,15 @@ public class AgentController {
 
     @GetMapping("")
     @Operation(summary = "聊天", description = "返回聊天消息")
-    public String chat(@RequestBody ChatMessage chatMessage, HttpServletRequest request, HttpServletResponse response) {
+    public String chat(@RequestBody ChatRequest chatRequest, HttpServletRequest request, HttpServletResponse response) {
 
-        String sessionId = chatMessage.getSessionId();
+        String sessionId = chatRequest.getSessionId();
         if (StringUtils.isBlank(sessionId)) {
             sessionId = request.getHeader("sessionId");
-            chatMessage.setSessionId(sessionId);
+            chatRequest.setSessionId(sessionId);
         }
 
-        ChatResult chatResult = routingAgent.call(chatMessage);
+        ChatResult chatResult = routingAgent.call(chatRequest);
 
         response.setHeader("sessionId", chatResult.getSessionId());
         return chatResult.getContent();
@@ -57,18 +57,18 @@ public class AgentController {
     @GetMapping("/chat")
     @Operation(summary = "聊天-简单参数", description = "返回聊天消息")
     public String chatMessage(String userMessage, HttpServletRequest request, HttpServletResponse response) {
-        ChatMessage chatMessage = new ChatMessage();
-        chatMessage.setProvider("dashscope");
-        chatMessage.setModel("qwen-max");
-        chatMessage.setUserMessage(userMessage);
-        chatMessage.setEnableStream(true);
-        chatMessage.setEnableMemory(true);
-        chatMessage.setEnableAgent(true);
+        ChatRequest chatRequest = new ChatRequest();
+        chatRequest.setProvider("dashscope");
+        chatRequest.setModel("qwen-max");
+        chatRequest.setUserMessage(userMessage);
+        chatRequest.setEnableStream(true);
+        chatRequest.setEnableMemory(true);
+        chatRequest.setEnableAgent(true);
 
         String sessionId = request.getHeader("sessionId");
-        chatMessage.setSessionId(sessionId);
+        chatRequest.setSessionId(sessionId);
 
-        ChatResult chatResult = routingAgent.call(chatMessage);
+        ChatResult chatResult = routingAgent.call(chatRequest);
 
         response.setHeader("sessionId", chatResult.getSessionId());
         return chatResult.getContent();
@@ -76,15 +76,15 @@ public class AgentController {
 
     @GetMapping("/stream")
     @Operation(summary = "流式聊天", description = "返回流式聊天消息")
-    public Flux<String> streamChat(@RequestBody ChatMessage chatMessage, HttpServletRequest request, HttpServletResponse response) {
+    public Flux<String> streamChat(@RequestBody ChatRequest chatRequest, HttpServletRequest request, HttpServletResponse response) {
 
-        String sessionId = chatMessage.getSessionId();
+        String sessionId = chatRequest.getSessionId();
         if (StringUtils.isBlank(sessionId)) {
             sessionId = request.getHeader("sessionId");
-            chatMessage.setSessionId(sessionId);
+            chatRequest.setSessionId(sessionId);
         }
 
-        Flux<ChatResult> chatResult = routingAgent.stream(chatMessage);
+        Flux<ChatResult> chatResult = routingAgent.stream(chatRequest);
 
         return chatResult.map(result -> {
             log.info("sessionId:{}, streamChat result:{}", result.getSessionId(), result.getContent());
@@ -97,18 +97,18 @@ public class AgentController {
     @GetMapping(value = "/stream/chat")
     @Operation(summary = "流式聊天-简单参数", description = "返回流式聊天消息")
     public Flux<String> streamChatGet(String userMessage, HttpServletRequest request, HttpServletResponse response) {
-        ChatMessage chatMessage = new ChatMessage();
-        chatMessage.setProvider("dashscope");
-        chatMessage.setModel("qwen-max");
-        chatMessage.setUserMessage(userMessage);
-        chatMessage.setEnableStream(true);
-        chatMessage.setEnableMemory(true);
-        chatMessage.setEnableAgent(true);
+        ChatRequest chatRequest = new ChatRequest();
+        chatRequest.setProvider("dashscope");
+        chatRequest.setModel("qwen-max");
+        chatRequest.setUserMessage(userMessage);
+        chatRequest.setEnableStream(true);
+        chatRequest.setEnableMemory(true);
+        chatRequest.setEnableAgent(true);
 
         String sessionId = request.getHeader("sessionId");
-        chatMessage.setSessionId(sessionId);
+        chatRequest.setSessionId(sessionId);
 
-        Flux<ChatResult> chatResult = routingAgent.stream(chatMessage);
+        Flux<ChatResult> chatResult = routingAgent.stream(chatRequest);
 
         return chatResult.map(result -> {
             log.info("sessionId:{}, streamChat result:{}", result.getSessionId(), result.getContent());

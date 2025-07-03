@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatMessage implements Serializable {
+public class ChatRequest implements Serializable {
 
     @JsonPropertyDescription("大模型提供商")
     private String provider = "dashscope";

@@ -5,7 +5,7 @@ import com.ivan.researchagent.common.enumerate.FormatTypeEnum;
 import com.ivan.researchagent.common.utils.StringTemplateUtil;
 import com.ivan.researchagent.springai.agent.model.bo.doctor.DoctorInfoBO;
 import com.ivan.researchagent.springai.agent.tool.DoctorTools;
-import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import jakarta.annotation.PostConstruct;
@@ -250,16 +250,16 @@ public class DoctorOperateAgent implements IBaseAgent {
     }
 
     @Override
-    public ChatResult call(ChatMessage chatMessage) {
+    public ChatResult call(ChatRequest chatRequest) {
         String systemMsg = systemPrompt;
-        if (FormatTypeEnum.isBean(chatMessage.getFormatType())) {
+        if (FormatTypeEnum.isBean(chatRequest.getFormatType())) {
             systemMsg = StringTemplateUtil.render(systemPrompt, Map.of("format", beanFormat));
         }
 
-        chatMessage.setSystemMessage(systemMsg);
-        chatMessage.setTools(Lists.newArrayList(doctorTools));
-        ChatResult chatResult = chatService.chat(chatMessage);
-        if (FormatTypeEnum.isBean(chatMessage.getFormatType())) {
+        chatRequest.setSystemMessage(systemMsg);
+        chatRequest.setTools(Lists.newArrayList(doctorTools));
+        ChatResult chatResult = chatService.chat(chatRequest);
+        if (FormatTypeEnum.isBean(chatRequest.getFormatType())) {
             try {
                 List<DoctorInfoBO> convert = beanConverter.convert(chatResult.getContent());
                 log.info("反序列成功，convert: {}", convert);
@@ -272,9 +272,9 @@ public class DoctorOperateAgent implements IBaseAgent {
     }
 
     @Override
-    public Flux<ChatResult> stream(ChatMessage chatMessage) {
-        chatMessage.setSystemMessage(systemPromptClaude);
-        chatMessage.setTools(Lists.newArrayList(doctorTools));
-        return chatService.steamChat(chatMessage);
+    public Flux<ChatResult> stream(ChatRequest chatRequest) {
+        chatRequest.setSystemMessage(systemPromptClaude);
+        chatRequest.setTools(Lists.newArrayList(doctorTools));
+        return chatService.steamChat(chatRequest);
     }
 }

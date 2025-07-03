@@ -1,4 +1,4 @@
-package com.ivan.researchagent.main.model.vo;
+package com.ivan.researchagent.main.model.chat;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
@@ -15,7 +15,7 @@ import java.io.Serializable;
  * @since: 2025/5/14/周三
  **/
 @Data
-public class UserInputVO implements Serializable {
+public class ChatInput implements Serializable {
 
     /**
      * 用户输入

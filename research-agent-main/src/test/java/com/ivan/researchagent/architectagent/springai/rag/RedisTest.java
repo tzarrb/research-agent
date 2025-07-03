@@ -2,7 +2,7 @@ package com.ivan.researchagent.architectagent.springai.rag;
 
 import com.google.common.collect.Lists;
 import com.ivan.researchagent.main.AgentApplication;
-import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import jakarta.annotation.Resource;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,18 +30,18 @@ public class RedisTest {
 
     @Test
     public void test() {
-        ChatMessage chatMessage = new ChatMessage();
-        chatMessage.setUserMessage("你好");
+        ChatRequest chatRequest = new ChatRequest();
+        chatRequest.setUserMessage("你好");
 
-        ChatMessage chatMessage1 = new ChatMessage();
-        chatMessage1.setUserMessage("hello world");
+        ChatRequest chatRequest1 = new ChatRequest();
+        chatRequest1.setUserMessage("hello world");
 
-        redisTemplate.opsForList().rightPushAll("test", Lists.newArrayList(chatMessage, chatMessage1));
+        redisTemplate.opsForList().rightPushAll("test", Lists.newArrayList(chatRequest, chatRequest1));
 
         List<Object> objects = redisTemplate.opsForList().range("test", 0, -1);
-        List<ChatMessage> chatMessages = objects.stream()
-                .map(obj -> (ChatMessage)obj)
+        List<ChatRequest> chatRequests = objects.stream()
+                .map(obj -> (ChatRequest)obj)
                 .collect(java.util.stream.Collectors.toList());
-        System.out.println(chatMessages);
+        System.out.println(chatRequests);
     }
 }

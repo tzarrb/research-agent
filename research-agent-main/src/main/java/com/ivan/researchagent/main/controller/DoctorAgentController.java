@@ -1,6 +1,6 @@
 package com.ivan.researchagent.main.controller;
 
-import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.agent.agentic.biz.DoctorOperateAgent;
 import jakarta.annotation.Resource;
@@ -32,30 +32,30 @@ public class DoctorAgentController {
 
 
     @GetMapping("")
-    public String chat(@RequestBody ChatMessage chatMessage, HttpServletRequest request, HttpServletResponse response) {
+    public String chat(@RequestBody ChatRequest chatRequest, HttpServletRequest request, HttpServletResponse response) {
 
-        String sessionId = chatMessage.getSessionId();
+        String sessionId = chatRequest.getSessionId();
         if (StringUtils.isBlank(sessionId)) {
             sessionId = request.getHeader("sessionId");
-            chatMessage.setSessionId(sessionId);
+            chatRequest.setSessionId(sessionId);
         }
 
-        ChatResult chatResult = doctorOperateAgent.call(chatMessage);
+        ChatResult chatResult = doctorOperateAgent.call(chatRequest);
 
         response.setHeader("sessionId", chatResult.getSessionId());
         return chatResult.getContent();
     }
 
     @GetMapping("/stream")
-    public Flux<String> streamChat(@RequestBody ChatMessage chatMessage, HttpServletRequest request, HttpServletResponse response) {
+    public Flux<String> streamChat(@RequestBody ChatRequest chatRequest, HttpServletRequest request, HttpServletResponse response) {
 
-        String sessionId = chatMessage.getSessionId();
+        String sessionId = chatRequest.getSessionId();
         if (StringUtils.isBlank(sessionId)) {
             sessionId = request.getHeader("sessionId");
-            chatMessage.setSessionId(sessionId);
+            chatRequest.setSessionId(sessionId);
         }
 
-        Flux<ChatResult> chatResult = doctorOperateAgent.stream(chatMessage);
+        Flux<ChatResult> chatResult = doctorOperateAgent.stream(chatRequest);
 
         return chatResult.map(result -> {
             log.info("sessionId:{}, streamChat result:{}", result.getSessionId(), result.getContent());

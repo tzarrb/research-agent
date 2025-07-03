@@ -1,10 +1,9 @@
 package com.ivan.researchagent.springai.llm.util;
 
-import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
 import com.alibaba.cloud.ai.dashscope.chat.MessageFormat;
 import com.alibaba.cloud.ai.dashscope.common.DashScopeApiConstants;
 import com.ivan.researchagent.common.enumerate.MessageTypeEnum;
-import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.common.model.ChatRoleMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -28,19 +27,19 @@ import java.util.List;
 @Slf4j
 public class ChatMessageUtil {
 
-    public static List<Message> buildMessages(ChatMessage chatMessage) {
+    public static List<Message> buildMessages(ChatRequest chatRequest) {
         List<Message> messages = new ArrayList<>();
-        for (ChatRoleMessage roleMessage : chatMessage.getMessages()) {
+        for (ChatRoleMessage roleMessage : chatRequest.getMessages()) {
             if (StringUtils.isBlank(roleMessage.getContent()) && CollectionUtils.isEmpty(roleMessage.getMediaUrls())) {
                 continue;
             }
 
             switch (MessageType.fromValue(roleMessage.getRole())) {
                 case USER:
-                    List<Media> mediaList = buildMedia(chatMessage.getMessageType(), roleMessage);
+                    List<Media> mediaList = buildMedia(chatRequest.getMessageType(), roleMessage);
                     UserMessage userMessage = UserMessage.builder().text(roleMessage.getContent()).media(mediaList).build();
-                    if (MessageTypeEnum.isMedia(chatMessage.getMessageType())) {
-                        MessageFormat messageFormat = MessageFormat.valueOf(chatMessage.getMessageType());
+                    if (MessageTypeEnum.isMedia(chatRequest.getMessageType())) {
+                        MessageFormat messageFormat = MessageFormat.valueOf(chatRequest.getMessageType());
                         userMessage.getMetadata().put(DashScopeApiConstants.MESSAGE_FORMAT, messageFormat);
                     }
                     messages.add(userMessage);

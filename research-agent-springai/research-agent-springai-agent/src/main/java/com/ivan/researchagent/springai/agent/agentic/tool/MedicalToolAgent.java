@@ -3,7 +3,7 @@ package com.ivan.researchagent.springai.agent.agentic.tool;
 import com.alibaba.fastjson.JSON;
 import com.ivan.researchagent.springai.agent.anno.ToolAgent;
 import com.ivan.researchagent.common.constant.Constant;
-import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import jakarta.annotation.Resource;
@@ -138,13 +138,13 @@ public class MedicalToolAgent extends AbstractToolAgent {
     public String call(String toolInput, ToolContext toolContext) {
         String conversantId = (String)toolContext.getContext().get(Constant.CONVERSANT_ID);
         String originalInput = (String)toolContext.getContext().get(Constant.ORIGINAL_INPUT);
-        ChatMessage chatMessage = JSON.parseObject(JSON.toJSONString(toolContext.getContext().get(Constant.CHAT_MESSAGE)), ChatMessage.class);
+        ChatRequest chatRequest = JSON.parseObject(JSON.toJSONString(toolContext.getContext().get(Constant.CHAT_MESSAGE)), ChatRequest.class);
 
-        chatMessage.setEnableAgent(false);
-        chatMessage.setUserMessage(originalInput);
-        chatMessage.setSystemMessage(systemPrompt);
-        chatMessage.setToolCallBacks(null);
-        ChatResult chatResult = chatService.chat(chatMessage);
+        chatRequest.setEnableAgent(false);
+        chatRequest.setUserMessage(originalInput);
+        chatRequest.setSystemMessage(systemPrompt);
+        chatRequest.setToolCallBacks(null);
+        ChatResult chatResult = chatService.chat(chatRequest);
 
         log.info("sessionId:{}, medicalToolAgent request:{}, response: {}", conversantId, JSON.toJSONString(originalInput), chatResult.getContent());
         return chatResult.getContent();

@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.ivan.researchagent.springai.agent.anno.ToolAgent;
 import com.ivan.researchagent.common.constant.Constant;
-import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import io.modelcontextprotocol.client.McpAsyncClient;
@@ -60,20 +60,20 @@ public class OtherToolAgent extends AbstractToolAgent {
     public String call(String toolInput, ToolContext toolContext) {
         String conversantId = (String)toolContext.getContext().get(Constant.CONVERSANT_ID);
         String originalInput = (String)toolContext.getContext().get(Constant.ORIGINAL_INPUT);
-        ChatMessage chatMessage = JSON.parseObject(JSON.toJSONString(toolContext.getContext().get(Constant.CHAT_MESSAGE)), ChatMessage.class);
+        ChatRequest chatRequest = JSON.parseObject(JSON.toJSONString(toolContext.getContext().get(Constant.CHAT_MESSAGE)), ChatRequest.class);
 
-        chatMessage.setEnableAgent(false);
-        chatMessage.setUserMessage(originalInput);
-        chatMessage.setSystemMessage("");
-        chatMessage.setToolCallBacks(null);
+        chatRequest.setEnableAgent(false);
+        chatRequest.setUserMessage(originalInput);
+        chatRequest.setSystemMessage("");
+        chatRequest.setToolCallBacks(null);
         //chatMessage.setToolCallbackProviders(toolCallbackProviders);
         AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
         //SyncMcpToolCallbackProvider toolCallbackProvider = new SyncMcpToolCallbackProvider(mcpSyncClients);
-        chatMessage.setToolCallbackProviders(Lists.newArrayList(toolCallbackProvider));
+        chatRequest.setToolCallbackProviders(Lists.newArrayList(toolCallbackProvider));
 
         ToolCallback[] toolCallbacks = toolCallbackProvider.getToolCallbacks();
 
-        ChatResult chatResult = chatService.chat(chatMessage);
+        ChatResult chatResult = chatService.chat(chatRequest);
 
         log.info("sessionId:{}, otherToolAgent request:{}, response: {}", conversantId, JSON.toJSONString(originalInput), chatResult.getContent());
         return chatResult.getContent();

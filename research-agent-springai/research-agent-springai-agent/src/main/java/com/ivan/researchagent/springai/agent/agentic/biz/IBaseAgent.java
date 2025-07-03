@@ -1,6 +1,6 @@
 package com.ivan.researchagent.springai.agent.agentic.biz;
 
-import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import reactor.core.publisher.Flux;
 
@@ -15,7 +15,7 @@ import reactor.core.publisher.Flux;
  * @since: 2024/12/24 16:42
  **/
 public interface IBaseAgent {
-    ChatResult call(ChatMessage chatMessage);
+    ChatResult call(ChatRequest chatRequest);
 
-    Flux<ChatResult> stream(ChatMessage chatMessage);
+    Flux<ChatResult> stream(ChatRequest chatRequest);
 }

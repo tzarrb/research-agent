@@ -1,7 +1,7 @@
 package com.ivan.researchagent.springai.llm.service;
 
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
-import com.ivan.researchagent.springai.llm.model.chat.ChatMessage;
+import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -51,11 +51,11 @@ public class RagService {
      * 多查询扩展
      * 用于生成多个相关的查询变体，进而提升搜索的精确度和覆盖率，以获得更全面的搜索结果
      *
-     * @param chatMessage
+     * @param chatRequest
      */
-    public void multiQueryExpansion(ChatMessage chatMessage) {
+    public void multiQueryExpansion(ChatRequest chatRequest) {
         // 获取聊天客户端实例
-        ChatClient chatClient = chatService.getchatClient(chatMessage);
+        ChatClient chatClient = chatService.getchatClient(chatRequest);
 
         // 创建聊天客户端实例// 设置系统提示信息，定义AI助手作为专业的室内设计顾问角色
 //        ChatClient chatClient = builder.defaultSystem("你是一位专业的室内设计顾问，精通各种装修风格、材料选择和空间布局。请基于提供的参考资料，为用户提供专业、详细且实用的建议。在回答时，请注意：\n"+
@@ -83,11 +83,11 @@ public class RagService {
      * 查询重写
      * 查询改写是 RAG 系统中的一项关键优化手段，它通过将用户的原始查询转化为更加规范和明确的查询形式，从而提升搜索的精确度，并协助系统更准确地把握用户的真正需求。
      *
-     * @param chatMessage
+     * @param chatRequest
      */
-    public void queryRewrite(ChatMessage chatMessage) {
+    public void queryRewrite(ChatRequest chatRequest) {
         // 创建聊天客户端实例
-        ChatClient chatClient = chatService.getchatClient(chatMessage);
+        ChatClient chatClient = chatService.getchatClient(chatRequest);
 
         // 构建一个模拟用户在学习人工智能过程中的查询场景
         Query query = new Query("我在学习人工智能，能否解释一下什么是大型语言模型？");
@@ -107,11 +107,11 @@ public class RagService {
      * 查询翻译
      * 查询翻译是 RAG 系统中的一项便捷功能，它允许将用户的查询从一个语言版本转换为另一个语言版本。这项功能对于实现多语言支持和执行跨语言搜索查询尤其重要。
      *
-     * @param chatMessage
+     * @param chatRequest
      */
-    public void queryTranslation(ChatMessage chatMessage) {
+    public void queryTranslation(ChatRequest chatRequest) {
         // 创建聊天客户端实例
-        ChatClient chatClient = chatService.getchatClient(chatMessage);
+        ChatClient chatClient = chatService.getchatClient(chatRequest);
 
         // 初始化一个英文的查询实例
         Query query = new Query("What is LLM?");
@@ -131,11 +131,11 @@ public class RagService {
      * 上下文感知查询
      * 上下文感知查询是 RAG 系统中的一项高级功能，它允许系统在处理用户查询时，考虑到之前的对话历史和上下文信息。这种能力使得系统能够更准确地理解用户的意图，并提供更相关的答案。
      *
-     * @param chatMessage
+     * @param chatRequest
      */
-    public void contextAwareQueries(ChatMessage chatMessage) {
+    public void contextAwareQueries(ChatRequest chatRequest) {
         // 创建聊天客户端实例
-        ChatClient chatClient = chatService.getchatClient(chatMessage);
+        ChatClient chatClient = chatService.getchatClient(chatRequest);
 
         // 创建一个包含历史对话的查询实例
         // 这个示例模拟了一个用户咨询房地产的场景，用户首先询问了小区的位置，随后询问房价
@@ -161,11 +161,11 @@ public class RagService {
      * 文档合并
      * 文档合并是 RAG 系统中的一项重要功能，它允许将来自多个查询或数据源的文档集合进行合并，以便为用户提供更全面和一致的信息。
      *
-     * @param chatMessage
+     * @param chatRequest
      */
-    public void documentJoiner(ChatMessage chatMessage) {
+    public void documentJoiner(ChatRequest chatRequest) {
         // 创建聊天客户端实例
-        ChatClient chatClient = chatService.getchatClient(chatMessage);
+        ChatClient chatClient = chatService.getchatClient(chatRequest);
 
         // 获取来自多个查询或数据源的文档集合
         Map<Query,List<List<Document>>> documentsMap = new HashMap<>();
