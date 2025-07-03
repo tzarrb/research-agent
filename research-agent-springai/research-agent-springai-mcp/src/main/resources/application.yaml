@@ -13,7 +13,12 @@ spring:
         version: 1.0.0
         type: ASYNC  # Recommended for reactive applications
         instructions: "This reactive server provides time information tools and resources"
+        # 配置 sse 的根路径，默认值为 /sse
+        sse-endpoint: /sse
+        # mcp server nacos注册服务路径，下面的最终路径为 ip:port/sse/mcp/messages
         sse-message-endpoint: /mcp/messages
+        # mcp server本地启动服务路径，下面的最终路径为 ip:port/sse/mcp
+        #sse-message-endpoint: /mcp
         capabilities:
           tool: true
           resource: true
@@ -22,8 +27,7 @@ spring:
     alibaba:
       mcp:
         nacos:
-          namespace: 9ba5f1aa-b37d-493b-9057-72918a40ef35
-          enabled: true
+          namespace: public
           server-addr: 127.0.0.1:8848
           username: nacos
           password: nacos

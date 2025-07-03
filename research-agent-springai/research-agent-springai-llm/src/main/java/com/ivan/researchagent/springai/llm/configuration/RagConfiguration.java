@@ -83,7 +83,7 @@ public class RagConfiguration {
         var documentRetriever = VectorStoreDocumentRetriever.builder()
                 .vectorStore(vectorStore)
                 .similarityThreshold(0.50) // 相似度阈值
-                .topK(3) // 相似度阈值
+                .topK(3) // 获取最相似的3个文档
                 .build();
         return documentRetriever;
     }

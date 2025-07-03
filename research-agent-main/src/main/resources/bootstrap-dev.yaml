@@ -192,22 +192,29 @@ spring:
         request-timeout: 60s
         toolcallback:
           enabled: true
-        # stdio:
+        #stdio:
         #   root-change-notification: true
         #   servers-configuration: classpath:/mcp-servers-config.json # mcp-servers-config.json/nacos-mcp-router-config
-        # sse:
-        #   connections:
-        #     mysql-dbhub:
-        #       url: http://localhost:8080
+        #sse:
+        #  connections:
+        #    server1:
+        #      # 实际的连接地址为：http://localhost:18081/sse/mcp
+        #      url: http://localhost:18081/
     alibaba:
       mcp:
         nacos:
-        namespace: public # 可选，默认为 public
-        server-addr: 127.0.0.1:8848
-        username: nacos
-        password: nacos
-        client:
-          enabled: true
+          namespace: public # 可选，默认为 public
+          server-addr: 127.0.0.1:8848
+          username: nacos
+          password: nacos
+          client:
+            enabled: true
+            sse:
+              connections:
+                server1:
+                  service-name: research-agent-mcp-server
+                  service-group: mcp-server
+                  version: 1.0.0
       toolcalling:
         tavilysearch:
             enabled: true
