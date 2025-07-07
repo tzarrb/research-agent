@@ -1,5 +1,7 @@
 package com.ivan.researchagent.main.controller;
 
+import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
+import com.ivan.researchagent.springai.agent.graph.doctor.agent.DoctorGraphAgent;
 import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.agent.agentic.biz.DoctorOperateAgent;
@@ -8,6 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -29,6 +33,9 @@ public class DoctorAgentController {
 
     @Resource
     private DoctorOperateAgent doctorOperateAgent;
+    @Resource
+    private DoctorGraphAgent doctorGraphAgent;
+
 
 
     @GetMapping("")
@@ -62,6 +69,21 @@ public class DoctorAgentController {
             response.setHeader("sessionId", result.getSessionId());
             return result.getContent();
         });
+    }
+
+    @GetMapping(value = "/graph", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<String>> graphChat(@RequestBody ChatRequest chatRequest, HttpServletRequest request, HttpServletResponse response) throws GraphRunnerException {
+
+        String sessionId = chatRequest.getSessionId();
+        if (StringUtils.isBlank(sessionId)) {
+            sessionId = request.getHeader("sessionId");
+            chatRequest.setSessionId(sessionId);
+        }
+
+        Flux<ServerSentEvent<String>> chatResult = doctorGraphAgent.sseChat(chatRequest);
+        response.setHeader("sessionId", chatRequest.getSessionId());
+        log.info("sessionId:{}, sseChat result:{}", chatRequest.getSessionId(), chatResult);
+        return chatResult;
     }
 
 }

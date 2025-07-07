@@ -114,9 +114,13 @@ public class ChatService implements InitializingBean {
             modelOptionsBuilder.model(chatRequest.getModel());
         }
 
+        String defaultSystem = chatRequest.getDefaultSystem();
+        if (StringUtils.isBlank(defaultSystem)) {
+            defaultSystem = chatRequest.getSystemMessage();
+        }
         ModelOptions modelOptions = modelOptionsBuilder
-                .systemText(chatRequest.getSystemMessage())
-                .userText(chatRequest.getUserMessage())
+                .defaultSystem(defaultSystem)
+                .defaultUser(chatRequest.getUserMessage())
                 .conversantId(chatRequest.getSessionId())
                 .enableStream(chatRequest.getEnableStream())
                 .enableSearch(chatRequest.getEnableWeb())
@@ -246,7 +250,7 @@ public class ChatService implements InitializingBean {
         return chatResult;
     }
 
-    public Flux<ChatResult> steamChat(String input) {
+    public Flux<ChatResult> steam(String input) {
         ChatRequest chatRequest = new ChatRequest();
         chatRequest.setProvider("dashscope");
         chatRequest.setModel("qwen-max");
@@ -256,10 +260,10 @@ public class ChatService implements InitializingBean {
         chatRequest.setEnableStream(true);
         chatRequest.setEnableAgent(false);
 
-        return steamChat(chatRequest);
+        return steam(chatRequest);
     }
 
-    public Flux<ChatResult> steamChat(ChatRequest chatRequest) {
+    public Flux<ChatResult> steam(ChatRequest chatRequest) {
         ChatClient.ChatClientRequestSpec requestSpec = buildRequestSpec(chatRequest);
         return requestSpec.stream().chatResponse().map(chatResponse -> {
             String content = chatResponse.getResult().getOutput().getText();
@@ -283,6 +287,11 @@ public class ChatService implements InitializingBean {
 
             return Mono.just(chatResult);
         });
+    }
+
+    public Flux<ChatResponse> steamChat(ChatRequest chatRequest) {
+        ChatClient.ChatClientRequestSpec requestSpec = buildRequestSpec(chatRequest);
+        return requestSpec.stream().chatResponse();
     }
 
     public SseEmitter sseChat(ChatRequest chatRequest) {

@@ -22,9 +22,6 @@ import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
-import org.springframework.ai.openai.api.OpenAiApi;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -244,13 +241,13 @@ public class ModelFactory {
             //builder.defaultAdvisors(new LoggingAdvisor());
         }
 
-        if (StringUtils.isNotBlank(modelOptions.getSystemText())) {
+        if (StringUtils.isNotBlank(modelOptions.getDefaultSystem())) {
             //系统提示词
-            builder.defaultSystem(modelOptions.getSystemText());
+            builder.defaultSystem(modelOptions.getDefaultSystem());
         }
-        if (StringUtils.isNotBlank(modelOptions.getUserText())) {
+        if (StringUtils.isNotBlank(modelOptions.getDefaultUser())) {
             //用户提示词
-            builder.defaultUser(modelOptions.getUserText());
+            builder.defaultUser(modelOptions.getDefaultUser());
         }
 
         ChatClient chatClient = builder.build();

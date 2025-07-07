@@ -243,8 +243,7 @@ public class DoctorOperateAgent implements IBaseAgent {
     @PostConstruct
     public void init() {
         this.beanConverter = new BeanOutputConverter<>(
-                new ParameterizedTypeReference<List<DoctorInfoBO>>() {
-                }
+                new ParameterizedTypeReference<List<DoctorInfoBO>>() {}
         );
         this.beanFormat = beanConverter.getFormat();
     }
@@ -275,6 +274,6 @@ public class DoctorOperateAgent implements IBaseAgent {
     public Flux<ChatResult> stream(ChatRequest chatRequest) {
         chatRequest.setSystemMessage(systemPromptClaude);
         chatRequest.setTools(Lists.newArrayList(doctorTools));
-        return chatService.steamChat(chatRequest);
+        return chatService.steam(chatRequest);
     }
 }

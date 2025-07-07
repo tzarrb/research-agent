@@ -36,8 +36,8 @@ import java.util.List;
 @Service
 public class DoctorService {
 
-    @Resource
-    private DoctorProperties properties;
+//    @Resource
+//    private DoctorProperties properties;
 
     private static WebClient.Builder webClientBuilder = WebClient.builder()
             .defaultHeader(HttpHeaders.USER_AGENT, HttpHeaders.USER_AGENT)
@@ -48,9 +48,9 @@ public class DoctorService {
             .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(5 * 1024 * 1024));
 
 
-    private WebClient buildWebClient() {
-        return webClientBuilder.defaultHeader("x-weimai-token", properties.getToken()).build();
-    }
+//    private WebClient buildWebClient() {
+//        return webClientBuilder.defaultHeader("x-weimai-token", properties.getToken()).build();
+//    }
 
     public List<DoctorInfoBO> queryDoctor(DoctorQueryRequest request) {
         //log.info("listMedicalProvider param:{}", JSON.toJSONString(request));

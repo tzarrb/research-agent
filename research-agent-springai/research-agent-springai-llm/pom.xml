@@ -120,10 +120,6 @@
 <!--            <groupId>com.alibaba.cloud.ai</groupId>-->
 <!--            <artifactId>spring-ai-alibaba-starter-nacos-mcp-client</artifactId>-->
 <!--        </dependency>-->
-        <dependency>
-            <groupId>com.alibaba.cloud.ai</groupId>
-            <artifactId>spring-ai-alibaba-graph-core</artifactId>
-        </dependency>
 
         <!-- spring ai alibaba依赖项... end -->
 

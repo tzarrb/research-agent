@@ -110,7 +110,7 @@ public class ChatController {
         String sessionId = request.getHeader(Constant.SESSION_ID);
         chatRequest.setSessionId(sessionId);
 
-        Flux<ChatResult> chatResult = chatService.steamChat(chatRequest);
+        Flux<ChatResult> chatResult = chatService.steam(chatRequest);
 
         return chatResult.map(result -> {
             log.info("sessionId:{}, streamChat result:{}", result.getSessionId(), result.getContent());
@@ -138,7 +138,7 @@ public class ChatController {
         String sessionId = request.getHeader(Constant.SESSION_ID);
         chatRequest.setSessionId(sessionId);
 
-        Flux<ChatResult> chatResult = chatService.steamChat(chatRequest);
+        Flux<ChatResult> chatResult = chatService.steam(chatRequest);
 
         return chatResult.map(result -> {
             log.info("sessionId:{}, streamChat result:{}", result.getSessionId(), result.getContent());

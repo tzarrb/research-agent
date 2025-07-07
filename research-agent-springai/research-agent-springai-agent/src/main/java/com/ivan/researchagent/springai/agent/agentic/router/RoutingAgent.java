@@ -162,7 +162,7 @@ public class RoutingAgent {
         buildChatMessage(chatRequest);
 
         //Flux<ChatResult> distributionResult = streamDistributionAgent(chatMessage);
-        Flux<ChatResult> distributionResult =  chatService.steamChat(chatRequest)
+        Flux<ChatResult> distributionResult =  chatService.steam(chatRequest)
                 .flatMap(chatResult -> {
                     log.info("sessionId:{}, agent router action stream request:{}, result：{}", chatRequest.getSessionId(), chatRequest.getUserMessage(), chatResult.getContent());
                     return Flux.just(chatResult);
@@ -199,7 +199,7 @@ public class RoutingAgent {
         agentRequest.get().setOriginalInput(chatRequest.getUserMessage());
         chatRequest.setUserMessage(JSON.toJSONString(agentRequest));
 
-        Flux<ChatResult> distributionResult =  chatService.steamChat(chatRequest)
+        Flux<ChatResult> distributionResult =  chatService.steam(chatRequest)
                 .flatMap(chatResult -> {
                     String distributionContent = chatResult.getContent();
                     if (distributionContent.contains("targetAgent")) {

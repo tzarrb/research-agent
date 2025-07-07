@@ -27,6 +27,10 @@
             <groupId>com.ivan.ai</groupId>
             <artifactId>research-agent-plugin-coze</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-graph-core</artifactId>
+        </dependency>
 
     </dependencies>
 

@@ -81,6 +81,9 @@ public class ChatRequest implements Serializable {
     @JsonPropertyDescription("对话输入信息类型，如：TEXT,IMAGE,VIDEO")
     private String messageType = "TEXT";
 
+    @JsonPropertyDescription("系统提示词")
+    private String defaultSystem;
+
     @JsonPropertyDescription("对话输入信息,比如 [{\"role\":\"user\",\"content\":\"我想...\"}]")
     private List<ChatRoleMessage> messages;
 

@@ -48,9 +48,9 @@ public class ModelOptions {
     private String formatType;
 
     @JsonPropertyDescription("系统提示词")
-    private String systemText;
+    private String defaultSystem;
 
     @JsonPropertyDescription("用户提示词")
-    private String userText;
+    private String defaultUser;
 
 }
