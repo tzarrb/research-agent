@@ -2,19 +2,27 @@ version: '3.8'
 
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.16.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.4
     container_name: elasticsearch
-    privileged: true
-    environment:
-      - "cluster.name=elasticsearch"
-      - "discovery.type=single-node"
-      - "ES_JAVA_OPTS=-Xms512m -Xmx1096m"
-      - bootstrap.memory_lock=true
+    #restart: "unless-stopped" # 容器总是重启，可选值：no / on-failure[:max-retries] / always / unless-stopped
     volumes:
-      - E:\WorkFiles\docker\elasticsearch\conf\es.yaml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - E:\WorkFiles\docker\elasticsearch\conf\elasticsearch.yaml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - E:\WorkFiles\docker\elasticsearch\data:/usr/share/elasticsearch/data
+      - E:\WorkFiles\docker\elasticsearch\logs:/usr/share/elasticsearch/logs
+      - E:\WorkFiles\docker\elasticsearch\plugins:/usr/share/elasticsearch/plugins
     ports:
       - "9200:9200"
       - "9300:9300"
+    environment:
+      TZ: Asia/Shanghai
+      cluster.name: elasticsearch
+      discovery.type: single-node
+      bootstrap.memory_lock: true
+      ES_JAVA_OPTS: "-Xms512m -Xmx1g"
+      ELASTIC_PASSWORD: 123456 # elastic 超级用户的密码
+      xpack.security.enabled: "true"
+      xpack.security.http.ssl.enabled: "false"
+      xpack.security.transport.ssl.enabled: "false"
     deploy:
       resources:
         limits:
@@ -22,3 +30,50 @@ services:
           memory: 1000M
         reservations:
           memory: 200M
+    networks:
+      - elastic-network
+
+  kibana:
+    depends_on:
+      - elasticsearch
+    image: docker.elastic.co/kibana/kibana:9.0.4
+    container_name: kibana
+    volumes:
+      - E:\WorkFiles\docker\kibana\conf\kibana.yaml:/usr/share/kibana/config/kibana.yml:ro
+      - E:\WorkFiles\docker\kibana\data:/usr/share/kibana/data
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      ELASTICSEARCH_USERNAME: kibana_system
+      ELASTICSEARCH_PASSWORD: 123456
+      SERVER_PUBLICBASEURL: http://localhost:5601
+      xpack.security.enabled: "true"
+      xpack.security.http.ssl.enabled: "false"
+      xpack.security.encryptionKey: "jkl3n45mnpqrstuvwxyzabcdefgh67890"
+      xpack.encryptedSavedObjects.encryptionKey: "m7x8y9zabc3n4pqr5stuv6w0defghijkl"
+      TZ: Asia/Shanghai
+    networks:
+      - elastic-network
+
+#  coolguard:
+#    image: ${coolguard_image}
+#    container_name: coolguard
+#    volumes:
+#      - /docker/coolguard/logs:/coolguard/logs
+#    ports:
+#      - "8081:8081"
+#    environment:
+#      - "SPRING_PROFILES_ACTIVE=demo"
+#    networks:
+#      - elastic-network
+
+
+volumes:
+  elasticsearch-data:
+    driver: local
+  kibana-data:
+    driver: local
+networks:
+  elastic-network:
+    driver: bridge

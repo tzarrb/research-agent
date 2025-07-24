@@ -26,13 +26,13 @@ import static com.alibaba.cloud.ai.toolcalling.common.CommonToolCallConstants.DE
  **/
 @Slf4j
 //@Service
-public class TavilySearchApiApi extends WebSearchApi {
+public class TavilySearchApi extends WebSearchApi {
 
     private final String URL = "https://api.tavily.com/search";
 
     private final TavilySearchProperties properties;
 
-    public TavilySearchApiApi(TavilySearchProperties properties) {
+    public TavilySearchApi(TavilySearchProperties properties) {
         Consumer<HttpHeaders> consumer = headers -> {
             headers.add(HttpHeaders.USER_AGENT,
                     DEFAULT_USER_AGENTS[ThreadLocalRandom.current().nextInt(DEFAULT_USER_AGENTS.length)]);

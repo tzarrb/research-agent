@@ -53,10 +53,32 @@ spring:
         distance-type: COSINE_DISTANCE
         dimensions: 1536
         max-document-batch-size: 10000 # Optional: Maximum number of documents per batch
-    #      redis:
-    #        initialize-schema: true
-    #        prefix: research-agent:vectorstore
-    #        index: research-agent-index
+      elasticsearch:
+        embedding-store:
+          index-name: vector-researchagent
+          embedding-field-name: embedding
+          text-field-name: text
+          metadata-field-name: metadata
+          id-field-name: id
+        client:
+          uris: http://localhost:9200
+          username: elastic
+          password: 123456
+#      redis:
+#        initialize-schema: true
+#        prefix: research-agent:vectorstore
+#        index: research-agent-index
+#      milvus:
+#        client:
+#          host: ${MILVUS_HOST:localhost} # default: localhost
+#          port: ${MILVUS_PORT:19530} # default: 19530
+#          username: ${MILVUS_USERNAME:root} # default: root
+#          password: ${MILVUS_PASSWORD:milvus} # default: milvus
+#        databaseName: ${MILVUS_DATABASE_NAME:default} # default: default
+#        collectionName: ${MILVUS_COLLECTION_NAME:vector_store} # default: vector_store
+#        embeddingDimension: 1536 # default: 1536
+#        indexType: IVF_FLAT # default: IVF_FLAT
+#        metricType: COSINE # default: COSINE
     memory:
       # mysql:
       #   enabled: true

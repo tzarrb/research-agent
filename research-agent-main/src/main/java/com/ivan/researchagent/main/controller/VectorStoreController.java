@@ -36,7 +36,7 @@ public class VectorStoreController {
     @PostMapping("/store")
     @Operation(summary = "存储", description = "存储向量数据")
     public void store(@RequestBody VectorStoreData vectorStoreData) {
-        vectorStoreService.storeText(vectorStoreData);
+        vectorStoreService.storeData(vectorStoreData);
     }
 
     @PostMapping("/update")

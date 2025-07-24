@@ -1,0 +1,36 @@
+# 集群名称
+cluster.name: docker-es
+
+# 节点名称
+node.name: es-node-1
+
+# 网络配置
+network.host: 0.0.0.0
+network.publish_host: 0.0.0.0
+http.port: 9200
+transport.port: 9300
+http.cors.enabled: true
+http.cors.allow-origin: "*"
+
+# 路径配置
+#E:\WorkFiles\docker\elasticsearch\data: /usr/share/elasticsearch/data
+#E:\WorkFiles\docker\elasticsearch\logs: /usr/share/elasticsearch/logs
+#path.data: E:\WorkFiles\docker\elasticsearch\data
+#path.logs: E:\WorkFiles\docker\elasticsearch\logs
+
+# 内存配置
+bootstrap.memory_lock: true
+
+# 关闭认证授权 es 8.x 默认开启
+xpack.security.enabled: true
+xpack.security.transport.ssl.enabled: false
+xpack.security.http.ssl.enabled: false
+
+# 监控配置
+xpack.monitoring.collection.enabled: false
+
+# 索引配置
+action.auto_create_index: "+*"
+
+# 日志配置
+logger.org.elasticsearch.deprecation: warn

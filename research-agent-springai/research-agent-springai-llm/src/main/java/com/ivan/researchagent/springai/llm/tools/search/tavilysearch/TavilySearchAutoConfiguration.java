@@ -22,8 +22,8 @@ public class TavilySearchAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public TavilySearchApiApi tavilySearchApi(TavilySearchProperties properties) {
-        return new TavilySearchApiApi(properties);
+    public TavilySearchApi tavilySearchApi(TavilySearchProperties properties) {
+        return new TavilySearchApi(properties);
     }
 
 }

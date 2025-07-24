@@ -33,13 +33,13 @@ import java.util.Map;
  * All Rights Reserved.
  *
  * @version 1.0
- * @description:
+ * @description: RAG 查询优化服务
  * @author: ivan
  * @since: 2025/6/18/周三
  **/
 @Slf4j
 @Service
-public class RagService {
+public class RagQueryService {
 
     @Resource
     private ChatService chatService;
@@ -50,6 +50,11 @@ public class RagService {
     /**
      * 多查询扩展
      * 用于生成多个相关的查询变体，进而提升搜索的精确度和覆盖率，以获得更全面的搜索结果
+     * 多查询扩展的优势主要体现在以下几个方面：
+     *   •  提升召回率：通过生成多个查询版本，增加了捕获相关文档的可能性。
+     *   •  多角度覆盖：从多个维度理解和拓展用户的原始查询内容。
+     *   •  加强语义解析：识别查询的多重潜在意义及其相关概念。
+     *   •  改善搜索品质：综合多个查询结果，以获得更加周全的信息集。
      *
      * @param chatRequest
      */
@@ -82,6 +87,8 @@ public class RagService {
     /**
      * 查询重写
      * 查询改写是 RAG 系统中的一项关键优化手段，它通过将用户的原始查询转化为更加规范和明确的查询形式，从而提升搜索的精确度，并协助系统更准确地把握用户的真正需求。
+     * 查询改写的主要优势包括：
+     *   •  查询明确化：将含糊不清的问题转化为具体的查询点。
      *
      * @param chatRequest
      */
@@ -106,6 +113,11 @@ public class RagService {
     /**
      * 查询翻译
      * 查询翻译是 RAG 系统中的一项便捷功能，它允许将用户的查询从一个语言版本转换为另一个语言版本。这项功能对于实现多语言支持和执行跨语言搜索查询尤其重要。
+     * 查询翻译功能的主要优势包括：
+ *   *   •  多语言兼容：能够在不同语言之间进行查询内容的转换。
+     *   •  本地化适配：将查询内容适配为目标语言的地道表达方式。
+     *   •  跨语言搜索：使得在不同语言的文档集合中进行有效检索成为可能。
+     *   •  提升用户体验：用户可以利用自己熟悉的语言发起查询，提高了系统的易用性。
      *
      * @param chatRequest
      */
@@ -160,6 +172,11 @@ public class RagService {
     /**
      * 文档合并
      * 文档合并是 RAG 系统中的一项重要功能，它允许将来自多个查询或数据源的文档集合进行合并，以便为用户提供更全面和一致的信息。
+     * 文档合并器的核心特性包括：
+     *   •  智能去重：在遇到重复的文档时，系统仅保留首次出现的版本。
+     *   •  分数保留：在合并过程中，每个文档的原始相关性评分得以保留。
+     *   •  多源兼容：能够同时处理来自不同查询和不同数据源的文档。
+     *   •  顺序保持：合并时维持文档的原始检索顺序不变。
      *
      * @param chatRequest
      */
@@ -176,48 +193,4 @@ public class RagService {
         List<Document> mergedDocuments = documentJoiner.join(documentsMap);
     }
 
-
-    public List<Document> tokenTextSplitter(List<Document> documents) {
-        log.info("start token text splitter");
-        TokenTextSplitter tokenTextSplitter = TokenTextSplitter.builder()
-                // 每个文本块的目标token数量
-                .withChunkSize(800)
-                // 每个文本块的最小字符数
-                .withMinChunkSizeChars(350)
-                // 丢弃小于此长度的文本块
-                .withMinChunkLengthToEmbed(5)
-                // 文本中生成的最大块数
-                .withMaxNumChunks(10000)
-                // 是否保留分隔符
-                .withKeepSeparator(true)
-                .build();
-        return tokenTextSplitter.split(documents);
-    }
-
-    public List<Document> contentFormatTransformer(List<Document> documents) {
-        log.info("start content format transformer");
-        DefaultContentFormatter defaultContentFormatter = DefaultContentFormatter.defaultConfig();
-
-        ContentFormatTransformer contentFormatTransformer = new ContentFormatTransformer(defaultContentFormatter);
-
-        return contentFormatTransformer.apply(documents);
-    }
-
-    public List<Document> keywordMetadataEnricher(List<Document> documents) {
-        log.info("start keyword metadata enricher");
-        KeywordMetadataEnricher keywordMetadataEnricher = new KeywordMetadataEnricher(this.chatModel, 3);
-        return keywordMetadataEnricher.apply(documents);
-    }
-
-    @GetMapping("/summary-metadata-enricher")
-    public List<Document> summaryMetadataEnricher(List<Document> documents) {
-        log.info("start summary metadata enricher");
-        List<SummaryMetadataEnricher.SummaryType> summaryTypes = List.of(
-                SummaryMetadataEnricher.SummaryType.NEXT,
-                SummaryMetadataEnricher.SummaryType.CURRENT,
-                SummaryMetadataEnricher.SummaryType.PREVIOUS);
-        SummaryMetadataEnricher summaryMetadataEnricher = new SummaryMetadataEnricher(this.chatModel, summaryTypes);
-
-        return summaryMetadataEnricher.apply(documents);
-    }
 }

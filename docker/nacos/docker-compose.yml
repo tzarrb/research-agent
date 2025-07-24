@@ -3,7 +3,8 @@ services:
   nacos:
     image: nacos/nacos-server:latest
     container_name: nacos-v3
-    restart: "always" # 容器总是重启，可选值：no / on-failure[:max-retries] / always / unless-stopped
+    # 可选值：no(默认策略，不自动重启容器) / on-failure[:max-retries](仅在容器以非0退出码失败时重启) / always(总是重启容器) / unless-stopped(总是重启容器，除非容器被手动停止)
+    restart: "always" # 容器总是重启，
     privileged: false
     ports:
       - 8047:8080

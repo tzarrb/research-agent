@@ -50,6 +50,7 @@
         <pinecone.version>3.0.0</pinecone.version>
         <jedis.version>5.2.0</jedis.version>
         <h2.version>1.4.200</h2.version>
+        <elasticsearch.version>9.0.4</elasticsearch.version>
 
         <commons-collections.version>3.2.2</commons-collections.version>
         <fastjson.version>1.2.83</fastjson.version>
@@ -252,6 +253,18 @@
                 <artifactId>nacos-client</artifactId>
                 <version>${nacos-client.version}</version>
                 <scope>compile</scope>
+            </dependency>
+
+            <!-- elasticsearch 依赖项... start -->
+            <dependency>
+                <groupId>co.elastic.clients</groupId>
+                <artifactId>elasticsearch-java</artifactId>
+                <version>${elasticsearch.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.elasticsearch.client</groupId>
+                <artifactId>elasticsearch-rest-client</artifactId>
+                <version>${elasticsearch.version}</version>
             </dependency>
 
             <!-- 大模型可观测 依赖项... start -->

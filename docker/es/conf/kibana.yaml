@@ -1,0 +1,13 @@
+# Kibana服务器配置
+server.name: kibana
+server.host: "0.0.0.0"
+server.port: 5601
+
+# Elasticsearch连接配置
+elasticsearch.hosts: ["http://elasticsearch:9200"]
+
+# 语言设置
+i18n.locale: "zh-CN"
+
+# 监控配置
+monitoring.ui.container.elasticsearch.enabled: true

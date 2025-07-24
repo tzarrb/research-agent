@@ -7,7 +7,7 @@ import com.alibaba.cloud.ai.model.RerankModel;
 import com.ivan.researchagent.springai.llm.advisors.ReasoningContentAdvisor;
 import com.ivan.researchagent.springai.llm.document.DocumentRanker;
 import com.ivan.researchagent.springai.llm.rag.retriever.WebSearchDocumentRetriever;
-import com.ivan.researchagent.springai.llm.tools.search.tavilysearch.TavilySearchApiApi;
+import com.ivan.researchagent.springai.llm.tools.search.tavilysearch.TavilySearchApi;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
@@ -16,7 +16,6 @@ import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 import org.springframework.ai.rag.preretrieval.query.expansion.MultiQueryExpander;
 import org.springframework.ai.rag.preretrieval.query.transformation.CompressionQueryTransformer;
-import org.springframework.ai.rag.preretrieval.query.transformation.QueryTransformer;
 import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQueryTransformer;
 import org.springframework.ai.rag.preretrieval.query.transformation.TranslationQueryTransformer;
 import org.springframework.ai.rag.retrieval.join.ConcatenationDocumentJoiner;
@@ -26,9 +25,6 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Copyright (c) 2024 research-agent.
@@ -50,7 +46,7 @@ public class RagConfiguration {
     private RerankModel rerankModel;
 
     @Resource
-    private TavilySearchApiApi tavilySearchApi;
+    private TavilySearchApi tavilySearchApi;
 
     @Qualifier("queryArgumentPromptTemplate")
     private PromptTemplate queryArgumentPromptTemplate;
