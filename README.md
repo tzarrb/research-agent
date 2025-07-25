@@ -32,7 +32,7 @@ ResearchAgent是Java生态下AIGC项目解决方案，集成AIGC大模型能力�
 
 - **核心框架**: Spring Boot、SpringCloud
 - **AI 能力**: Spring AI、Spring AI Alibaba (集成阿里云 DashScope)
-- **向量存储**: PGVector、Redis Vector Store
+- **向量存储**: PGVector、ElasticSearch, Milvus, Redis Vector Store
 - **动态配置**: Nacos
 - **检索增强生成**: RAG 架构
 - **Agent**: 多Agent路由架构
@@ -41,17 +41,18 @@ ResearchAgent是Java生态下AIGC项目解决方案，集成AIGC大模型能力�
 ## 功能特性
 
 1. 多模态：支持集成国内外数十家AI大模型，可动态切换和配置
-2. 动态配置：支持Nacos动态配置大模型参数、Key等信息，无感刷新、无需每次重启服务
-3. 知识库：支持向量化知识库文档，定制化Prompt对话场景
-4. 高级RAG：支持Embedding模型，从知识库中精确搜索；集成Web Search等RAG插件
-5. 多Agent：支持多Agent路由架构，支持Agent间的协同工作
-6. Tool Call：支持定制化Tool工具类，实现本地函数调用，从第三方加载数据并提供给LLM
-7. MCP: 支持Nacos3.0 MCP和Router动态配置 
-8. 支持动态配置Embedding模型和向量数据库 
-9. 更多特性敬请期待...
+2. 知识库：支持向量化知识库文档，定制化Prompt对话场景
+3. 高级RAG：支持多种Embedding模型和向量库；集成Web Search等RAG插件
+4. 多Agent：支持多Agent路由架构，支持Agent间的协同工作
+5. Tool Call：支持定制化Tool工具类，实现本地函数调用，从第三方加载数据并提供给LLM
+6. MCP: 支持Nacos3.0 MCP和Router动态配置
+7. 动态配置：支持Nacos动态配置大模型参数、Key等信息，无感刷新、无需每次重启服务
+8. 支持动态配置Embedding模型和向量数据库，当前已支持PGVector、ElasticSearch，后续将持续添加 
+9. 支持基于令牌数、句子、文档格式、关键字和摘要元数据等多种分块嵌入方式
+10. 更多特性敬请期待...
 
 ## 版本更新
-
+- 2025.07.25 支持多种嵌入分块策略，新增ES向量库支持
 - 2025.06.28 正式发布、公开仓库
 - 2024.10.05 开始开发
 
