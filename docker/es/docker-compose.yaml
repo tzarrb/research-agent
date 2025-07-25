@@ -74,6 +74,7 @@ volumes:
     driver: local
   kibana-data:
     driver: local
+
 networks:
   elastic-network:
     driver: bridge

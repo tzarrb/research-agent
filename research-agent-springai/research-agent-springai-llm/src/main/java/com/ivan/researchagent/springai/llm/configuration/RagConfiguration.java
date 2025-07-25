@@ -22,6 +22,7 @@ import org.springframework.ai.rag.retrieval.join.ConcatenationDocumentJoiner;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,7 +42,7 @@ public class RagConfiguration {
     @Resource
     private DashScopeChatModel chatModel;
     @Resource
-    private VectorStore vectorStore;
+    private PgVectorStore vectorStore;
     @Resource
     private RerankModel rerankModel;
 

@@ -6,12 +6,18 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
+import org.elasticsearch.client.RestClient;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.MetadataMode;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.elasticsearch.ElasticsearchVectorStore;
+import org.springframework.ai.vectorstore.elasticsearch.autoconfigure.ElasticsearchVectorStoreProperties;
+import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.ai.writer.FileDocumentWriter;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,7 +45,13 @@ import java.util.UUID;
 public class VectorStoreService {
 
     @Resource
-    VectorStore vectorStore;
+    PgVectorStore pgVectorStore;
+
+    @Resource
+    ElasticsearchVectorStore elasticsearchVectorStore;
+
+    @Resource
+    List<VectorStore> vectorStores;
 
     @Resource
     RagChunkingService ragChunkingService;
@@ -91,7 +103,7 @@ public class VectorStoreService {
         }
 
         // 5.create embedding and store to vector store
-        vectorStore.add(splitDocuments);
+        pgVectorStore.add(splitDocuments);
 
         // 6.return success prompt
         log.info("successfully inserted {} text fragments into vector store", splitDocuments.size());
@@ -156,7 +168,8 @@ public class VectorStoreService {
             new FileDocumentWriter(processedFile, true, MetadataMode.ALL, false).accept(splitDocs);
 
             // create embedding and store to vector store
-            vectorStore.add(splitDocs);
+            pgVectorStore.add(splitDocs);
+            elasticsearchVectorStore.add(splitDocs);
 
             // return success prompt
             log.info("successfully inserted {} text fragments into vector store, fileId:{}", splitDocs.size(), fileId);
@@ -183,7 +196,7 @@ public class VectorStoreService {
         List<Document> splitDocuments = ragChunkingService.chunking(ChunkingTypeEnum.TOKEN_TEXT, List.of(document));
 
         // 4. update the document in the vector store
-        vectorStore.accept(splitDocuments);
+        pgVectorStore.accept(splitDocuments);
         log.info("successfully updated document with ID: {}", vectorStoreData.getId());
         return Boolean.TRUE;
     }
@@ -196,7 +209,7 @@ public class VectorStoreService {
         }
 
         // 2. delete the document from the vector store
-        vectorStore.delete(List.of(vectorStoreData.getId()));
+        pgVectorStore.delete(List.of(vectorStoreData.getId()));
         log.info("successfully deleted document with ID: {}", vectorStoreData.getId());
         return Boolean.TRUE;
     }

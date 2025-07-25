@@ -52,10 +52,16 @@
         <h2.version>1.4.200</h2.version>
         <elasticsearch.version>9.0.4</elasticsearch.version>
 
+        <druid.version>1.2.6</druid.version>
+        <tk-mybatis-mapper>4.2.2</tk-mybatis-mapper>
+        <mybatis.version>3.5.15</mybatis.version>
+        <mybatis-spring.version>3.0.3</mybatis-spring.version>
+
         <commons-collections.version>3.2.2</commons-collections.version>
         <fastjson.version>1.2.83</fastjson.version>
         <guava.version>29.0-android</guava.version>
         <logback.version>1.5.8</logback.version>
+        <aspectj.version>1.9.6</aspectj.version>
 
         <swagger.version>2.9.2</swagger.version>
         <knife4j.version>4.5.0</knife4j.version>
@@ -267,6 +273,35 @@
                 <version>${elasticsearch.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid</artifactId>
+                <version>${druid.version}</version>
+            </dependency>
+
+            <!-- mybatis 相关jar包 Start -->
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis</artifactId>
+                <version>${mybatis.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis-spring</artifactId>
+                <version>${mybatis-spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>${mybatis-spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>tk.mybatis</groupId>
+                <artifactId>mapper</artifactId>
+                <version>${tk-mybatis-mapper}</version>
+            </dependency>
+            <!-- mybatis 相关jar包 End -->
+
             <!-- 大模型可观测 依赖项... start -->
             <dependency>
                 <groupId>io.micrometer</groupId>
@@ -308,6 +343,19 @@
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
             </dependency>
+
+            <!-- Start: aspectj相关jar包 -->
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjrt</artifactId>
+                <version>${aspectj.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjweaver</artifactId>
+                <version>${aspectj.version}</version>
+            </dependency>
+            <!-- End: aspectj相关jar包 -->
 
             <!--  Swagger Start -->
             <dependency>

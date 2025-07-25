@@ -11,6 +11,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,8 +33,6 @@ import java.util.Map;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = AgentApplication.class)
 public class VectorStoreTest {
-    @Autowired
-    VectorStore vectorStore;
     @Resource
     RagChunkingService ragChunkingService;
     @Resource

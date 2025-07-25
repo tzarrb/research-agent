@@ -65,7 +65,7 @@ public class LLMConfiguration {
     }
 
     @Bean
-    public RestClient restClient() {
+    public RestClient okHttpRestClient() {
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .connectTimeout(Duration.ofSeconds(60))
                 .readTimeout(Duration.ofSeconds(300))

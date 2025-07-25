@@ -3,3 +3,4 @@ spring:
     active: local #开发环境，local,dev,test,prod
   main:
     allow-circular-references: true
+    allow-bean-definition-overriding: true

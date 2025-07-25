@@ -2,9 +2,9 @@
 services:
   nacos:
     image: nacos/nacos-server:latest
-    container_name: nacos-v3
+    container_name: nacos
     # 可选值：no(默认策略，不自动重启容器) / on-failure[:max-retries](仅在容器以非0退出码失败时重启) / always(总是重启容器) / unless-stopped(总是重启容器，除非容器被手动停止)
-    restart: "always" # 容器总是重启，
+    #restart: "always" # 容器总是重启，
     privileged: false
     ports:
       - 8047:8080
@@ -35,6 +35,8 @@ services:
       - JVM_XMS=256m
       - JVM_XMX=512m
       - JVM_XMN=256m
+    networks:
+      - nacos-network
 
   nacos-mcp-router:
     image: nacos/nacos-mcp-router:latest
@@ -71,6 +73,6 @@ services:
     tty: true         # 分配一个伪终端（可选，通常与 -i 一起使用）
 
 networks:
-  test-net:
-    external: true
+  nacos-network:
+    driver: bridge
 
