@@ -1,6 +1,8 @@
 package com.ivan.researchagent.springai.agent.tool;
 
 import com.ivan.researchagent.springai.agent.anno.ToolWarpper;
+import com.ivan.researchagent.springai.agent.tool.weather.WeatherService;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
@@ -17,10 +19,14 @@ import org.springframework.ai.tool.annotation.Tool;
 @Slf4j
 @ToolWarpper
 public class WeatherTools {
+    @Resource
+    WeatherService weatherService;
 
     @Tool(description = "通过城市获取天气情况")
     String getWeatherByCity(String city, ToolContext toolContext) {
-        return city + "今天天气晴，温度15-25度，微风，适宜出行！";
+        //return city + "今天天气晴，温度15-25度，微风，适宜出行！";
+        WeatherService.Request request = new WeatherService.Request(city, 3);
+        return weatherService.getWeather(request).toString();
     }
 
 }

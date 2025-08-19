@@ -1,18 +1,14 @@
 package com.ivan.researchagent.springai.llm.configuration;
 
-import com.alibaba.cloud.ai.memory.redis.RedisChatMemoryRepository;
-import com.ivan.researchagent.springai.llm.config.LLMConfig;
-import com.ivan.researchagent.springai.llm.memory.RedisChatMemory;
-import jakarta.annotation.Resource;
+import com.ivan.researchagent.springai.llm.memory.database.DatabaseChatMemory;
+import com.ivan.researchagent.springai.llm.memory.database.DatabaseChatMemoryRepository;
 import okhttp3.OkHttpClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
-import org.springframework.ai.chat.messages.Message;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
@@ -29,39 +25,34 @@ import java.time.Duration;
  * @since: 2024/12/25 10:15
  **/
 @Configuration
+//@AutoConfiguration(after = {LettuceRedisChatMemoryConnectionAutoConfiguration.class, JedisRedisChatMemoryConnectionAutoConfiguration.class})
 public class LLMConfiguration {
-
-//    @Resource
-//    private RedisChatMemoryRepository redisChatMemoryRepository;
 
 //    @Resource
 //    private RedisTemplate<String, Message> redisTemplate;
 
-//    @Bean
-//    public ChatMemory chatMemory() {
-//        return new InMemoryChatMemory();
-//    }
-
     @Bean
-    public ChatMemory redisChatMemory(RedisChatMemoryRepository redisChatMemoryRepository) {
-//        return new RedisChatMemory(redisTemplate);
+    public ChatMemory customChatMemory(DatabaseChatMemoryRepository chatMemoryRepository) {
+        //return new RedisChatMemory(redisTemplate);
 
-        ChatMemory chatMemory = MessageWindowChatMemory.builder()
-                .chatMemoryRepository(redisChatMemoryRepository)
-                .maxMessages(100)
-                .build();
+//        ChatMemory chatMemory = MessageWindowChatMemory.builder()
+//                .chatMemoryRepository(chatMemoryRepository)
+//                .maxMessages(100)
+//                .build();
+
+        ChatMemory chatMemory = new DatabaseChatMemory(chatMemoryRepository, 100);
 
         return chatMemory;
     }
 
     @Bean
-    public MessageChatMemoryAdvisor redisMessageChatMemoryAdvisor(ChatMemory redisChatMemory) {
-        return MessageChatMemoryAdvisor.builder(redisChatMemory).build();
+    public MessageChatMemoryAdvisor customMessageChatMemoryAdvisor(ChatMemory customChatMemory) {
+        return MessageChatMemoryAdvisor.builder(customChatMemory).build();
     }
 
     @Bean
-    public PromptChatMemoryAdvisor redisPromptChatMemoryAdvisor(ChatMemory redisChatMemory) {
-        return PromptChatMemoryAdvisor.builder(redisChatMemory).build();
+    public PromptChatMemoryAdvisor customPromptChatMemoryAdvisor(ChatMemory customChatMemory) {
+        return PromptChatMemoryAdvisor.builder(customChatMemory).build();
     }
 
     @Bean

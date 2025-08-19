@@ -41,36 +41,36 @@ import javax.sql.DataSource;
 @Configuration
 public class VectorStoreConfig {
 
-    @Bean(name = "pgVectorStore")
-    public PgVectorStore vectorStore(@Qualifier("postgresqlJdbcTemplate") JdbcTemplate jdbcTemplate,
-                                   EmbeddingModel embeddingModel,
-                                   PgVectorStoreProperties properties) {
-        return PgVectorStore.builder(jdbcTemplate, embeddingModel)
-                .dimensions(properties.getDimensions())              // Optional: defaults to model dimensions or 1536
-                .indexType(properties.getIndexType())                // Optional: defaults to HNSW
-                .distanceType(properties.getDistanceType())          // Optional: defaults to COSINE_DISTANCE
-                .initializeSchema(true)                             // Optional: defaults to false
-                .schemaName("public")                               // Optional: defaults to "public"
-                .vectorTableName(properties.getTableName())         // Optional: defaults to "vector_store"
-                .maxDocumentBatchSize(10000)                            // Optional: defaults to 10000
-                .build();
-    }
-
-    @Bean(name = "elasticsearchVectorStore")
-    public ElasticsearchVectorStore elasticsearchVectorStore(RestClient restClient,
-                                                             EmbeddingModel embeddingModel,
-                                                             ElasticsearchVectorStoreProperties properties) {
-        ElasticsearchVectorStoreOptions options = new ElasticsearchVectorStoreOptions();
-        options.setIndexName(properties.getIndexName());    // Optional: defaults to "spring-ai-document-index"
-        options.setSimilarity(properties.getSimilarity());           // Optional: defaults to COSINE
-        options.setDimensions(properties.getDimensions());             // Optional: defaults to model dimensions or 1536
-
-        return ElasticsearchVectorStore.builder(restClient, embeddingModel)
-                .options(options)                     // Optional: use custom options
-                .initializeSchema(true)               // Optional: defaults to false
-                .batchingStrategy(new TokenCountBatchingStrategy()) // Optional: defaults to TokenCountBatchingStrategy
-                .build();
-    }
+//    @Bean(name = "pgVectorStore")
+//    public PgVectorStore vectorStore(@Qualifier("postgresqlJdbcTemplate") JdbcTemplate jdbcTemplate,
+//                                   EmbeddingModel embeddingModel,
+//                                   PgVectorStoreProperties properties) {
+//        return PgVectorStore.builder(jdbcTemplate, embeddingModel)
+//                .dimensions(properties.getDimensions())              // Optional: defaults to model dimensions or 1536
+//                .indexType(properties.getIndexType())                // Optional: defaults to HNSW
+//                .distanceType(properties.getDistanceType())          // Optional: defaults to COSINE_DISTANCE
+//                .initializeSchema(true)                             // Optional: defaults to false
+//                .schemaName("public")                               // Optional: defaults to "public"
+//                .vectorTableName(properties.getTableName())         // Optional: defaults to "vector_store"
+//                .maxDocumentBatchSize(10000)                            // Optional: defaults to 10000
+//                .build();
+//    }
+//
+//    @Bean(name = "elasticsearchVectorStore")
+//    public ElasticsearchVectorStore elasticsearchVectorStore(RestClient restClient,
+//                                                             EmbeddingModel embeddingModel,
+//                                                             ElasticsearchVectorStoreProperties properties) {
+//        ElasticsearchVectorStoreOptions options = new ElasticsearchVectorStoreOptions();
+//        options.setIndexName(properties.getIndexName());    // Optional: defaults to "spring-ai-document-index"
+//        options.setSimilarity(properties.getSimilarity());           // Optional: defaults to COSINE
+//        options.setDimensions(properties.getDimensions());             // Optional: defaults to model dimensions or 1536
+//
+//        return ElasticsearchVectorStore.builder(restClient, embeddingModel)
+//                .options(options)                     // Optional: use custom options
+//                .initializeSchema(true)               // Optional: defaults to false
+//                .batchingStrategy(new TokenCountBatchingStrategy()) // Optional: defaults to TokenCountBatchingStrategy
+//                .build();
+//    }
 
 //    @Bean
 //    @Qualifier("redisVectorStore")

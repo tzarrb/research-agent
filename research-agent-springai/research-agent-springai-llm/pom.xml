@@ -26,10 +26,9 @@
             <groupId>com.ivan.ai</groupId>
             <artifactId>research-agent-common</artifactId>
         </dependency>
-
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jdbc</artifactId>
+            <groupId>com.ivan.ai</groupId>
+            <artifactId>research-agent-core</artifactId>
         </dependency>
 
         <!-- spring ai依赖项... start -->
@@ -154,13 +153,6 @@
             <version>${tika.version}</version>
         </dependency>
 
-        <!-- Redis 依赖项... start -->
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>${jedis.version}</version>
-        </dependency>
-
         <!-- elasticsearch 依赖项... start -->
         <dependency>
             <groupId>co.elastic.clients</groupId>
@@ -170,20 +162,6 @@
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-client</artifactId>
         </dependency>
-
-        <!-- druid jar包 Start -->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>druid</artifactId>
-            <version>${druid.version}</version>
-        </dependency>
-
-        <!-- mybatis 相关jar包 Start -->
-        <dependency>
-            <groupId>org.mybatis.spring.boot</groupId>
-            <artifactId>mybatis-spring-boot-starter</artifactId>
-        </dependency>
-        <!-- mybatis 相关jar包 End -->
 
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

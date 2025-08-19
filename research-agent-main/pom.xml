@@ -16,6 +16,16 @@
         <dependency>
             <groupId>com.ivan.ai</groupId>
             <artifactId>research-agent-springai-agent</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jsonschema-module-swagger-2</artifactId>
+                    <groupId>com.github.victools</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>swagger-annotations</artifactId>
+                    <groupId>io.swagger.core.v3</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -49,10 +59,10 @@
         </dependency>-->
 
         <!-- Swagger API Docs -->
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springdoc</groupId>-->
+<!--            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>

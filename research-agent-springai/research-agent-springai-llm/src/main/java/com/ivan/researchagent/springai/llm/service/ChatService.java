@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.ivan.researchagent.common.constant.Constant;
 import com.ivan.researchagent.common.model.ModelOptions;
+import com.ivan.researchagent.springai.llm.advisors.ChatMemoryAdvisorSpec;
 import com.ivan.researchagent.springai.llm.advisors.ReasoningContentAdvisor;
 import com.ivan.researchagent.springai.llm.config.LLMConfig;
 import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
@@ -79,9 +80,6 @@ public class ChatService implements InitializingBean {
     @Resource
     private LLMConfig llmConfig;
 
-    //对话记忆的返回条数
-    private static final Integer CHAT_MEMORY_RETRIEVE_SIZE = 100;
-
     private final ModelOptions.ModelOptionsBuilder modelOptionsBuilder = ModelOptions.builder()
             .enableMemory(true)
             .enableSearch(true)
@@ -155,9 +153,8 @@ public class ChatService implements InitializingBean {
             //对话记忆的唯一标识
             String conversantId = chatRequest.getSessionId();
 
-            //对话增强，默认使用MemoryMemoryAdvisor
-            requestSpec.advisors(spec -> spec.param(CONVERSATION_ID, conversantId)
-                    .param(TOP_K, CHAT_MEMORY_RETRIEVE_SIZE));
+            //对话增强，默认使用 MemoryAdvisor
+            requestSpec.advisors(new ChatMemoryAdvisorSpec(conversantId));
         }
         //本地文档搜索增强
         if(chatRequest.getEnableLocal()) {

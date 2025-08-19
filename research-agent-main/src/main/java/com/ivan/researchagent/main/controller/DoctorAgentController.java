@@ -1,10 +1,10 @@
 package com.ivan.researchagent.main.controller;
 
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
-import com.ivan.researchagent.springai.agent.graph.doctor.agent.DoctorGraphAgent;
+import com.ivan.researchagent.springai.agent.graph.agent.doctor.DoctorGraphAgent;
 import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
-import com.ivan.researchagent.springai.agent.agentic.biz.DoctorOperateAgent;
+import com.ivan.researchagent.springai.agent.agentic.doctoroperater.DoctorOperateAgent;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

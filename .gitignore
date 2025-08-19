@@ -37,3 +37,4 @@ node_modules
 /research-agent-main/src/test/resources/docs/
 /research-agent-main/src/main/resources/bootstrap-local.yaml
 /data/
+/research-agent-core/.mvn/

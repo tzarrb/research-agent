@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ivan.researchagent.core.dao.repository.mysql.ChatMemoryMapper">
+
+  <resultMap id="BaseResultMap" type="com.ivan.researchagent.core.dao.entity.ChatMemory">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="conversation_id" jdbcType="VARCHAR" property="conversationId" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="is_del" jdbcType="INTEGER" property="isDel" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, conversation_id, `type`, content, create_time, update_time, is_del
+  </sql>
+
+<!--  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">-->
+<!--    select -->
+<!--    <include refid="Base_Column_List" />-->
+<!--    from ai_chat_memory-->
+<!--    where id = #{id,jdbcType=BIGINT}-->
+<!--  </select>-->
+<!--  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">-->
+<!--    delete from ai_chat_memory-->
+<!--    where id = #{id,jdbcType=BIGINT}-->
+<!--  </delete>-->
+<!--  <insert id="insert" parameterType="com.ivan.researchagent.springai.llm.dao.entity.AiChatMemory">-->
+<!--    insert into ai_chat_memory (id, conversation_id, `type`, -->
+<!--      content, create_time, update_time, -->
+<!--      is_del)-->
+<!--    values (#{id,jdbcType=BIGINT}, #{conversationId,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, -->
+<!--      #{content,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, -->
+<!--      #{isDel,jdbcType=INTEGER})-->
+<!--  </insert>-->
+<!--  <insert id="insertSelective" parameterType="com.ivan.researchagent.springai.llm.dao.entity.AiChatMemory">-->
+<!--    insert into ai_chat_memory-->
+<!--    <trim prefix="(" suffix=")" suffixOverrides=",">-->
+<!--      <if test="id != null">-->
+<!--        id,-->
+<!--      </if>-->
+<!--      <if test="conversationId != null">-->
+<!--        conversation_id,-->
+<!--      </if>-->
+<!--      <if test="type != null">-->
+<!--        `type`,-->
+<!--      </if>-->
+<!--      <if test="content != null">-->
+<!--        content,-->
+<!--      </if>-->
+<!--      <if test="createTime != null">-->
+<!--        create_time,-->
+<!--      </if>-->
+<!--      <if test="updateTime != null">-->
+<!--        update_time,-->
+<!--      </if>-->
+<!--      <if test="isDel != null">-->
+<!--        is_del,-->
+<!--      </if>-->
+<!--    </trim>-->
+<!--    <trim prefix="values (" suffix=")" suffixOverrides=",">-->
+<!--      <if test="id != null">-->
+<!--        #{id,jdbcType=BIGINT},-->
+<!--      </if>-->
+<!--      <if test="conversationId != null">-->
+<!--        #{conversationId,jdbcType=VARCHAR},-->
+<!--      </if>-->
+<!--      <if test="type != null">-->
+<!--        #{type,jdbcType=VARCHAR},-->
+<!--      </if>-->
+<!--      <if test="content != null">-->
+<!--        #{content,jdbcType=VARCHAR},-->
+<!--      </if>-->
+<!--      <if test="createTime != null">-->
+<!--        #{createTime,jdbcType=TIMESTAMP},-->
+<!--      </if>-->
+<!--      <if test="updateTime != null">-->
+<!--        #{updateTime,jdbcType=TIMESTAMP},-->
+<!--      </if>-->
+<!--      <if test="isDel != null">-->
+<!--        #{isDel,jdbcType=INTEGER},-->
+<!--      </if>-->
+<!--    </trim>-->
+<!--  </insert>-->
+<!--  <update id="updateByPrimaryKeySelective" parameterType="com.ivan.researchagent.springai.llm.dao.entity.AiChatMemory">-->
+<!--    update ai_chat_memory-->
+<!--    <set>-->
+<!--      <if test="conversationId != null">-->
+<!--        conversation_id = #{conversationId,jdbcType=VARCHAR},-->
+<!--      </if>-->
+<!--      <if test="type != null">-->
+<!--        `type` = #{type,jdbcType=VARCHAR},-->
+<!--      </if>-->
+<!--      <if test="content != null">-->
+<!--        content = #{content,jdbcType=VARCHAR},-->
+<!--      </if>-->
+<!--      <if test="createTime != null">-->
+<!--        create_time = #{createTime,jdbcType=TIMESTAMP},-->
+<!--      </if>-->
+<!--      <if test="updateTime != null">-->
+<!--        update_time = #{updateTime,jdbcType=TIMESTAMP},-->
+<!--      </if>-->
+<!--      <if test="isDel != null">-->
+<!--        is_del = #{isDel,jdbcType=INTEGER},-->
+<!--      </if>-->
+<!--    </set>-->
+<!--    where id = #{id,jdbcType=BIGINT}-->
+<!--  </update>-->
+<!--  <update id="updateByPrimaryKey" parameterType="com.ivan.researchagent.springai.llm.dao.entity.AiChatMemory">-->
+<!--    update ai_chat_memory-->
+<!--    set conversation_id = #{conversationId,jdbcType=VARCHAR},-->
+<!--      `type` = #{type,jdbcType=VARCHAR},-->
+<!--      content = #{content,jdbcType=VARCHAR},-->
+<!--      create_time = #{createTime,jdbcType=TIMESTAMP},-->
+<!--      update_time = #{updateTime,jdbcType=TIMESTAMP},-->
+<!--      is_del = #{isDel,jdbcType=INTEGER}-->
+<!--    where id = #{id,jdbcType=BIGINT}-->
+<!--  </update>-->
+</mapper>

@@ -12,6 +12,7 @@
 
     <modules>
         <module>research-agent-common</module>
+        <module>research-agent-core</module>
         <module>research-agent-springai</module>
         <module>research-agent-springai/research-agent-springai-llm</module>
         <module>research-agent-springai/research-agent-springai-agent</module>
@@ -33,8 +34,8 @@
         <spring-cloud.version>2023.0.3</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.3.2</spring-cloud-alibaba.version>
 
-        <spring-ai.version>1.0.0</spring-ai.version>
-        <spring-ai-alibaba.version>1.0.0.3-SNAPSHOT</spring-ai-alibaba.version>
+        <spring-ai.version>1.0.1</spring-ai.version>
+        <spring-ai-alibaba.version>1.0.0.3</spring-ai-alibaba.version>
         <langchain4j.version>1.0.0</langchain4j.version>
         <deepseek-spring-boot.version>1.4.3</deepseek-spring-boot.version>
 
@@ -54,18 +55,19 @@
 
         <druid.version>1.2.6</druid.version>
         <tk-mybatis-mapper>4.2.2</tk-mybatis-mapper>
-        <mybatis.version>3.5.15</mybatis.version>
         <mybatis-spring.version>3.0.3</mybatis-spring.version>
+        <mybatis-plus-spring.version>3.5.12</mybatis-plus-spring.version>
 
         <commons-collections.version>3.2.2</commons-collections.version>
         <fastjson.version>1.2.83</fastjson.version>
         <guava.version>29.0-android</guava.version>
         <logback.version>1.5.8</logback.version>
         <aspectj.version>1.9.6</aspectj.version>
+        <hutool.version>5.8.38</hutool.version>
 
         <swagger.version>2.9.2</swagger.version>
         <knife4j.version>4.5.0</knife4j.version>
-        <springdoc-openapi.version>2.5.0</springdoc-openapi.version>
+        <springdoc-openapi.version>2.3.0</springdoc-openapi.version>
     </properties>
 
     <dependencies>
@@ -87,10 +89,6 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jdbc</artifactId>
         </dependency>
         <dependency>
@@ -104,19 +102,6 @@
 <!--            <scope>runtime</scope>-->
 <!--            <optional>true</optional>-->
 <!--        </dependency>-->
-
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>${h2.version}</version>
-            <scope>runtime</scope>
-        </dependency>
 
         <dependency>
             <groupId>commons-collections</groupId>
@@ -155,6 +140,11 @@
             <dependency>
                 <groupId>com.ivan.ai</groupId>
                 <artifactId>research-agent-common</artifactId>
+                <version>${research-agent.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ivan.ai</groupId>
+                <artifactId>research-agent-core</artifactId>
                 <version>${research-agent.version}</version>
             </dependency>
             <dependency>
@@ -280,17 +270,7 @@
             </dependency>
 
             <!-- mybatis 相关jar包 Start -->
-            <dependency>
-                <groupId>org.mybatis</groupId>
-                <artifactId>mybatis</artifactId>
-                <version>${mybatis.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mybatis</groupId>
-                <artifactId>mybatis-spring</artifactId>
-                <version>${mybatis-spring.version}</version>
-            </dependency>
-            <dependency>
+            <!-- <dependency>
                 <groupId>org.mybatis.spring.boot</groupId>
                 <artifactId>mybatis-spring-boot-starter</artifactId>
                 <version>${mybatis-spring.version}</version>
@@ -299,6 +279,13 @@
                 <groupId>tk.mybatis</groupId>
                 <artifactId>mapper</artifactId>
                 <version>${tk-mybatis-mapper}</version>
+            </dependency> -->
+
+            <!-- MyBatis-Plus (Spring Boot 3 支持) -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-plus-spring.version}</version>
             </dependency>
             <!-- mybatis 相关jar包 End -->
 
@@ -342,6 +329,13 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-extra</artifactId>
+                <version>${hutool.version}</version>
+                <scope>compile</scope>
             </dependency>
 
             <!-- Start: aspectj相关jar包 -->

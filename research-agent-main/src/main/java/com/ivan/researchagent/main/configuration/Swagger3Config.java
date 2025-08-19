@@ -53,7 +53,7 @@ public class Swagger3Config {
                 .contact(contact);                                 // 授权许可信息
         // 返回信息
         return new OpenAPI()
-                .openapi("3.0.1")  // Open API 3.0.1(默认)
+                .openapi("3.0.3")  // Open API 3.0.1(默认)
                 .info(info);       // 配置Swagger3.0描述信息
 
     }

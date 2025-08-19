@@ -1,6 +1,6 @@
 package com.ivan.researchagent.main.controller;
 
-import com.ivan.researchagent.springai.agent.agentic.router.RoutingAgent;
+import com.ivan.researchagent.springai.agent.agentic.routerassistant.RoutingAgent;
 import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;

@@ -7,6 +7,8 @@ import com.ivan.researchagent.common.enumerate.FormatTypeEnum;
 import com.ivan.researchagent.common.enumerate.LLMTypeEnum;
 import com.ivan.researchagent.common.enumerate.MessageTypeEnum;
 import com.ivan.researchagent.common.model.ModelOptions;
+import com.ivan.researchagent.springai.llm.advisors.ChatMemoryAdvisorSpec;
+import com.ivan.researchagent.springai.llm.configuration.LLMConfiguration;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
@@ -23,6 +25,7 @@ import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -59,11 +62,11 @@ public class ModelFactory {
     //@Resource
     //private OpenAiApi baseOpenAiApi;
 
-    @Resource(name = "redisMessageChatMemoryAdvisor")
-    private MessageChatMemoryAdvisor redisMessageChatMemoryAdvisor;
+    @Resource(name = "customMessageChatMemoryAdvisor")
+    private MessageChatMemoryAdvisor customMessageChatMemoryAdvisor;
 
-    @Resource(name = "redisPromptChatMemoryAdvisor")
-    private PromptChatMemoryAdvisor redisPromptChatMemoryAdvisor;
+    @Resource(name = "customPromptChatMemoryAdvisor")
+    private PromptChatMemoryAdvisor customPromptChatMemoryAdvisor;
 
     @Value("${spring.ai.dashscope.multi.options.model:qwen-vl-max-latest}")
     private String multiModel;
@@ -154,6 +157,9 @@ public class ModelFactory {
                 //{"type": "function", "function": {"name": "the_function_to_call"}} 如果您希望对于某一类问题，Function Calling 能够强制调用某个工具
                 //dashScopeChatOptions.setToolChoice("required");
 
+                // 禁用内部工具执行
+                dashScopeChatOptions.setInternalToolExecutionEnabled(false);
+
                 chatOptions = dashScopeChatOptions;
                 break;
 //            case QIANFAN:
@@ -176,6 +182,9 @@ public class ModelFactory {
                     deepSeekChatOptions.setResponseFormat(ResponseFormat.builder().type(ResponseFormat.Type.JSON_OBJECT).build());
                 }
 
+                // 禁用内部工具执行
+                deepSeekChatOptions.setInternalToolExecutionEnabled(false);
+
                 chatOptions = deepSeekChatOptions;
                 break;
             case OPENAI:
@@ -191,6 +200,9 @@ public class ModelFactory {
                 if (formatJson) {
                     openAiChatOptions.setResponseFormat(org.springframework.ai.openai.api.ResponseFormat.builder().type(org.springframework.ai.openai.api.ResponseFormat.Type.JSON_OBJECT).build());
                 }
+
+                // 禁用内部工具执行
+                openAiChatOptions.setInternalToolExecutionEnabled(false);
 
                 chatOptions = openAiChatOptions;
                 break;
@@ -233,8 +245,12 @@ public class ModelFactory {
         builder.defaultOptions(chatOptions);
 
         if (modelOptions.getEnableMemory()) {
-            //初始化基于内存的对话记忆
-            builder.defaultAdvisors(redisPromptChatMemoryAdvisor);
+            //初始化对话记忆
+            builder.defaultAdvisors(customPromptChatMemoryAdvisor);
+
+            if (StringUtils.isNotBlank(modelOptions.getConversantId())) {
+                builder.defaultAdvisors(new ChatMemoryAdvisorSpec(modelOptions.getConversantId()));
+            }
         }
         if (modelOptions.getEnableLogging()) {
             //启用日志记录，org.springframework.ai.chat.client.advisor=DEBUG
