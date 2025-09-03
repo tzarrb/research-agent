@@ -136,7 +136,7 @@ public class StructuredOutputController {
 
         ChatRequest chatRequest = new ChatRequest();
         chatRequest.setFormatType("json");
-        chatRequest.setUserMessage(query);
+        chatRequest.addUserMessage(query);
         ChatResult result = chatService.chat(chatRequest);
         log.info("format json result: {}", result.getContent());
         return result.getContent();

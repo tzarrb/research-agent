@@ -7,13 +7,13 @@ import com.ivan.researchagent.common.constant.Constant;
 import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;
+import com.ivan.researchagent.springai.llm.tools.core.BaseToolCallback;
 import io.modelcontextprotocol.client.McpAsyncClient;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.mcp.AsyncMcpToolCallbackProvider;
 import org.springframework.ai.tool.ToolCallback;
-import org.springframework.ai.tool.definition.ToolDefinition;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ import java.util.List;
  **/
 @Slf4j
 @ToolAgent
-public class OtherToolAgent extends AbstractToolAgent {
+public class OtherToolAgent extends BaseToolCallback {
 
     @Resource
     private ChatService chatService;
@@ -38,23 +38,18 @@ public class OtherToolAgent extends AbstractToolAgent {
     @Resource
     private List<McpAsyncClient> mcpAsyncClients;  // For async client
 
+    private static final String name = "OtherToolAgent";
+
+    public static final String description = """
+			未明确分类的智能体
+			""";
+
+    public OtherToolAgent() {
+        super(name, description);
+    }
+
 //    @Resource
 //    private List<SyncMcpToolCallbackProvider> toolCallbackProviders;
-
-    @Override
-    public ToolDefinition getToolDefinition() {
-        ToolDefinition toolDefinition = ToolDefinition.builder()
-                .name("OtherToolAgent")
-                .description("未明确分类的智能体")
-                .inputSchema("""
-                    {
-                        "type": "string",
-                        "required": true
-                    }
-                """)
-                .build();
-        return toolDefinition;
-    }
 
     @Override
     public String call(String toolInput, ToolContext toolContext) {
@@ -63,8 +58,8 @@ public class OtherToolAgent extends AbstractToolAgent {
         ChatRequest chatRequest = JSON.parseObject(JSON.toJSONString(toolContext.getContext().get(Constant.CHAT_MESSAGE)), ChatRequest.class);
 
         chatRequest.setEnableAgent(false);
-        chatRequest.setUserMessage(originalInput);
-        chatRequest.setSystemMessage("");
+        chatRequest.addUserMessage(originalInput);
+        chatRequest.addSystemMessage("");
         chatRequest.setToolCallBacks(null);
         //chatMessage.setToolCallbackProviders(toolCallbackProviders);
         AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);

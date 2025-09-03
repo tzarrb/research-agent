@@ -64,6 +64,8 @@
         <logback.version>1.5.8</logback.version>
         <aspectj.version>1.9.6</aspectj.version>
         <hutool.version>5.8.38</hutool.version>
+        <selenium.version>4.25.0</selenium.version>
+        <webdrivermanager.version>5.7.0</webdrivermanager.version>
 
         <swagger.version>2.9.2</swagger.version>
         <knife4j.version>4.5.0</knife4j.version>
@@ -350,6 +352,45 @@
                 <version>${aspectj.version}</version>
             </dependency>
             <!-- End: aspectj相关jar包 -->
+
+            <!-- This dependency automatically matches the appropriate version of Chrome Driver, -->
+            <!-- causing it to be slower on first boot -->
+            <dependency>
+                <groupId>io.github.bonigarcia</groupId>
+                <artifactId>webdrivermanager</artifactId>
+                <version>${webdrivermanager.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-java</artifactId>
+                <version>${selenium.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-chrome-driver</artifactId>
+                <version>${selenium.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-api</artifactId>
+                <version>${selenium.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-remote-driver</artifactId>
+                <version>${selenium.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-manager</artifactId>
+                <version>${selenium.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-http</artifactId>
+                <version>${selenium.version}</version>
+            </dependency>
 
             <!--  Swagger Start -->
             <dependency>

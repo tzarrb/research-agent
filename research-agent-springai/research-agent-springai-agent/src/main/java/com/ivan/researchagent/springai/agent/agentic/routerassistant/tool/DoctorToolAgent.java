@@ -8,10 +8,10 @@ import com.ivan.researchagent.common.constant.Constant;
 import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;
+import com.ivan.researchagent.springai.llm.tools.core.BaseToolCallback;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ToolContext;
-import org.springframework.ai.tool.definition.ToolDefinition;
 
 /**
  * Copyright (c) 2024 research-agent.
@@ -24,13 +24,19 @@ import org.springframework.ai.tool.definition.ToolDefinition;
  **/
 @Slf4j
 @ToolAgent
-public class DoctorToolAgent extends AbstractToolAgent {
+public class DoctorToolAgent extends BaseToolCallback {
 
     @Resource
     private ChatService chatService;
 
     @Resource
     private DoctorTools doctorTools;
+
+    private static final String name = "DoctorToolAgent";
+
+    public static final String description = """
+			医生信息的查询、删除、更新、创建等管理功能的智能体
+			""";
 
     private final String systemPrompt =  """
             #角色(Role):
@@ -259,19 +265,8 @@ public class DoctorToolAgent extends AbstractToolAgent {
             
     """;
 
-    @Override
-    public ToolDefinition getToolDefinition() {
-        ToolDefinition toolDefinition = ToolDefinition.builder()
-                .name("DoctorToolAgent")
-                .description("医生信息的查询、删除、更新、创建等管理功能的智能体")
-                .inputSchema("""
-                    {
-                        "type": "string",
-                        "required": true
-                    }
-                """)
-                .build();
-        return toolDefinition;
+    public DoctorToolAgent(){
+        super(name, description);
     }
 
     @Override
@@ -281,8 +276,8 @@ public class DoctorToolAgent extends AbstractToolAgent {
         ChatRequest chatRequest = JSON.parseObject(JSON.toJSONString(toolContext.getContext().get(Constant.CHAT_MESSAGE)), ChatRequest.class);
 
         chatRequest.setEnableAgent(false);
-        chatRequest.setUserMessage(originalInput);
-        chatRequest.setSystemMessage(systemPromptClaude);
+        chatRequest.addUserMessage(originalInput);
+        chatRequest.addSystemMessage(systemPromptClaude);
         chatRequest.setTools(Lists.newArrayList(doctorTools));
         chatRequest.setToolCallBacks(null);
         ChatResult chatResult = chatService.chat(chatRequest);

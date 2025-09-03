@@ -6,11 +6,12 @@ import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
 import com.ivan.researchagent.common.enumerate.FormatTypeEnum;
 import com.ivan.researchagent.common.enumerate.LLMTypeEnum;
 import com.ivan.researchagent.common.enumerate.MessageTypeEnum;
-import com.ivan.researchagent.common.model.ModelOptions;
+import com.ivan.researchagent.core.model.ModelOptions;
 import com.ivan.researchagent.springai.llm.advisors.ChatMemoryAdvisorSpec;
-import com.ivan.researchagent.springai.llm.configuration.LLMConfiguration;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -24,8 +25,8 @@ import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -244,15 +245,15 @@ public class ModelFactory {
         //默认配置
         builder.defaultOptions(chatOptions);
 
-        if (modelOptions.getEnableMemory()) {
+        if (BooleanUtils.isTrue(modelOptions.getEnableMemory())) {
             //初始化对话记忆
             builder.defaultAdvisors(customPromptChatMemoryAdvisor);
 
-            if (StringUtils.isNotBlank(modelOptions.getConversantId())) {
-                builder.defaultAdvisors(new ChatMemoryAdvisorSpec(modelOptions.getConversantId()));
-            }
+//            if (StringUtils.isNotBlank(modelOptions.getConversantId())) {
+//                builder.defaultAdvisors(new ChatMemoryAdvisorSpec(modelOptions.getConversantId()));
+//            }
         }
-        if (modelOptions.getEnableLogging()) {
+        if (BooleanUtils.isTrue(modelOptions.getEnableLogging())) {
             //启用日志记录，org.springframework.ai.chat.client.advisor=DEBUG
             //builder.defaultAdvisors(new LoggingAdvisor());
         }
@@ -264,6 +265,23 @@ public class ModelFactory {
         if (StringUtils.isNotBlank(modelOptions.getDefaultUser())) {
             //用户提示词
             builder.defaultUser(modelOptions.getDefaultUser());
+        }
+
+        //tool call
+        if (CollectionUtils.isNotEmpty(modelOptions.getDefaultTools())) {
+            builder.defaultTools(modelOptions.getDefaultTools().toArray(new Object[0]));
+        }
+        if (CollectionUtils.isNotEmpty(modelOptions.getDefaultToolNames())) {
+            //工具列表
+            builder.defaultToolNames(modelOptions.getDefaultToolNames().toArray(new String[0]));
+        }
+        if (CollectionUtils.isNotEmpty(modelOptions.getDefaultToolCallbacks())) {
+            //工具列表
+            builder.defaultToolCallbacks(modelOptions.getDefaultToolCallbacks());
+        }
+        if (CollectionUtils.isNotEmpty(modelOptions.getDefaultToolCallbackProviders())) {
+            //工具列表
+            builder.defaultToolCallbacks(modelOptions.getDefaultToolCallbackProviders().toArray(new ToolCallbackProvider[0]));
         }
 
         ChatClient chatClient = builder.build();

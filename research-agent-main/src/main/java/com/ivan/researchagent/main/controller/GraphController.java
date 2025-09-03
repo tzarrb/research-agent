@@ -4,16 +4,16 @@ import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
 import com.alibaba.cloud.ai.graph.StateGraph;
-import com.alibaba.cloud.ai.graph.action.AsyncCommandAction;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
-import com.alibaba.cloud.ai.graph.agent.ReflectAgent;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
-import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.ivan.researchagent.common.utils.IdUtil;
+import com.ivan.researchagent.springai.agent.graph.core.GraphUtil;
+import com.ivan.researchagent.springai.agent.tool.CommonTools;
 import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.llm.service.ChatService;
+import io.modelcontextprotocol.client.McpAsyncClient;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -23,6 +23,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.mcp.AsyncMcpToolCallbackProvider;
 import org.springframework.ai.tool.resolution.ToolCallbackResolver;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,6 +53,11 @@ public class GraphController {
 
     private ToolCallbackResolver resolver;
 
+    @Resource
+    private CommonTools commonTools;
+    @Resource
+    private List<McpAsyncClient> mcpAsyncClients;
+
     @Resource(name = "expanderTranslateGraph")
     private StateGraph expanderTranslateGraph;
 
@@ -71,11 +77,17 @@ public class GraphController {
     private StateGraph contentOptimization;
 
 
+    @Resource(name = "customerFeedbackGraph")
+    CompiledGraph customerFeedbackGraph;
+
     @Resource(name = "codeGraph")
     private CompiledGraph codeGraph;
 
     @Resource(name = "travelGraph")
     private CompiledGraph travelGraph;
+
+    @Resource(name = "manusGraph")
+    private CompiledGraph manusGraph;
 
     public GraphController(ChatService chatService, ToolCallbackResolver resolver) {
         this.chatService = chatService;
@@ -109,7 +121,7 @@ public class GraphController {
     @Operation(summary = "链式工作流-文档处理", description = "返回处理结果")
     public Map<String, Object> documentProcessingChain(@RequestParam(value = "input", defaultValue = "车厘子价格持续下降", required = false) String input,
                                                       @RequestParam(value = "thread_id", defaultValue = "", required = false) String threadId) throws GraphStateException, GraphRunnerException {
-        RunnableConfig runnableConfig = getRunnableConfig(threadId);
+        RunnableConfig runnableConfig = GraphUtil.getRunnableConfig(threadId);
         Map<String, Object> objectMap = new HashMap<>();
         objectMap.put("market_change", input);
 
@@ -125,7 +137,7 @@ public class GraphController {
     @Operation(summary = "并行工作流-市场分析", description = "返回处理结果")
     public Map<String, Object> marketAnalysisParallel(@RequestParam(value = "input", defaultValue = "车厘子价格持续下降", required = false) String input,
                                                     @RequestParam(value = "threadId", defaultValue = "", required = false) String threadId) throws GraphStateException, GraphRunnerException {
-        RunnableConfig runnableConfig = getRunnableConfig(threadId);
+        RunnableConfig runnableConfig = GraphUtil.getRunnableConfig(threadId);
         Map<String, Object> objectMap = new HashMap<>();
         objectMap.put("market_change", input);
 
@@ -141,7 +153,7 @@ public class GraphController {
     @Operation(summary = "路由工作流-客服服务", description = "返回处理结果")
     public Map<String, Object> customerServiceRouting(@RequestParam(value = "input", defaultValue = "请帮我写一篇介绍杭州的文章", required = false) String input,
                                                     @RequestParam(value = "threadId", defaultValue = "", required = false) String threadId) throws GraphStateException, GraphRunnerException {
-        RunnableConfig runnableConfig = getRunnableConfig(threadId);
+        RunnableConfig runnableConfig = GraphUtil.getRunnableConfig(threadId);
         Map<String, Object> objectMap = new HashMap<>();
         objectMap.put("input", input);
 
@@ -157,7 +169,7 @@ public class GraphController {
     @Operation(summary = "编排工作-项目文档生成", description = "返回处理结果")
     public Map<String, Object> documentOrchestrator(@RequestParam(value = "input", defaultValue = "请帮我写一篇介绍杭州的文章", required = false) String input,
                                                @RequestParam(value = "threadId", defaultValue = "", required = false) String threadId) throws GraphStateException, GraphRunnerException {
-        RunnableConfig runnableConfig = getRunnableConfig(threadId);
+        RunnableConfig runnableConfig = GraphUtil.getRunnableConfig(threadId);
         Map<String, Object> objectMap = new HashMap<>();
         objectMap.put("task_description", input);
 
@@ -173,7 +185,7 @@ public class GraphController {
     @Operation(summary = "评估优化-内容写作", description = "返回处理结果")
     public Map<String, Object> contentGenerate(@RequestParam(value = "input", defaultValue = "请帮我写一篇介绍杭州的文章", required = true) String input,
                                                   @RequestParam(value = "thread_id", defaultValue = "", required = false) String threadId) throws GraphStateException, GraphRunnerException {
-        RunnableConfig runnableConfig = getRunnableConfig(threadId);
+        RunnableConfig runnableConfig = GraphUtil.getRunnableConfig(threadId);
         Map<String, Object> objectMap = new HashMap<>();
         objectMap.put("task", input);
 
@@ -190,7 +202,7 @@ public class GraphController {
     @Operation(summary = "自我反思-代码生成优化", description = "返回处理结果")
     public String codeGraph(@RequestParam(value = "input", defaultValue = "", required = true) String input,
                             @RequestParam(value = "thread_id", defaultValue = "", required = false) String threadId) throws GraphRunnerException {
-        RunnableConfig runnableConfig = getRunnableConfig(threadId);
+        RunnableConfig runnableConfig = GraphUtil.getRunnableConfig(threadId);
         Optional<OverAllState> result = codeGraph.invoke(Map.of("messages", new UserMessage(input)), runnableConfig);
         List<Message> messages = (List<Message>) result.get().value("messages").get();
         // AssistantMessage assistantMessage = (AssistantMessage) messages.get(messages.size() - 1);
@@ -201,9 +213,9 @@ public class GraphController {
 
     @GetMapping("/travel-plans")
     @Operation(summary = "推理执行-出行计划", description = "返回处理结果")
-    public String travelGraph(@RequestParam(value = "input", defaultValue = "", required = true) String input,
+    public String travelPlans(@RequestParam(value = "input", defaultValue = "", required = true) String input,
                               @RequestParam(value = "threadId", defaultValue = "", required = false) String threadId) throws GraphRunnerException, GraphStateException {
-        RunnableConfig runnableConfig = getRunnableConfig(threadId);
+        RunnableConfig runnableConfig = GraphUtil.getRunnableConfig(threadId);
         threadId = runnableConfig.threadId().get();
         log.info("{}: travelGraph input: {}", threadId, input);
 
@@ -215,13 +227,43 @@ public class GraphController {
                 .reduce((first, second) -> second).map(Message::getText).orElseThrow();
     }
 
+    @GetMapping(value = "/customer-feedback")
+    @Operation(summary = "客服服务评价", description = "返回处理结果")
+    public Map<String, Object> customerFeedback(@RequestParam(value = "input", defaultValue = "", required = true) String input,
+                                                      @RequestParam(value = "threadId", defaultValue = "", required = false) String threadId) throws GraphStateException, GraphRunnerException {
+        RunnableConfig runnableConfig = GraphUtil.getRunnableConfig(threadId);
+        Map<String, Object> objectMap = new HashMap<>();
+        objectMap.put("input", input);
+
+        Optional<OverAllState> result = customerFeedbackGraph.invoke(objectMap, runnableConfig);
+
+        var messages = result.get().value("messages").orElse(Lists.newArrayList());
+
+        return result.map(OverAllState::data).orElse(new HashMap<>());
+    }
+
+    @GetMapping("/manus")
+    @Operation(summary = "Manus智能体", description = "返回处理结果")
+    public String manusAgent(@RequestParam(value = "input", defaultValue = "", required = true) String input,
+                              @RequestParam(value = "threadId", defaultValue = "", required = false) String threadId) throws GraphRunnerException, GraphStateException {
+        RunnableConfig runnableConfig = GraphUtil.getRunnableConfig(threadId);
+        threadId = runnableConfig.threadId().get();
+        log.info("{}: Manus智能体 input: {}", threadId, input);
+
+        Optional<OverAllState> result = manusGraph.invoke(Map.of("input", input), runnableConfig);
+        return result.get().data().toString();
+    }
+
     private CompiledGraph getTravelGraph(String threadId) throws GraphStateException {
+
+        AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
 
         ChatRequest chatRequest = ChatRequest.builder()
                 .enableMemory(true)
                 .enableStream(false)
                 .sessionId(threadId)
-                .toolNames(Lists.newArrayList("getWeatherFunction"))
+                .defaultToolNames(Lists.newArrayList("getWeatherService","tavilySearchService"))
+                .defaultToolCallbackProviders(Lists.newArrayList(toolCallbackProvider))
                 .build();
         ChatClient chatClient= chatService.getchatClient(chatRequest);
 
@@ -231,15 +273,7 @@ public class GraphController {
                 .resolver(resolver)
                 .maxIterations(10)
                 .build();
-        return reactAgent.getAndCompileGraph();
+        return reactAgent.getAndCompileGraph(GraphUtil.getCompileConfig());
     }
 
-    private RunnableConfig getRunnableConfig(String threadId) {
-        if (StringUtils.isBlank(threadId)) {
-            threadId = IdUtil.nextId().toString();
-        }
-
-        RunnableConfig runnableConfig = RunnableConfig.builder().threadId(threadId).build();
-        return runnableConfig;
-    }
 }

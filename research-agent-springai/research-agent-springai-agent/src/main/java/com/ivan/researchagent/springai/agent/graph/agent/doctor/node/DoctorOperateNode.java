@@ -59,7 +59,7 @@ public class DoctorOperateNode implements NodeAction {
         ChatRequest chatRequest = JSON.parseObject(request, ChatRequest.class);
         chatRequest.setDefaultSystem(StringTemplateUtil.render(PromptConstant.DOCTOR_OPERATE_PROMPT, Map.of("data", queryResult)));
         chatRequest.setMessages(Lists.newArrayList());
-        chatRequest.setUserMessage(feedBack);
+        chatRequest.addUserMessage(feedBack);
         chatRequest.setTools(Arrays.asList(doctorTools));
 
         Flux<ChatResponse> chatResponseFlux = chatService.steamChat(chatRequest);

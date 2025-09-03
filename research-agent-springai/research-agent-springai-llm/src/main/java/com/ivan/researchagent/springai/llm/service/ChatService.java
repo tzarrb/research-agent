@@ -2,9 +2,11 @@ package com.ivan.researchagent.springai.llm.service;
 
 import com.alibaba.cloud.ai.advisor.RetrievalRerankAdvisor;
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ivan.researchagent.common.constant.Constant;
-import com.ivan.researchagent.common.model.ModelOptions;
+import com.ivan.researchagent.common.utils.IdUtil;
+import com.ivan.researchagent.core.model.ModelOptions;
 import com.ivan.researchagent.springai.llm.advisors.ChatMemoryAdvisorSpec;
 import com.ivan.researchagent.springai.llm.advisors.ReasoningContentAdvisor;
 import com.ivan.researchagent.springai.llm.config.LLMConfig;
@@ -19,10 +21,12 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.deepseek.DeepSeekAssistantMessage;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.InitializingBean;
@@ -37,10 +41,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-
-import static org.springframework.ai.chat.client.advisor.vectorstore.VectorStoreChatMemoryAdvisor.TOP_K;
-import static org.springframework.ai.chat.memory.ChatMemory.CONVERSATION_ID;
 
 /**
  * Copyright (c) 2024 Ivan, Inc.
@@ -80,6 +80,8 @@ public class ChatService implements InitializingBean {
     @Resource
     private LLMConfig llmConfig;
 
+    private final List<String> REASONER_MODEL = Lists.newArrayList("deepseek-reasoner", "deepseek-r1");
+
     private final ModelOptions.ModelOptionsBuilder modelOptionsBuilder = ModelOptions.builder()
             .enableMemory(true)
             .enableSearch(true)
@@ -102,27 +104,28 @@ public class ChatService implements InitializingBean {
      * @return
      */
     public ChatClient getchatClient(ChatRequest chatRequest) {
+        if (StringUtils.isBlank(chatRequest.getProvider())) {
+            chatRequest.setProvider(llmConfig.getDefaultProvider());
+        }
+        if (StringUtils.isBlank(chatRequest.getModel())) {
+            chatRequest.setModel(llmConfig.getDefaultModel());
+        }
         modelOptionsBuilder
-                .provider(llmConfig.getDefaultProvider())
-                .model(llmConfig.getDefaultModel());
-        if (StringUtils.isNotBlank(chatRequest.getProvider())) {
-            modelOptionsBuilder.provider(chatRequest.getProvider());
-        }
-        if (StringUtils.isNotBlank(chatRequest.getModel())) {
-            modelOptionsBuilder.model(chatRequest.getModel());
-        }
+                .provider(chatRequest.getProvider())
+                .model(chatRequest.getModel());
 
-        String defaultSystem = chatRequest.getDefaultSystem();
-        if (StringUtils.isBlank(defaultSystem)) {
-            defaultSystem = chatRequest.getSystemMessage();
-        }
         ModelOptions modelOptions = modelOptionsBuilder
-                .defaultSystem(defaultSystem)
-                .defaultUser(chatRequest.getUserMessage())
+                //.defaultSystem(chatRequest.getDefaultSystem())
+                ///.defaultUser(chatRequest.findUserMessage())
                 .conversantId(chatRequest.getSessionId())
+                .enableMemory(chatRequest.getEnableMemory())
                 .enableStream(chatRequest.getEnableStream())
                 .enableSearch(chatRequest.getEnableWeb())
                 .formatType(chatRequest.getFormatType())
+                .defaultTools(chatRequest.getDefaultTools())
+                .defaultToolNames(chatRequest.getDefaultToolNames())
+                .defaultToolCallbacks(chatRequest.getDefaultToolCallbacks())
+                .defaultToolCallbackProviders(chatRequest.getDefaultToolCallbackProviders())
                 .build();
 
         ChatClient chatClient = modelFactory.get(modelOptions);
@@ -138,7 +141,7 @@ public class ChatService implements InitializingBean {
         //对话会话的唯一标识
         String sessionId = chatRequest.getSessionId();
         if (StringUtils.isBlank(sessionId)) {
-            sessionId = UUID.randomUUID().toString();
+            sessionId = IdUtil.nextId().toString();
             chatRequest.setSessionId(sessionId);
             log.info("sessionId:{}", sessionId);
         }
@@ -205,7 +208,7 @@ public class ChatService implements InitializingBean {
             toolContext.put(Constant.CONVERSANT_ID, sessionId);
             toolContext.put(Constant.CHAT_CLIENT, chatClient);
             toolContext.put(Constant.CHAT_MEMORY, chatMemory);
-            toolContext.put(Constant.ORIGINAL_INPUT, chatRequest.getUserMessage());
+            toolContext.put(Constant.ORIGINAL_INPUT, chatRequest.findUserMessage());
             if (chatRequest.getEnableAgent()) {
                 toolContext.put(Constant.CHAT_MESSAGE, chatRequest);
             }
@@ -239,10 +242,15 @@ public class ChatService implements InitializingBean {
         ChatClient.ChatClientRequestSpec requestSpec = buildRequestSpec(chatRequest);
 
         ChatResponse response = requestSpec.call().chatResponse();
+        AssistantMessage assistantMessage = response.getResult().getOutput();
         ChatResult chatResult = new ChatResult();
         chatResult.setSessionId(chatRequest.getSessionId());
         chatResult.setChatResponse(response);
-        chatResult.setContent(response.getResult().getOutput().getText());
+        chatResult.setContent(assistantMessage.getText());
+        if (REASONER_MODEL.contains(chatRequest.getModel())) {
+            DeepSeekAssistantMessage deepSeekAssistantMessage = (DeepSeekAssistantMessage) assistantMessage;
+            chatResult.setReasoningContent(deepSeekAssistantMessage.getReasoningContent());
+        }
         log.info("sessionId:{}, chat content：{}, response: {}", chatRequest.getSessionId(), chatResult.getContent(), response);
         return chatResult;
     }
@@ -251,8 +259,8 @@ public class ChatService implements InitializingBean {
         ChatRequest chatRequest = new ChatRequest();
         chatRequest.setProvider("dashscope");
         chatRequest.setModel("qwen-max");
-        chatRequest.setUserMessage(input);
-        chatRequest.setSystemMessage(systemPrompt);
+        chatRequest.addUserMessage(input);
+        chatRequest.addSystemMessage(systemPrompt);
         chatRequest.setEnableMemory(true);
         chatRequest.setEnableStream(true);
         chatRequest.setEnableAgent(false);
@@ -263,13 +271,21 @@ public class ChatService implements InitializingBean {
     public Flux<ChatResult> steam(ChatRequest chatRequest) {
         ChatClient.ChatClientRequestSpec requestSpec = buildRequestSpec(chatRequest);
         return requestSpec.stream().chatResponse().map(chatResponse -> {
-            String content = chatResponse.getResult().getOutput().getText();
-            log.info("sessionId:{}, stream chat content：{}, response: {}", chatRequest.getSessionId(), content, chatResponse);
+            String content = "";
+            Generation generation = chatResponse.getResult();
+            if (ObjectUtils.isNotEmpty(generation)) {
+                content = generation.getOutput().getText();
+            } else {
+                content = "模型无结果输出!!!";
+                log.warn("sessionId:{}, stream request received null generation", chatRequest.getSessionId());
+            }
 
             if (ObjectUtils.isEmpty(content)) {
-                content = ""; // 根据业务需求设置默认内容
+                content = "模型无内容生成!!!"; // 根据业务需求设置默认内容
                 log.warn("sessionId:{}, Received null content, using default content", chatRequest.getSessionId());
             }
+            log.info("sessionId:{}, stream chat content：{}, response: {}", chatRequest.getSessionId(), content, JSON.toJSONString(chatResponse));
+
             ChatResult chatResult = new ChatResult();
             chatResult.setSessionId(chatRequest.getSessionId());
             chatResult.setChatResponse(chatResponse);
@@ -300,15 +316,16 @@ public class ChatService implements InitializingBean {
                 .subscribe(
                         chunk -> {
                             try {
+                                Map<String, Object> result = new HashMap<String, Object>();
+                                result.put("sessionId", chatRequest.getSessionId());
+
                                 Generation generation = chunk.getResult();
                                 if (ObjectUtils.isNotEmpty(generation)) {
-                                    Map<String, Object> result = new HashMap<String, Object>();
-                                    result.put("sessionId", chatRequest.getSessionId());
-
                                     String content = generation.getOutput().getText();
                                     if (StringUtils.isNotBlank(content)) {
                                         result.put("content", content);
-                                        log.info("sessionId:{}, stream chat content: {}, response: {}", chatRequest.getSessionId(), content, JSON.toJSONString(chunk));
+                                        log.info("sessionId:{}, stream chat content: {}, response: {}",
+                                                chatRequest.getSessionId(), content, JSON.toJSONString(chunk));
                                     }
 
                                     String reasoningContent = String.valueOf(generation.getOutput().getMetadata().get("reasoningContent"));
@@ -317,11 +334,14 @@ public class ChatService implements InitializingBean {
                                         log.info("sessionId:{}, stream chat content: {}, reasoningContent:{}, response: {}",
                                                 chatRequest.getSessionId(), content, reasoningContent, JSON.toJSONString(chunk));
                                     }
-
-                                    // 发送消息到客户端
-                                    // 注意这里，我们直接发送 JSON 字符串，让 SseEmitter 自动添加 data: 前缀
-                                    sseEmitter.send(result);
+                                } else  {
+                                    result.put("content", "模型无结果输出!!!");
+                                    log.warn("sessionId:{}, sse request received null generation", chatRequest.getSessionId());
                                 }
+
+                                // 发送消息到客户端
+                                // 注意这里，我们直接发送 JSON 字符串，让 SseEmitter 自动添加 data: 前缀
+                                sseEmitter.send(result);
                             } catch (IOException e) {
                                 sseEmitter.completeWithError(e);
                             }

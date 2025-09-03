@@ -60,7 +60,7 @@ public class AgentController {
         ChatRequest chatRequest = new ChatRequest();
         chatRequest.setProvider("dashscope");
         chatRequest.setModel("qwen-max");
-        chatRequest.setUserMessage(userMessage);
+        chatRequest.addUserMessage(userMessage);
         chatRequest.setEnableStream(true);
         chatRequest.setEnableMemory(true);
         chatRequest.setEnableAgent(true);
@@ -100,7 +100,7 @@ public class AgentController {
         ChatRequest chatRequest = new ChatRequest();
         chatRequest.setProvider("dashscope");
         chatRequest.setModel("qwen-max");
-        chatRequest.setUserMessage(userMessage);
+        chatRequest.addUserMessage(userMessage);
         chatRequest.setEnableStream(true);
         chatRequest.setEnableMemory(true);
         chatRequest.setEnableAgent(true);

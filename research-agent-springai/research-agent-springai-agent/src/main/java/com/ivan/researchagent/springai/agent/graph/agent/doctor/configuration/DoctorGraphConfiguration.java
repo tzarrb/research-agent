@@ -1,10 +1,10 @@
 package com.ivan.researchagent.springai.agent.graph.agent.doctor.configuration;
 
-import com.alibaba.cloud.ai.graph.GraphRepresentation;
-import com.alibaba.cloud.ai.graph.KeyStrategy;
-import com.alibaba.cloud.ai.graph.KeyStrategyFactory;
-import com.alibaba.cloud.ai.graph.StateGraph;
+import com.alibaba.cloud.ai.graph.*;
 import com.alibaba.cloud.ai.graph.action.AsyncEdgeAction;
+import com.alibaba.cloud.ai.graph.checkpoint.config.SaverConfig;
+import com.alibaba.cloud.ai.graph.checkpoint.constant.SaverConstant;
+import com.alibaba.cloud.ai.graph.checkpoint.savers.MemorySaver;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
 import com.ivan.researchagent.springai.agent.graph.agent.doctor.dispatcher.HumanFeedbackDispatcher;
@@ -91,5 +91,14 @@ public class DoctorGraphConfiguration {
         return stateGraph;
     }
 
+    @Bean
+    public CompiledGraph doctorCompiledGraph(StateGraph doctorGraph) throws GraphStateException {
+        SaverConfig saverConfig = SaverConfig.builder().register(SaverConstant.MEMORY, new MemorySaver()).build();
+        CompiledGraph compiledGraph = doctorGraph.compile(CompileConfig.builder()
+                .saverConfig(saverConfig)
+                .interruptBefore(HumanFeedbackNode.class.getSimpleName())
+                .build());
+        return compiledGraph;
+    }
 
 }

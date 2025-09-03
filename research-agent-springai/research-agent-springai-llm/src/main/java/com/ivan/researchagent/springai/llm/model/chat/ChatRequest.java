@@ -2,7 +2,7 @@ package com.ivan.researchagent.springai.llm.model.chat;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.google.common.collect.Lists;
-import com.ivan.researchagent.common.model.ChatRoleMessage;
+import com.ivan.researchagent.core.model.ChatRoleMessage;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,10 +34,10 @@ import java.util.stream.Collectors;
 public class ChatRequest implements Serializable {
 
     @JsonPropertyDescription("大模型提供商")
-    private String provider = "dashscope";
+    private String provider;
 
     @JsonPropertyDescription("大模型名称")
-    private String model = "qwen-max";
+    private String model;
 
     @JsonPropertyDescription("是否使用对话记忆")
     private Boolean enableMemory = true;
@@ -60,17 +60,29 @@ public class ChatRequest implements Serializable {
     @JsonPropertyDescription("对话会话ID，也是对话记忆的唯一标识")
     private String sessionId;
 
-    @JsonPropertyDescription("大模型调用工具")
+    @JsonPropertyDescription("聊天对话调用工具")
     private List<Object> tools;
 
-    @JsonPropertyDescription("大模型调用工具名称")
+    @JsonPropertyDescription("聊天对话调用工具名称")
     private List<String> toolNames;
 
-    @JsonPropertyDescription("大模型调用工具回调")
+    @JsonPropertyDescription("聊天对话调用工具回调")
     private List<ToolCallback> toolCallBacks;
 
-    @JsonPropertyDescription("大模型调用工具回调提供者")
+    @JsonPropertyDescription("聊天对话调用工具回调提供者")
     private List<ToolCallbackProvider> toolCallbackProviders;
+
+    @JsonPropertyDescription("大模型默认工具")
+    private List<Object> defaultTools;
+
+    @JsonPropertyDescription("大模型默认工具名称")
+    private List<String> defaultToolNames;
+
+    @JsonPropertyDescription("大模型默认工具回调")
+    private List<ToolCallback> defaultToolCallbacks;
+
+    @JsonPropertyDescription("大模型默认工具回调提供者")
+    private List<ToolCallbackProvider> defaultToolCallbackProviders;
 
     @JsonPropertyDescription("输出格式, 如：bean, list, map, json")
     private String formatType;
@@ -92,7 +104,7 @@ public class ChatRequest implements Serializable {
      *
      * @param systemPrompt
      */
-    public void setSystemMessage(String systemPrompt) {
+    public void addSystemMessage(String systemPrompt) {
         if (StringUtils.isBlank(systemPrompt)) {
             return;
         }
@@ -107,7 +119,7 @@ public class ChatRequest implements Serializable {
         }
     }
 
-    public String getSystemMessage() {
+    public String findSystemMessage() {
         if (Objects.isNull(this.messages)) {
             return "";
         }
@@ -119,7 +131,7 @@ public class ChatRequest implements Serializable {
                 .orElse("");
     }
 
-    public void setUserMessage(String userInput) {
+    public void addUserMessage(String userInput) {
         if (StringUtils.isBlank(userInput)) {
             return;
         }
@@ -137,7 +149,7 @@ public class ChatRequest implements Serializable {
         }
     }
 
-    public String getUserMessage() {
+    public String findUserMessage() {
         if (Objects.isNull(this.messages)) {
             return "";
         }

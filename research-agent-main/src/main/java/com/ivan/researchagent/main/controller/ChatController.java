@@ -3,6 +3,7 @@ package com.ivan.researchagent.main.controller;
 import com.google.common.collect.Lists;
 import com.ivan.researchagent.common.constant.Constant;
 import com.ivan.researchagent.main.model.chat.ChatInput;
+import com.ivan.researchagent.springai.agent.tool.CommonTools;
 import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;
@@ -49,6 +50,9 @@ public class ChatController {
 
     private final ChatService chatService;
 
+    @Resource
+    private CommonTools commonTools;
+
 //    @Resource
 //    private List<McpSyncClient> mcpSyncClients;  // For sync client
     @Resource
@@ -81,8 +85,8 @@ public class ChatController {
         ChatRequest chatRequest = new ChatRequest();
         chatRequest.setProvider("dashscope");
         chatRequest.setModel("qwen-max");
-        chatRequest.setSystemMessage(systemPrompt);
-        chatRequest.setUserMessage(userMessage);
+        chatRequest.addSystemMessage(systemPrompt);
+        chatRequest.addUserMessage(userMessage);
         chatRequest.setEnableMemory(true);
         chatRequest.setEnableStream(false);
         chatRequest.setEnableAgent(false);
@@ -125,8 +129,8 @@ public class ChatController {
         ChatRequest chatRequest = new ChatRequest();
         chatRequest.setProvider("dashscope");
         chatRequest.setModel("qwen-max");
-        chatRequest.setSystemMessage(systemPrompt);
-        chatRequest.setUserMessage(userMessage);
+        chatRequest.addSystemMessage(systemPrompt);
+        chatRequest.addUserMessage(userMessage);
         chatRequest.setEnableMemory(true);
         chatRequest.setEnableStream(true);
         chatRequest.setEnableAgent(false);
@@ -151,14 +155,11 @@ public class ChatController {
     @GetMapping("/sse/chat")
     @Operation(summary = "SSE流式聊天", description = "返回流式聊天消息")
     public SseEmitter sseChatGet(ChatInput userInput, HttpServletRequest request, HttpServletResponse response) {
-        ChatRequest chatRequest = new ChatRequest();
-        chatRequest.setSystemMessage(systemPrompt);
-        chatRequest.setUserMessage(userInput.getUserMessage());
-        chatRequest.setEnableWeb(userInput.getEnableWeb());
-        chatRequest.setEnableLocal(userInput.getEnableLocal());
-        chatRequest.setEnableMemory(true);
-        chatRequest.setEnableStream(true);
-        chatRequest.setEnableAgent(false);
+        ChatRequest chatRequest = userInput.convertRequest();
+        chatRequest.addSystemMessage(systemPrompt);
+
+//        chatRequest.setTools(Lists.newArrayList(commonTools));
+//        chatRequest.setToolNames(Lists.newArrayList("tavilySearchService"));
 
         AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
         //SyncMcpToolCallbackProvider toolCallbackProvider = new SyncMcpToolCallbackProvider(mcpSyncClients);

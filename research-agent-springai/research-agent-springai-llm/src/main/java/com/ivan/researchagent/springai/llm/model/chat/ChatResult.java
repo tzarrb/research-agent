@@ -27,6 +27,11 @@ public class ChatResult {
     private String content;
 
     /**
+     * 大模型推理内容
+     */
+    private String reasoningContent;
+
+    /**
      * 对话会话ID，也是对话记忆的唯一标识
      */
     private String sessionId;

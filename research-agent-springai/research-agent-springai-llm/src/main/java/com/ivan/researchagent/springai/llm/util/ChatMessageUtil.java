@@ -4,7 +4,7 @@ import com.alibaba.cloud.ai.dashscope.chat.MessageFormat;
 import com.alibaba.cloud.ai.dashscope.common.DashScopeApiConstants;
 import com.ivan.researchagent.common.enumerate.MessageTypeEnum;
 import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
-import com.ivan.researchagent.common.model.ChatRoleMessage;
+import com.ivan.researchagent.core.model.ChatRoleMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

@@ -7,7 +7,6 @@ import com.alibaba.cloud.ai.graph.async.AsyncGenerator;
 import com.alibaba.cloud.ai.graph.streaming.StreamingChatGenerator;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
-import com.ivan.researchagent.common.utils.StringTemplateUtil;
 import com.ivan.researchagent.springai.agent.constant.PromptConstant;
 import com.ivan.researchagent.springai.agent.tool.DoctorTools;
 import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
@@ -52,9 +51,9 @@ public class DoctorQueryNode implements NodeAction {
 
         ChatRequest chatRequest = JSON.parseObject(request, ChatRequest.class);
         chatRequest.setDefaultSystem(PromptConstant.DOCTOR_QUERY_PROMPT);
-        String feedBack = state.value("feed_back", chatRequest.getUserMessage());
+        String feedBack = state.value("feed_back", chatRequest.findUserMessage());
         chatRequest.setMessages(Lists.newArrayList());
-        chatRequest.setUserMessage(feedBack);
+        chatRequest.addUserMessage(feedBack);
         chatRequest.setTools(Arrays.asList(doctorTools));
 
         Flux<ChatResponse> chatResponseFlux = chatService.steamChat(chatRequest);

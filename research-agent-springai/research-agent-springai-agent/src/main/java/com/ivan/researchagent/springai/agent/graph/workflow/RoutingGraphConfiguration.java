@@ -115,8 +115,7 @@ public class RoutingGraphConfiguration {
                 .addEdge("general_handler", StateGraph.END);
 
         // 添加 PlantUML 打印
-        GraphRepresentation representation = stateGraph.getGraph(GraphRepresentation.Type.PLANTUML,
-                "expander flow");
+        GraphRepresentation representation = stateGraph.getGraph(GraphRepresentation.Type.PLANTUML, "expander flow");
         log.info("\n=== expander UML Flow ===");
         log.info(representation.content());
         log.info("==================================\n");

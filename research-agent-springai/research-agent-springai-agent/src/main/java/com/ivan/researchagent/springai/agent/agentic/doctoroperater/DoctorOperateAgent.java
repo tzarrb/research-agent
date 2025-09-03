@@ -255,7 +255,7 @@ public class DoctorOperateAgent implements IBaseAgent {
             systemMsg = StringTemplateUtil.render(systemPrompt, Map.of("format", beanFormat));
         }
 
-        chatRequest.setSystemMessage(systemMsg);
+        chatRequest.addSystemMessage(systemMsg);
         chatRequest.setTools(Lists.newArrayList(doctorTools));
         ChatResult chatResult = chatService.chat(chatRequest);
         if (FormatTypeEnum.isBean(chatRequest.getFormatType())) {
@@ -272,7 +272,7 @@ public class DoctorOperateAgent implements IBaseAgent {
 
     @Override
     public Flux<ChatResult> stream(ChatRequest chatRequest) {
-        chatRequest.setSystemMessage(systemPromptClaude);
+        chatRequest.addSystemMessage(systemPromptClaude);
         chatRequest.setTools(Lists.newArrayList(doctorTools));
         return chatService.steam(chatRequest);
     }

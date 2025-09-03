@@ -18,11 +18,7 @@
             <artifactId>research-agent-springai-agent</artifactId>
             <exclusions>
                 <exclusion>
-                    <artifactId>jsonschema-module-swagger-2</artifactId>
-                    <groupId>com.github.victools</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>swagger-annotations</artifactId>
+                    <artifactId>swagger-annotations-jakarta</artifactId>
                     <groupId>io.swagger.core.v3</groupId>
                 </exclusion>
             </exclusions>

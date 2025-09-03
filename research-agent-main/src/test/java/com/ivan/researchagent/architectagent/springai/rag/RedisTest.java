@@ -31,10 +31,10 @@ public class RedisTest {
     @Test
     public void test() {
         ChatRequest chatRequest = new ChatRequest();
-        chatRequest.setUserMessage("你好");
+        chatRequest.addUserMessage("你好");
 
         ChatRequest chatRequest1 = new ChatRequest();
-        chatRequest1.setUserMessage("hello world");
+        chatRequest1.addUserMessage("hello world");
 
         redisTemplate.opsForList().rightPushAll("test", Lists.newArrayList(chatRequest, chatRequest1));
 
