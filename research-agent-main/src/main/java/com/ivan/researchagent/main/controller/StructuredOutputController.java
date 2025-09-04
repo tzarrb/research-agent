@@ -2,7 +2,7 @@ package com.ivan.researchagent.main.controller;
 
 import com.ivan.researchagent.common.utils.StringTemplateUtil;
 import com.ivan.researchagent.main.model.vo.ArticleVO;
-import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import jakarta.annotation.PostConstruct;
@@ -65,7 +65,7 @@ public class StructuredOutputController {
 
         this.beanFormat = beanConverter.getFormat();
 
-        chatClient = chatService.getchatClient(ChatRequest.builder().enableMemory(false).build());
+        chatClient = chatService.getChatClient(ChatParams.builder().enableMemory(false).build());
     }
 
     @GetMapping("/map")
@@ -134,10 +134,10 @@ public class StructuredOutputController {
 //        return chatClientJson.prompt(query)
 //                .call().content();
 
-        ChatRequest chatRequest = new ChatRequest();
-        chatRequest.setFormatType("json");
-        chatRequest.setUserMessage(query);
-        ChatResult result = chatService.chat(chatRequest);
+        ChatParams chatParams = new ChatParams();
+        chatParams.setFormatType("json");
+        chatParams.addUserMessage(query);
+        ChatResult result = chatService.chat(chatParams);
         log.info("format json result: {}", result.getContent());
         return result.getContent();
     }

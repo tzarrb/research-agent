@@ -527,11 +527,21 @@ function sendSseRequest() {
   const message = sendHandler()
   if (!message.trim()) return
 
-  sseRequest.send(`/chat/sse/chat?userMessage=${encodeURIComponent(message)}&enableLocal=${isLocal.value}&enableWeb=${isWeb.value}`, {
+  const requestBody = {
+    userMessage: encodeURIComponent(message),
+    enableLocal: isLocal.value,
+    enableWeb: isWeb.value,
+    enableThink: isThink.value
+  }
+
+  sseRequest.send(`/chat/sse/chat`, {
+    method: 'POST', // GET POST PUT
     headers: {
       'Accept': 'text/event-stream',
+      'Content-Type': 'application/json',
       'sessionId': conversantId.value
-    }
+    },
+    body: JSON.stringify(requestBody)
   })
 }
 
@@ -550,7 +560,23 @@ function abortSseRequest() {
 const refreshSseRequest = async () => {
   messages.value[messages.value.length - 1].loading = true
   messages.value[messages.value.length - 1].content = ''
-  sseRequest.send(`/chat/sse/chat?userMessage=${encodeURIComponent(inputValue.value)}&enableLocal=${isLocal.value}&enableWeb=${isWeb.value}`)
+
+  const requestBody = {
+    userMessage: encodeURIComponent(inputValue.value),
+    enableLocal: isLocal.value,
+    enableWeb: isWeb.value,
+    enableThink: isThink.value
+  }
+
+  sseRequest.send(`/chat/sse/chat`, {
+    method: 'POST', // GET POST PUT
+    headers: {
+      'Accept': 'text/event-stream',
+      'Content-Type': 'application/json',
+      'sessionId': conversantId.value
+    },
+    body: JSON.stringify(requestBody)
+  })
 }
 
 // useSend 的 abort 和 finish 是一样的方法。

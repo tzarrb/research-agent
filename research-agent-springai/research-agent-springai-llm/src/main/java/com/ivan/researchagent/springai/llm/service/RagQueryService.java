@@ -1,16 +1,13 @@
 package com.ivan.researchagent.springai.llm.service;
 
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
-import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.document.DefaultContentFormatter;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.model.transformer.KeywordMetadataEnricher;
-import org.springframework.ai.model.transformer.SummaryMetadataEnricher;
 import org.springframework.ai.rag.Query;
 import org.springframework.ai.rag.preretrieval.query.expansion.MultiQueryExpander;
 import org.springframework.ai.rag.preretrieval.query.transformation.CompressionQueryTransformer;
@@ -19,10 +16,7 @@ import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQuery
 import org.springframework.ai.rag.preretrieval.query.transformation.TranslationQueryTransformer;
 import org.springframework.ai.rag.retrieval.join.ConcatenationDocumentJoiner;
 import org.springframework.ai.rag.retrieval.join.DocumentJoiner;
-import org.springframework.ai.transformer.ContentFormatTransformer;
-import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.HashMap;
 import java.util.List;
@@ -56,11 +50,11 @@ public class RagQueryService {
      *   •  加强语义解析：识别查询的多重潜在意义及其相关概念。
      *   •  改善搜索品质：综合多个查询结果，以获得更加周全的信息集。
      *
-     * @param chatRequest
+     * @param chatParams
      */
-    public void multiQueryExpansion(ChatRequest chatRequest) {
+    public void multiQueryExpansion(ChatParams chatParams) {
         // 获取聊天客户端实例
-        ChatClient chatClient = chatService.getchatClient(chatRequest);
+        ChatClient chatClient = chatService.getChatClient(chatParams);
 
         // 创建聊天客户端实例// 设置系统提示信息，定义AI助手作为专业的室内设计顾问角色
 //        ChatClient chatClient = builder.defaultSystem("你是一位专业的室内设计顾问，精通各种装修风格、材料选择和空间布局。请基于提供的参考资料，为用户提供专业、详细且实用的建议。在回答时，请注意：\n"+
@@ -90,11 +84,11 @@ public class RagQueryService {
      * 查询改写的主要优势包括：
      *   •  查询明确化：将含糊不清的问题转化为具体的查询点。
      *
-     * @param chatRequest
+     * @param chatParams
      */
-    public void queryRewrite(ChatRequest chatRequest) {
+    public void queryRewrite(ChatParams chatParams) {
         // 创建聊天客户端实例
-        ChatClient chatClient = chatService.getchatClient(chatRequest);
+        ChatClient chatClient = chatService.getChatClient(chatParams);
 
         // 构建一个模拟用户在学习人工智能过程中的查询场景
         Query query = new Query("我在学习人工智能，能否解释一下什么是大型语言模型？");
@@ -119,11 +113,11 @@ public class RagQueryService {
      *   •  跨语言搜索：使得在不同语言的文档集合中进行有效检索成为可能。
      *   •  提升用户体验：用户可以利用自己熟悉的语言发起查询，提高了系统的易用性。
      *
-     * @param chatRequest
+     * @param chatParams
      */
-    public void queryTranslation(ChatRequest chatRequest) {
+    public void queryTranslation(ChatParams chatParams) {
         // 创建聊天客户端实例
-        ChatClient chatClient = chatService.getchatClient(chatRequest);
+        ChatClient chatClient = chatService.getChatClient(chatParams);
 
         // 初始化一个英文的查询实例
         Query query = new Query("What is LLM?");
@@ -143,11 +137,11 @@ public class RagQueryService {
      * 上下文感知查询
      * 上下文感知查询是 RAG 系统中的一项高级功能，它允许系统在处理用户查询时，考虑到之前的对话历史和上下文信息。这种能力使得系统能够更准确地理解用户的意图，并提供更相关的答案。
      *
-     * @param chatRequest
+     * @param chatParams
      */
-    public void contextAwareQueries(ChatRequest chatRequest) {
+    public void contextAwareQueries(ChatParams chatParams) {
         // 创建聊天客户端实例
-        ChatClient chatClient = chatService.getchatClient(chatRequest);
+        ChatClient chatClient = chatService.getChatClient(chatParams);
 
         // 创建一个包含历史对话的查询实例
         // 这个示例模拟了一个用户咨询房地产的场景，用户首先询问了小区的位置，随后询问房价
@@ -178,11 +172,11 @@ public class RagQueryService {
      *   •  多源兼容：能够同时处理来自不同查询和不同数据源的文档。
      *   •  顺序保持：合并时维持文档的原始检索顺序不变。
      *
-     * @param chatRequest
+     * @param chatParams
      */
-    public void documentJoiner(ChatRequest chatRequest) {
+    public void documentJoiner(ChatParams chatParams) {
         // 创建聊天客户端实例
-        ChatClient chatClient = chatService.getchatClient(chatRequest);
+        ChatClient chatClient = chatService.getChatClient(chatParams);
 
         // 获取来自多个查询或数据源的文档集合
         Map<Query,List<List<Document>>> documentsMap = new HashMap<>();

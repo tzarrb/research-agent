@@ -1,18 +1,25 @@
 package com.ivan.researchagent.springai.llm.provider;
 
+import com.alibaba.cloud.ai.dashscope.api.DashScopeApi;
 import com.alibaba.cloud.ai.dashscope.api.DashScopeResponseFormat;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
 import com.ivan.researchagent.common.enumerate.FormatTypeEnum;
 import com.ivan.researchagent.common.enumerate.LLMTypeEnum;
 import com.ivan.researchagent.common.enumerate.MessageTypeEnum;
-import com.ivan.researchagent.common.model.ModelOptions;
+import com.ivan.researchagent.core.model.ModelOptions;
+import com.ivan.researchagent.springai.llm.advisors.ChatMemoryAdvisorSpec;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.deepseek.DeepSeekChatModel;
@@ -22,6 +29,7 @@ import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author: ivan
  * @since: 2024/11/28 17:02
  **/
+@Slf4j
 @Component
 public class ModelFactory {
 
@@ -59,11 +68,11 @@ public class ModelFactory {
     //@Resource
     //private OpenAiApi baseOpenAiApi;
 
-    @Resource(name = "redisMessageChatMemoryAdvisor")
-    private MessageChatMemoryAdvisor redisMessageChatMemoryAdvisor;
+    @Resource(name = "customMessageChatMemoryAdvisor")
+    private MessageChatMemoryAdvisor customMessageChatMemoryAdvisor;
 
-    @Resource(name = "redisPromptChatMemoryAdvisor")
-    private PromptChatMemoryAdvisor redisPromptChatMemoryAdvisor;
+    @Resource(name = "customPromptChatMemoryAdvisor")
+    private PromptChatMemoryAdvisor customPromptChatMemoryAdvisor;
 
     @Value("${spring.ai.dashscope.multi.options.model:qwen-vl-max-latest}")
     private String multiModel;
@@ -97,6 +106,7 @@ public class ModelFactory {
             case DASHSCOPE:
                 chatModel = dashScopeChatModel;
                 DashScopeChatOptions dashScopeChatOptions = (DashScopeChatOptions)dashScopeChatModel.getDefaultOptions();
+                
                 if (StringUtils.isNotBlank(modelOptions.getModel())) {
                     dashScopeChatOptions.setModel(modelOptions.getModel());
                 }
@@ -113,6 +123,16 @@ public class ModelFactory {
                 //如果模型没有搜索互联网，建议优化Prompt。
                 //false（默认）：关闭互联网搜索。
                 dashScopeChatOptions.setEnableSearch(modelOptions.getEnableSearch());
+                if (BooleanUtils.isTrue(modelOptions.getEnableSearch())) {
+                    var searchOptions = DashScopeApi.SearchOptions.builder()
+                            .forcedSearch(true)
+                            .enableSource(true)
+                            .searchStrategy("pro")
+                            .enableCitation(true)
+                            .citationFormat("[<number>]")
+                            .build();
+                    dashScopeChatOptions.setSearchOptions(searchOptions);
+                }
 
                 //返回内容的格式。可选值：{"type": "text"}或{"type": "json_object"}
                 if (formatJson) {
@@ -123,12 +143,16 @@ public class ModelFactory {
                 //temperature越高，生成的文本更多样，反之，生成的文本更确定。
                 //取值范围： [0, 2)
                 //由于temperature与top_p均可以控制生成文本的多样性，因此建议您只设置其中一个值
-                //dashScopeChatOptions.setTemperature(0.7);
+//                dashScopeChatOptions.setTemperature(0.7);
 
                 //核采样的概率阈值，控制模型生成文本的多样性。
                 //top_p越高，生成的文本更多样。反之，生成的文本更确定。
                 //取值范围：（0,1.0]
-                //dashScopeChatOptions.setTopP(0.8);
+                dashScopeChatOptions.setTopP(0.8);
+
+                //核采样数，控制模型生成文本的多样性。
+                //top_k越高，生成的文本越长。反之，生成的文本越短。
+                dashScopeChatOptions.setTopK(50);
 
                 //控制模型生成文本时的内容重复度。
                 //取值范围：[-2.0, 2.0]。正数会减少重复度，负数会增加重复度。
@@ -154,17 +178,15 @@ public class ModelFactory {
                 //{"type": "function", "function": {"name": "the_function_to_call"}} 如果您希望对于某一类问题，Function Calling 能够强制调用某个工具
                 //dashScopeChatOptions.setToolChoice("required");
 
+                // 禁用内部工具执行
+                //dashScopeChatOptions.setInternalToolExecutionEnabled(false);
+
+                log.info("DashScope最终配置: model={}, stream={}, enableSearch={}, topP={}, topK={}",
+                        dashScopeChatOptions.getModel(), dashScopeChatOptions.getStream(),
+                        dashScopeChatOptions.getEnableSearch(), dashScopeChatOptions.getTopP(),
+                        dashScopeChatOptions.getTopK());
                 chatOptions = dashScopeChatOptions;
                 break;
-//            case QIANFAN:
-//                chatModel = qianFanChatModel;
-//                QianFanChatOptions qianFanChatOptions = (QianFanChatOptions)qianFanChatModel.getDefaultOptions();
-//                if (StringUtils.isNotBlank(modelOptions.getModel())) {
-//                    qianFanChatOptions.setModel(modelOptions.getModel());
-//                }
-//                //qianFanChatOptions.setResponseFormat(new QianFanApi.ChatCompletionRequest.ResponseFormat("json_object"));
-//                chatOptions =qianFanChatOptions;
-//                break;
             case DEEPSEEK:
                 chatModel = deepSeekChatModel;
                 DeepSeekChatOptions deepSeekChatOptions = (DeepSeekChatOptions)deepSeekChatModel.getDefaultOptions();
@@ -176,8 +198,20 @@ public class ModelFactory {
                     deepSeekChatOptions.setResponseFormat(ResponseFormat.builder().type(ResponseFormat.Type.JSON_OBJECT).build());
                 }
 
+                // 禁用内部工具执行
+                deepSeekChatOptions.setInternalToolExecutionEnabled(false);
+
                 chatOptions = deepSeekChatOptions;
                 break;
+//            case QIANFAN:
+//                chatModel = qianFanChatModel;
+//                QianFanChatOptions qianFanChatOptions = (QianFanChatOptions)qianFanChatModel.getDefaultOptions();
+//                if (StringUtils.isNotBlank(modelOptions.getModel())) {
+//                    qianFanChatOptions.setModel(modelOptions.getModel());
+//                }
+//                //qianFanChatOptions.setResponseFormat(new QianFanApi.ChatCompletionRequest.ResponseFormat("json_object"));
+//                chatOptions =qianFanChatOptions;
+//                break;
             case OPENAI:
             case CLAUDE:
             case GEMINI:
@@ -191,6 +225,9 @@ public class ModelFactory {
                 if (formatJson) {
                     openAiChatOptions.setResponseFormat(org.springframework.ai.openai.api.ResponseFormat.builder().type(org.springframework.ai.openai.api.ResponseFormat.Type.JSON_OBJECT).build());
                 }
+
+                // 禁用内部工具执行
+                openAiChatOptions.setInternalToolExecutionEnabled(false);
 
                 chatOptions = openAiChatOptions;
                 break;
@@ -232,11 +269,15 @@ public class ModelFactory {
         //默认配置
         builder.defaultOptions(chatOptions);
 
-        if (modelOptions.getEnableMemory()) {
-            //初始化基于内存的对话记忆
-            builder.defaultAdvisors(redisPromptChatMemoryAdvisor);
+        if (BooleanUtils.isTrue(modelOptions.getEnableMemory())) {
+            //初始化对话记忆
+            builder.defaultAdvisors(customPromptChatMemoryAdvisor);
+
+//            if (StringUtils.isNotBlank(modelOptions.getConversantId())) {
+//                builder.defaultAdvisors(new ChatMemoryAdvisorSpec(modelOptions.getConversantId()));
+//            }
         }
-        if (modelOptions.getEnableLogging()) {
+        if (BooleanUtils.isTrue(modelOptions.getEnableLogging())) {
             //启用日志记录，org.springframework.ai.chat.client.advisor=DEBUG
             //builder.defaultAdvisors(new LoggingAdvisor());
         }
@@ -248,6 +289,23 @@ public class ModelFactory {
         if (StringUtils.isNotBlank(modelOptions.getDefaultUser())) {
             //用户提示词
             builder.defaultUser(modelOptions.getDefaultUser());
+        }
+
+        //tool call
+        if (CollectionUtils.isNotEmpty(modelOptions.getDefaultTools())) {
+            builder.defaultTools(modelOptions.getDefaultTools().toArray(new Object[0]));
+        }
+        if (CollectionUtils.isNotEmpty(modelOptions.getDefaultToolNames())) {
+            //工具列表
+            builder.defaultToolNames(modelOptions.getDefaultToolNames().toArray(new String[0]));
+        }
+        if (CollectionUtils.isNotEmpty(modelOptions.getDefaultToolCallbacks())) {
+            //工具列表
+            builder.defaultToolCallbacks(modelOptions.getDefaultToolCallbacks());
+        }
+        if (CollectionUtils.isNotEmpty(modelOptions.getDefaultToolCallbackProviders())) {
+            //工具列表
+            builder.defaultToolCallbacks(modelOptions.getDefaultToolCallbackProviders().toArray(new ToolCallbackProvider[0]));
         }
 
         ChatClient chatClient = builder.build();

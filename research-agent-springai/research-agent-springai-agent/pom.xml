@@ -32,6 +32,12 @@
             <artifactId>spring-ai-alibaba-graph-core</artifactId>
         </dependency>
 
+        <!-- 添加Spring ai工具 -->
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-starter-tool-calling-weather</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

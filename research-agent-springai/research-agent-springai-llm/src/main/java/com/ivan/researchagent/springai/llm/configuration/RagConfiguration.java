@@ -7,7 +7,7 @@ import com.alibaba.cloud.ai.model.RerankModel;
 import com.ivan.researchagent.springai.llm.advisors.ReasoningContentAdvisor;
 import com.ivan.researchagent.springai.llm.document.DocumentRanker;
 import com.ivan.researchagent.springai.llm.rag.retriever.WebSearchDocumentRetriever;
-import com.ivan.researchagent.springai.llm.tools.search.tavilysearch.TavilySearchApi;
+import com.ivan.researchagent.springai.llm.tools.search.tavily.TavilySearchService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
@@ -21,7 +21,6 @@ import org.springframework.ai.rag.preretrieval.query.transformation.TranslationQ
 import org.springframework.ai.rag.retrieval.join.ConcatenationDocumentJoiner;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.SearchRequest;
-import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -47,7 +46,7 @@ public class RagConfiguration {
     private RerankModel rerankModel;
 
     @Resource
-    private TavilySearchApi tavilySearchApi;
+    private TavilySearchService tavilySearchApi;
 
     @Qualifier("queryArgumentPromptTemplate")
     private PromptTemplate queryArgumentPromptTemplate;

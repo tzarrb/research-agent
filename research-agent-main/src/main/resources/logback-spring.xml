@@ -13,7 +13,7 @@
     <property name="LOG_HOME" value="/home/admin/services/servicelogs/researchagent/"/>
 
     <!-- 日志格式 -->
-    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%thread] [%X{traceId} %X{eventId}] [%X{callerIp} %X{callerApp}] magenta(%logger{100})-%cyan([%M:%L]) - %msg%n"/>
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%thread] [%X{traceId} %X{eventId}] [%X{callerIp} %X{callerApp}] %logger{100}-[%M:%L] - %msg%n"/>
     <property name="LOG_PATTERN_COLOR" value="%boldRed(%d{yyyy-MM-dd HH:mm:ss.SSS}) %highlight(%-5level) %boldGreen([%thread]) %boldGreen([%X{traceId}]) %boldBlue(%X{callerIp}) %boldYellow(%X{callerApp}) %boldMagenta(%logger{100})-%boldCyan([%M:%L]) - %msg%n"/>
 
 

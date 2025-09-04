@@ -1,8 +1,9 @@
 package com.ivan.researchagent.springai.llm.rag.retriever;
 
 import com.google.common.collect.Lists;
+import com.ivan.researchagent.springai.llm.model.tool.WebSearchRequest;
 import com.ivan.researchagent.springai.llm.model.tool.WebSearchResponse;
-import com.ivan.researchagent.springai.llm.tools.search.WebSearchApi;
+import com.ivan.researchagent.springai.llm.tools.search.WebSearchService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -25,20 +26,21 @@ import java.util.List;
 @Slf4j
 public class WebSearchDocumentRetriever implements DocumentRetriever {
 
-    private WebSearchApi webSearchApi;
+    private WebSearchService webSearchService;
 
     private final int maxResults;
 
     private WebSearchDocumentRetriever(Builder builder) {
         this.maxResults = builder.maxResults;
-        this.webSearchApi = builder.webSearchApi;
+        this.webSearchService = builder.webSearchService;
     }
 
     @NotNull
     @Override
     public List<Document> retrieve(@Nullable Query query) {
         // 搜索
-        WebSearchResponse webSearchResponse = webSearchApi.search(query.text());
+        WebSearchRequest request = new WebSearchRequest(query.text(), maxResults);
+        WebSearchResponse webSearchResponse = webSearchService.search(request);
         if (CollectionUtils.isEmpty(webSearchResponse.getResults())) {
             return Lists.newArrayList();
         }
@@ -63,15 +65,15 @@ public class WebSearchDocumentRetriever implements DocumentRetriever {
 
         private int maxResults;
 
-        private WebSearchApi webSearchApi;
+        private WebSearchService webSearchService;
 
         public WebSearchDocumentRetriever.Builder maxResults(int maxResults) {
             this.maxResults = maxResults;
             return this;
         }
 
-        public WebSearchDocumentRetriever.Builder webSearchApi(WebSearchApi webSearchApi) {
-            this.webSearchApi = webSearchApi;
+        public WebSearchDocumentRetriever.Builder webSearchApi(WebSearchService webSearchService) {
+            this.webSearchService = webSearchService;
             return this;
         }
 

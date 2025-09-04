@@ -47,8 +47,8 @@ public class VectorStoreService {
     @Resource
     PgVectorStore pgVectorStore;
 
-    @Resource
-    ElasticsearchVectorStore elasticsearchVectorStore;
+//    @Resource
+//    ElasticsearchVectorStore elasticsearchVectorStore;
 
     @Resource
     List<VectorStore> vectorStores;
@@ -92,7 +92,7 @@ public class VectorStoreService {
         List<Document> splitDocuments = ragChunkingService.chunking(chunkingType, documents);
 
         // content augmented 内容增强,增加文档的摘要元数据
-        splitDocuments = ragChunkingService.summaryMetadataEnricher(splitDocuments);
+        splitDocuments = ragChunkingService.keywordMetadataEnricher(splitDocuments);
 
         // add metadata to each document
         if (MapUtils.isNotEmpty(vectorStoreData.getMetadata())) {
@@ -103,7 +103,10 @@ public class VectorStoreService {
         }
 
         // 5.create embedding and store to vector store
-        pgVectorStore.add(splitDocuments);
+//        pgVectorStore.add(splitDocuments);
+//        elasticsearchVectorStore.add(splitDocuments);
+        final List<Document> splitDocs = splitDocuments;
+        vectorStores.forEach(vectorStore -> vectorStore.add(splitDocs));
 
         // 6.return success prompt
         log.info("successfully inserted {} text fragments into vector store", splitDocuments.size());
@@ -140,14 +143,14 @@ public class VectorStoreService {
             List<Document> docs = new TikaDocumentReader(file.getResource()).get();
 
             // Splitting Text 文档分割
-            List<Document> splitDocs = ragChunkingService.tokenTextSplitter(docs);
+            List<Document> splitDocuments = ragChunkingService.tokenTextSplitter(docs);
 
             // content augmented 内容增强,增加文档的关键字元数据
-            splitDocs = ragChunkingService.keywordMetadataEnricher(splitDocs);
+            splitDocuments = ragChunkingService.keywordMetadataEnricher(splitDocuments);
 
             // add metadata to each document
             String fileId = UUID.randomUUID().toString();
-            for (Document doc : splitDocs) {
+            for (Document doc : splitDocuments) {
                 doc.getMetadata().put("fileId", fileId);
             }
 
@@ -165,14 +168,16 @@ public class VectorStoreService {
                 log.warn("无法创建输出目录: {}, 将使用当前目录", outputDir);
                 processedFile = processedFileName;
             }
-            new FileDocumentWriter(processedFile, true, MetadataMode.ALL, false).accept(splitDocs);
+            new FileDocumentWriter(processedFile, true, MetadataMode.ALL, false).accept(splitDocuments);
 
             // create embedding and store to vector store
-            pgVectorStore.add(splitDocs);
-            elasticsearchVectorStore.add(splitDocs);
+//            pgVectorStore.add(splitDocs);
+//            elasticsearchVectorStore.add(splitDocs);
+            final List<Document> splitDocs = splitDocuments;
+            vectorStores.forEach(vectorStore -> vectorStore.add(splitDocs));
 
             // return success prompt
-            log.info("successfully inserted {} text fragments into vector store, fileId:{}", splitDocs.size(), fileId);
+            log.info("successfully inserted {} text fragments into vector store, fileId:{}", splitDocuments.size(), fileId);
             return fileId;
         } catch (Exception e) {
             log.error("Error processing file upload", e);

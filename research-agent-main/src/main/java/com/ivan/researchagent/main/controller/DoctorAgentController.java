@@ -1,10 +1,10 @@
 package com.ivan.researchagent.main.controller;
 
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
-import com.ivan.researchagent.springai.agent.graph.doctor.agent.DoctorGraphAgent;
-import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.agent.graph.agent.doctor.DoctorGraphAgent;
+import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
-import com.ivan.researchagent.springai.agent.agentic.biz.DoctorOperateAgent;
+import com.ivan.researchagent.springai.agent.agentic.doctoroperater.DoctorOperateAgent;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,30 +39,30 @@ public class DoctorAgentController {
 
 
     @GetMapping("")
-    public String chat(@RequestBody ChatRequest chatRequest, HttpServletRequest request, HttpServletResponse response) {
+    public String chat(@RequestBody ChatParams chatParams, HttpServletRequest request, HttpServletResponse response) {
 
-        String sessionId = chatRequest.getSessionId();
+        String sessionId = chatParams.getSessionId();
         if (StringUtils.isBlank(sessionId)) {
             sessionId = request.getHeader("sessionId");
-            chatRequest.setSessionId(sessionId);
+            chatParams.setSessionId(sessionId);
         }
 
-        ChatResult chatResult = doctorOperateAgent.call(chatRequest);
+        ChatResult chatResult = doctorOperateAgent.call(chatParams);
 
         response.setHeader("sessionId", chatResult.getSessionId());
         return chatResult.getContent();
     }
 
     @GetMapping("/stream")
-    public Flux<String> streamChat(@RequestBody ChatRequest chatRequest, HttpServletRequest request, HttpServletResponse response) {
+    public Flux<String> streamChat(@RequestBody ChatParams chatParams, HttpServletRequest request, HttpServletResponse response) {
 
-        String sessionId = chatRequest.getSessionId();
+        String sessionId = chatParams.getSessionId();
         if (StringUtils.isBlank(sessionId)) {
             sessionId = request.getHeader("sessionId");
-            chatRequest.setSessionId(sessionId);
+            chatParams.setSessionId(sessionId);
         }
 
-        Flux<ChatResult> chatResult = doctorOperateAgent.stream(chatRequest);
+        Flux<ChatResult> chatResult = doctorOperateAgent.stream(chatParams);
 
         return chatResult.map(result -> {
             log.info("sessionId:{}, streamChat result:{}", result.getSessionId(), result.getContent());
@@ -72,17 +72,17 @@ public class DoctorAgentController {
     }
 
     @GetMapping(value = "/graph", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ServerSentEvent<String>> graphChat(@RequestBody ChatRequest chatRequest, HttpServletRequest request, HttpServletResponse response) throws GraphRunnerException {
+    public Flux<ServerSentEvent<String>> graphChat(@RequestBody ChatParams chatParams, HttpServletRequest request, HttpServletResponse response) throws GraphRunnerException {
 
-        String sessionId = chatRequest.getSessionId();
+        String sessionId = chatParams.getSessionId();
         if (StringUtils.isBlank(sessionId)) {
             sessionId = request.getHeader("sessionId");
-            chatRequest.setSessionId(sessionId);
+            chatParams.setSessionId(sessionId);
         }
 
-        Flux<ServerSentEvent<String>> chatResult = doctorGraphAgent.sseChat(chatRequest);
-        response.setHeader("sessionId", chatRequest.getSessionId());
-        log.info("sessionId:{}, sseChat result:{}", chatRequest.getSessionId(), chatResult);
+        Flux<ServerSentEvent<String>> chatResult = doctorGraphAgent.sseChat(chatParams);
+        response.setHeader("sessionId", chatParams.getSessionId());
+        log.info("sessionId:{}, sseChat result:{}", chatParams.getSessionId(), chatResult);
         return chatResult;
     }
 

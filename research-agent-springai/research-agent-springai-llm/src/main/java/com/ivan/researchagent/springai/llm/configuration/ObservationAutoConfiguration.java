@@ -1,5 +1,6 @@
 package com.ivan.researchagent.springai.llm.configuration;
 
+import com.alibaba.fastjson.JSON;
 import com.ivan.researchagent.springai.llm.config.LLMConfig;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
@@ -83,16 +84,16 @@ public class ObservationAutoConfiguration {
 
             @Override
             public void onStart(ChatModelObservationContext context) {
-                AiOperationMetadata operationMetadata = context.getOperationMetadata();
                 Prompt request = context.getRequest();
-                log.info("🤖ChatModelObservation start: AiOperationMetadata : {}", operationMetadata);
-                log.info("🤖ChatModelObservation start: Prompt : {}", request);
+                AiOperationMetadata operationMetadata = context.getOperationMetadata();
+                log.info("🤖ChatModelObservation start: request : {}, operationMetadata:{}",
+                        JSON.toJSONString(request), JSON.toJSONString(operationMetadata));
             }
 
             @Override
             public void onStop(ChatModelObservationContext context) {
                 ChatResponse response = context.getResponse();
-                log.info("🤖ChatModelObservation start: ChatResponse : {}", response);
+                log.info("🤖ChatModelObservation stop: ChatResponse : {}", JSON.toJSONString(response));
             }
         };
     }
@@ -114,13 +115,15 @@ public class ObservationAutoConfiguration {
             public void onStart(ChatClientObservationContext context) {
                 ChatClientRequest request = context.getRequest();
                 List<? extends Advisor> advisors = context.getAdvisors();
+                AiOperationMetadata operationMetadata = context.getOperationMetadata();
                 boolean stream = context.isStream();
-                log.info("💬ChatClientObservation start: ChatClientRequest : {}, Advisors : {}, stream : {}",
-                        request, advisors, stream);
+                log.info("💬ChatClientObservation start: request : {}, operationMetadata:{}, advisors : {}, stream : {}",
+                        JSON.toJSONString(request), JSON.toJSONString(operationMetadata), advisors, stream);
             }
 
             @Override
             public void onStop(ChatClientObservationContext context) {
+                log.info("💬ChatClientObservation stop");
                 ObservationHandler.super.onStop(context);
             }
         };

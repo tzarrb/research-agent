@@ -11,7 +11,7 @@
 #    ]
 #}'
 
-GET localhost:18080/research-agent/ai/agent/doctor
+GET localhost:18080/research-agent/ai/agent/doctor/graph
 Content-Type: application/json; charset=UTF-8
 Accept-Language: zh-CN
 
@@ -40,4 +40,5 @@ GET http://localhost:8081/research-agent/ai/chat?userMessage=小孩咳嗽怎么�
 GET http://localhost:8081/research-agent/ai/chat/steam?userMessage=小孩咳嗽怎么办
 
 ###
+GET http://127.0.0.1:18080/research-agent/ai/v3/api-docs
 

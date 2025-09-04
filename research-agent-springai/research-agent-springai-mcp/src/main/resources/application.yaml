@@ -1,9 +1,10 @@
 server:
-  port: 18081
+  port: 28081
 
 spring:
   main:
     banner-mode: off
+    allow-circular-references: true
   application:
     name: research-agent-mcp-server
   ai:
@@ -34,3 +35,14 @@ spring:
           registry:
             enabled: true
             service-group: mcp-server
+
+# 日志配置
+logging:
+  level:
+    root: "info"
+    org.springframework.ai: "debug"
+    com.alibaba.cloud.api: "debug"
+    io.modelcontextprotocol: "debug"
+#  pattern:
+#    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]" # 设置zipkin和brave配置和tracing的日志信息
+

@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @Configuration
 public class LLMConfig {
-    public static final String PREFIX = Constant.PREFIX + "llm";
+    public static final String PREFIX = Constant.PREFIX + ".llm";
 
     @Value("${research.agent.llm.provider:dashscope}")
     private String defaultProvider;
