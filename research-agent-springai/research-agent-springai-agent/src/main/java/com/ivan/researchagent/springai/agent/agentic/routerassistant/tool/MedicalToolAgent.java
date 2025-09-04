@@ -3,13 +3,14 @@ package com.ivan.researchagent.springai.agent.agentic.routerassistant.tool;
 import com.alibaba.fastjson.JSON;
 import com.ivan.researchagent.springai.agent.anno.ToolAgent;
 import com.ivan.researchagent.common.constant.Constant;
-import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import com.ivan.researchagent.springai.llm.tools.core.BaseToolCallback;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ToolContext;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * Copyright (c) 2024 research-agent.
@@ -122,6 +123,7 @@ public class MedicalToolAgent extends BaseToolCallback {
                         
             """;
 
+    @Lazy
     @Resource
     private ChatService chatService;
 
@@ -133,13 +135,13 @@ public class MedicalToolAgent extends BaseToolCallback {
     public String call(String toolInput, ToolContext toolContext) {
         String conversantId = (String)toolContext.getContext().get(Constant.CONVERSANT_ID);
         String originalInput = (String)toolContext.getContext().get(Constant.ORIGINAL_INPUT);
-        ChatRequest chatRequest = JSON.parseObject(JSON.toJSONString(toolContext.getContext().get(Constant.CHAT_MESSAGE)), ChatRequest.class);
+        ChatParams chatParams = JSON.parseObject(JSON.toJSONString(toolContext.getContext().get(Constant.CHAT_MESSAGE)), ChatParams.class);
 
-        chatRequest.setEnableAgent(false);
-        chatRequest.addUserMessage(originalInput);
-        chatRequest.addSystemMessage(systemPrompt);
-        chatRequest.setToolCallBacks(null);
-        ChatResult chatResult = chatService.chat(chatRequest);
+        chatParams.setEnableAgent(false);
+        chatParams.addUserMessage(originalInput);
+        chatParams.addSystemMessage(systemPrompt);
+        chatParams.setToolCallBacks(null);
+        ChatResult chatResult = chatService.chat(chatParams);
 
         log.info("sessionId:{}, medicalToolAgent request:{}, response: {}", conversantId, JSON.toJSONString(originalInput), chatResult.getContent());
         return chatResult.getContent();

@@ -8,7 +8,7 @@ import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.google.common.collect.Lists;
 import com.ivan.researchagent.springai.agent.graph.core.GraphUtil;
 import com.ivan.researchagent.springai.agent.tool.CommonTools;
-import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 
 import jakarta.annotation.Resource;
@@ -33,16 +33,16 @@ import org.springframework.context.annotation.Configuration;
 public class TravelAutoconfiguration {
 
     @Resource
-    private CommonTools weatherTools;
+    private CommonTools commonTools;
 
     @Bean
     public ReactAgent travelAgent(ChatService chatService, ToolCallbackResolver resolver) throws GraphStateException {
-        ChatRequest chatRequest = ChatRequest.builder()
+        ChatParams chatParams = ChatParams.builder()
                 .enableMemory(true)
                 .enableStream(false)
                 .defaultToolNames(Lists.newArrayList("getWeatherService"))
                 .build();
-        ChatClient chatClient= chatService.getchatClient(chatRequest);
+        ChatClient chatClient= chatService.getChatClient(chatParams);
 
         return ReactAgent.builder()
                 .name("Travel Plan Agent")

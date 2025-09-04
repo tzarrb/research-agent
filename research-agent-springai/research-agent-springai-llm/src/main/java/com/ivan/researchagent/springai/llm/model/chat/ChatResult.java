@@ -32,6 +32,11 @@ public class ChatResult {
     private String reasoningContent;
 
     /**
+     * 搜索结果
+     */
+    private Object searchResult;
+
+    /**
      * 对话会话ID，也是对话记忆的唯一标识
      */
     private String sessionId;

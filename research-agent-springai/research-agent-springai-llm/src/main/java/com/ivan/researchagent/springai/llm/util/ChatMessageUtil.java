@@ -3,7 +3,7 @@ package com.ivan.researchagent.springai.llm.util;
 import com.alibaba.cloud.ai.dashscope.chat.MessageFormat;
 import com.alibaba.cloud.ai.dashscope.common.DashScopeApiConstants;
 import com.ivan.researchagent.common.enumerate.MessageTypeEnum;
-import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.core.model.ChatRoleMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -27,19 +27,19 @@ import java.util.List;
 @Slf4j
 public class ChatMessageUtil {
 
-    public static List<Message> buildMessages(ChatRequest chatRequest) {
+    public static List<Message> buildMessages(ChatParams chatParams) {
         List<Message> messages = new ArrayList<>();
-        for (ChatRoleMessage roleMessage : chatRequest.getMessages()) {
+        for (ChatRoleMessage roleMessage : chatParams.getMessages()) {
             if (StringUtils.isBlank(roleMessage.getContent()) && CollectionUtils.isEmpty(roleMessage.getMediaUrls())) {
                 continue;
             }
 
             switch (MessageType.fromValue(roleMessage.getRole())) {
                 case USER:
-                    List<Media> mediaList = buildMedia(chatRequest.getMessageType(), roleMessage);
+                    List<Media> mediaList = buildMedia(chatParams.getMessageType(), roleMessage);
                     UserMessage userMessage = UserMessage.builder().text(roleMessage.getContent()).media(mediaList).build();
-                    if (MessageTypeEnum.isMedia(chatRequest.getMessageType())) {
-                        MessageFormat messageFormat = MessageFormat.valueOf(chatRequest.getMessageType());
+                    if (MessageTypeEnum.isMedia(chatParams.getMessageType())) {
+                        MessageFormat messageFormat = MessageFormat.valueOf(chatParams.getMessageType());
                         userMessage.getMetadata().put(DashScopeApiConstants.MESSAGE_FORMAT, messageFormat);
                     }
                     messages.add(userMessage);

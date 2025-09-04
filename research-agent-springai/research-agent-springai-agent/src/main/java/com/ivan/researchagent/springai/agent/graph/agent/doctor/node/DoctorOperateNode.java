@@ -10,7 +10,7 @@ import com.google.common.collect.Lists;
 import com.ivan.researchagent.common.utils.StringTemplateUtil;
 import com.ivan.researchagent.springai.agent.constant.PromptConstant;
 import com.ivan.researchagent.springai.agent.tool.DoctorTools;
-import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -56,13 +56,13 @@ public class DoctorOperateNode implements NodeAction {
         if (StringUtils.isBlank(request)) {
             return Map.of("chat_result", "请输入操作指令");
         }
-        ChatRequest chatRequest = JSON.parseObject(request, ChatRequest.class);
-        chatRequest.setDefaultSystem(StringTemplateUtil.render(PromptConstant.DOCTOR_OPERATE_PROMPT, Map.of("data", queryResult)));
-        chatRequest.setMessages(Lists.newArrayList());
-        chatRequest.addUserMessage(feedBack);
-        chatRequest.setTools(Arrays.asList(doctorTools));
+        ChatParams chatParams = JSON.parseObject(request, ChatParams.class);
+        chatParams.setDefaultSystem(StringTemplateUtil.render(PromptConstant.DOCTOR_OPERATE_PROMPT, Map.of("data", queryResult)));
+        chatParams.setMessages(Lists.newArrayList());
+        chatParams.addUserMessage(feedBack);
+        chatParams.setTools(Arrays.asList(doctorTools));
 
-        Flux<ChatResponse> chatResponseFlux = chatService.steamChat(chatRequest);
+        Flux<ChatResponse> chatResponseFlux = chatService.steamChat(chatParams);
 
         AsyncGenerator<? extends NodeOutput> generator = StreamingChatGenerator.builder()
                 .startingNode("llm_stream")
@@ -70,7 +70,7 @@ public class DoctorOperateNode implements NodeAction {
                 .mapResult(response -> {
                     String text = response.getResult().getOutput().getText();
                     List<String> queryVariants = Arrays.asList(text.split("\n"));
-                    return Map.of("chat_request", JSON.toJSONString(chatRequest), "chat_result", queryVariants);
+                    return Map.of("chat_request", JSON.toJSONString(chatParams), "chat_result", queryVariants);
                 }).build(chatResponseFlux);
 
         return Map.of("chat_result", generator);

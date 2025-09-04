@@ -19,7 +19,7 @@
         <module>research-agent-springai/research-agent-springai-mcp</module>
         <module>research-agent-langchain</module>
         <module>research-agent-plugin</module>
-        <module>research-agent-main</module>
+        <module>web</module>
     </modules>
 
     <properties>
@@ -34,7 +34,7 @@
         <spring-cloud.version>2023.0.3</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.3.2</spring-cloud-alibaba.version>
 
-        <spring-ai.version>1.0.1</spring-ai.version>
+        <spring-ai.version>1.0.0</spring-ai.version>
         <spring-ai-alibaba.version>1.0.0.3</spring-ai-alibaba.version>
         <langchain4j.version>1.0.0</langchain4j.version>
         <deepseek-spring-boot.version>1.4.3</deepseek-spring-boot.version>
@@ -87,15 +87,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jdbc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
 
 <!--        <dependency>-->

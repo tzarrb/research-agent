@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatRequest implements Serializable {
+public class ChatParams implements Serializable {
 
     @JsonPropertyDescription("大模型提供商")
     private String provider;
@@ -43,7 +44,7 @@ public class ChatRequest implements Serializable {
     private Boolean enableMemory = true;
 
     @JsonPropertyDescription("是否流式对话方法")
-    private Boolean enableStream = false;
+    private Boolean enableStream = true;
 
     @JsonPropertyDescription("是否使用智能体")
     private Boolean enableAgent = false;
@@ -115,7 +116,7 @@ public class ChatRequest implements Serializable {
             this.messages = this.messages.stream()
                     .filter(message -> !MessageType.SYSTEM.getValue().equals(message.getRole()))
                     .collect(Collectors.toList());
-            this.messages.add(ChatRoleMessage.builder().role(MessageType.SYSTEM.getValue()).content(systemPrompt).build());
+            this.messages.add(0, ChatRoleMessage.builder().role(MessageType.SYSTEM.getValue()).content(systemPrompt).build());
         }
     }
 
@@ -139,13 +140,17 @@ public class ChatRequest implements Serializable {
         if (Objects.isNull(this.messages)) {
             this.messages = Lists.newArrayList(ChatRoleMessage.builder().role(MessageType.USER.getValue()).content(userInput).build());
         } else {
-            ChatRoleMessage userMessage = this.messages.stream()
-                    .filter(message -> MessageType.USER.getValue().equals(message.getRole()))
-                    .findFirst()
-                    .orElse(ChatRoleMessage.builder().role(MessageType.USER.getValue()).build());
-            userMessage.setContent(userInput);
-            this.messages.remove(userMessage);
-            this.messages.add(userMessage);
+//            ChatRoleMessage userMessage = this.messages.stream()
+//                    .filter(message -> MessageType.USER.getValue().equals(message.getRole()))
+//                    .findFirst()
+//                    .orElse(ChatRoleMessage.builder().role(MessageType.USER.getValue()).build());
+//            userMessage.setContent(userInput);
+//            this.messages.remove(userMessage);
+//            this.messages.add(userMessage);
+            this.messages = this.messages.stream()
+                    .filter(message -> !MessageType.USER.getValue().equals(message.getRole()))
+                    .collect(Collectors.toList());
+            this.messages.add(ChatRoleMessage.builder().role(MessageType.USER.getValue()).content(userInput).build());
         }
     }
 

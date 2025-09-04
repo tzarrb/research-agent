@@ -20,11 +20,7 @@ import org.springframework.context.annotation.Configuration;
  **/
 @Slf4j
 @Configuration
-@ConditionalOnProperty(
-        prefix = "spring.ai.memory",
-        name = {"jdbc"},
-        havingValue = "mysql"
-)
+@ConditionalOnProperty(prefix = "spring.ai.memory", name = {"jdbc"}, havingValue = "postgres")
 public class DatabaseChatMemoryAutoConfiguration {
 
     @Resource

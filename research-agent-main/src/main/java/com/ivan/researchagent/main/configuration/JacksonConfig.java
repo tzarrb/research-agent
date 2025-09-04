@@ -60,8 +60,9 @@ public class JacksonConfig {
         // 禁用写入空值
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
+        // WARNING: 此行配置造成大模型stream流式请求返回空
         // 允许 Jackson 通过元数据识别具体类型
-        objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL);
+        //objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL);
 
         return objectMapper;
     }

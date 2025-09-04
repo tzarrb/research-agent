@@ -7,7 +7,7 @@ import com.alibaba.cloud.ai.graph.StateGraph;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.alibaba.cloud.ai.graph.node.LlmNode;
 import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
-import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +37,8 @@ public class ChainGraphConfiguration {
 
     @Bean
     public StateGraph documentProcessingChain() throws GraphStateException {
-        ChatRequest chatRequest = ChatRequest.builder().build();
-        ChatClient chatClient= chatService.getchatClient(chatRequest);
+        ChatParams chatParams = ChatParams.builder().build();
+        ChatClient chatClient= chatService.getChatClient(chatParams);
 
         // 定义全局状态
         OverAllStateFactory stateFactory= () -> {

@@ -9,7 +9,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.ivan.researchagent.springai.agent.constant.PromptConstant;
 import com.ivan.researchagent.springai.agent.tool.DoctorTools;
-import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -49,14 +49,14 @@ public class DoctorQueryNode implements NodeAction {
             return Map.of("chat_result", "请输入查询指令");
         }
 
-        ChatRequest chatRequest = JSON.parseObject(request, ChatRequest.class);
-        chatRequest.setDefaultSystem(PromptConstant.DOCTOR_QUERY_PROMPT);
-        String feedBack = state.value("feed_back", chatRequest.findUserMessage());
-        chatRequest.setMessages(Lists.newArrayList());
-        chatRequest.addUserMessage(feedBack);
-        chatRequest.setTools(Arrays.asList(doctorTools));
+        ChatParams chatParams = JSON.parseObject(request, ChatParams.class);
+        chatParams.setDefaultSystem(PromptConstant.DOCTOR_QUERY_PROMPT);
+        String feedBack = state.value("feed_back", chatParams.findUserMessage());
+        chatParams.setMessages(Lists.newArrayList());
+        chatParams.addUserMessage(feedBack);
+        chatParams.setTools(Arrays.asList(doctorTools));
 
-        Flux<ChatResponse> chatResponseFlux = chatService.steamChat(chatRequest);
+        Flux<ChatResponse> chatResponseFlux = chatService.steamChat(chatParams);
 
         AsyncGenerator<? extends NodeOutput> generator = StreamingChatGenerator.builder()
                 .startingNode("llm_stream")
@@ -64,7 +64,7 @@ public class DoctorQueryNode implements NodeAction {
                 .mapResult(response -> {
                     String text = response.getResult().getOutput().getText();
                     List<String> queryVariants = Arrays.asList(text.split("\n"));
-                    return Map.of("query", feedBack , "chat_request", JSON.toJSONString(chatRequest), "query_result", text, "chat_result", text);
+                    return Map.of("query", feedBack , "chat_request", JSON.toJSONString(chatParams), "query_result", text, "chat_result", text);
                 }).build(chatResponseFlux);
 
         return Map.of("chat_result", generator);

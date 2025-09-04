@@ -10,7 +10,7 @@ import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
 import com.ivan.researchagent.springai.agent.graph.agent.translate.node.ExpanderNode;
 import com.ivan.researchagent.springai.agent.graph.agent.translate.node.MergeResultsNode;
 import com.ivan.researchagent.springai.agent.graph.agent.translate.node.TranslateNode;
-import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -53,8 +53,8 @@ public class TranslateGraphConfiguration {
             return keyStrategyHashMap;
         };
 
-        ChatRequest chatRequest = ChatRequest.builder().build();
-        ChatClient chatClient= chatService.getchatClient(chatRequest);
+        ChatParams chatParams = ChatParams.builder().build();
+        ChatClient chatClient= chatService.getChatClient(chatParams);
 
         // 构建并行工作流
         StateGraph stateGraph = new StateGraph(keyStrategyFactory)

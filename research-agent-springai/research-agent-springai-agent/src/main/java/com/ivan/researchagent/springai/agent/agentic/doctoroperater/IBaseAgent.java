@@ -1,6 +1,6 @@
 package com.ivan.researchagent.springai.agent.agentic.doctoroperater;
 
-import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
 import reactor.core.publisher.Flux;
 
@@ -15,7 +15,7 @@ import reactor.core.publisher.Flux;
  * @since: 2024/12/24 16:42
  **/
 public interface IBaseAgent {
-    ChatResult call(ChatRequest chatRequest);
+    ChatResult call(ChatParams chatParams);
 
-    Flux<ChatResult> stream(ChatRequest chatRequest);
+    Flux<ChatResult> stream(ChatParams chatParams);
 }

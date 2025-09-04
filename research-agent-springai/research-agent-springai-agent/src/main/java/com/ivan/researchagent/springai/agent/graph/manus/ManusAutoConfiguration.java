@@ -5,19 +5,14 @@ import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import com.alibaba.cloud.ai.graph.checkpoint.config.SaverConfig;
 import com.alibaba.cloud.ai.graph.checkpoint.constant.SaverConstant;
 import com.alibaba.cloud.ai.graph.checkpoint.savers.FileSystemSaver;
-import com.alibaba.cloud.ai.graph.checkpoint.savers.MemorySaver;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.alibaba.cloud.ai.graph.node.HumanNode;
-import com.alibaba.cloud.ai.graph.serializer.StateSerializer;
-import com.alibaba.cloud.ai.graph.serializer.plain_text.jackson.JacksonStateSerializer;
 import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ivan.researchagent.springai.agent.graph.agent.doctor.node.HumanFeedbackNode;
 import com.ivan.researchagent.springai.agent.graph.core.GraphSerializer;
 import com.ivan.researchagent.springai.agent.graph.manus.core.ManusPrompt;
 import com.ivan.researchagent.springai.agent.graph.manus.tool.PlanningTool;
 import com.ivan.researchagent.springai.agent.graph.manus.tool.ToolBuilder;
-import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -25,8 +20,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -57,21 +50,21 @@ public class ManusAutoConfiguration {
 
     public ManusAutoConfiguration(ChatService chatService) {
 
-        ChatRequest planningChatRequest = ChatRequest.builder()
+        ChatParams planningChatParams = ChatParams.builder()
                 .enableMemory( false)
                 .enableStream(false)
                 .defaultSystem(ManusPrompt.PLANNING_SYSTEM_PROMPT)
                 .toolCallBacks(ToolBuilder.getPlanningToolCalls())
                 .build();
-        this.planningClient = chatService.getchatClient(planningChatRequest);
+        this.planningClient = chatService.getChatClient(planningChatParams);
 
-        ChatRequest stepChatRequest = ChatRequest.builder()
+        ChatParams stepChatParams = ChatParams.builder()
                 .enableMemory( false)
                 .enableStream(false)
                 .defaultSystem(ManusPrompt.STEP_SYSTEM_PROMPT)
                 .toolCallBacks(ToolBuilder.getManusAgentToolCalls())
                 .build();
-        this.stepClient= chatService.getchatClient(stepChatRequest);
+        this.stepClient= chatService.getChatClient(stepChatParams);
 
     }
 

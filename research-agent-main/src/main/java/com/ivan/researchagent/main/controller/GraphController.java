@@ -11,7 +11,7 @@ import com.google.common.collect.Lists;
 import com.ivan.researchagent.common.utils.IdUtil;
 import com.ivan.researchagent.springai.agent.graph.core.GraphUtil;
 import com.ivan.researchagent.springai.agent.tool.CommonTools;
-import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import io.modelcontextprotocol.client.McpAsyncClient;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,8 +53,6 @@ public class GraphController {
 
     private ToolCallbackResolver resolver;
 
-    @Resource
-    private CommonTools commonTools;
     @Resource
     private List<McpAsyncClient> mcpAsyncClients;
 
@@ -258,14 +256,14 @@ public class GraphController {
 
         AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
 
-        ChatRequest chatRequest = ChatRequest.builder()
+        ChatParams chatParams = ChatParams.builder()
                 .enableMemory(true)
                 .enableStream(false)
                 .sessionId(threadId)
                 .defaultToolNames(Lists.newArrayList("getWeatherService","tavilySearchService"))
                 .defaultToolCallbackProviders(Lists.newArrayList(toolCallbackProvider))
                 .build();
-        ChatClient chatClient= chatService.getchatClient(chatRequest);
+        ChatClient chatClient= chatService.getChatClient(chatParams);
 
         ReactAgent reactAgent = ReactAgent.builder()
                 .name("Travel Plan Agent")

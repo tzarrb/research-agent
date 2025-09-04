@@ -76,7 +76,7 @@ public class LLMConfiguration {
 //    }
 
     @Bean
-    public RestClient apacheRestClient() {
+    public RestClient.Builder restClientBuilder() {
 
         // 2. 创建 RequestConfig 并设置超时
         RequestConfig requestConfig = RequestConfig.custom()
@@ -92,7 +92,7 @@ public class LLMConfiguration {
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
 
         // 5. 创建 RestClient 并设置请求工厂
-        return RestClient.builder().requestFactory(requestFactory).build();
+        return RestClient.builder().requestFactory(requestFactory);
     }
 
 }

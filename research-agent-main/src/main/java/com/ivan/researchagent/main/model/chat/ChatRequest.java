@@ -1,7 +1,7 @@
 package com.ivan.researchagent.main.model.chat;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -16,12 +16,25 @@ import java.io.Serializable;
  * @since: 2025/5/14/周三
  **/
 @Data
-public class ChatInput implements Serializable {
+public class ChatRequest implements Serializable {
 
-    /**
-     * 用户输入
-     */
+    @JsonPropertyDescription("大模型提供商")
+    private String provider;
+
+    @JsonPropertyDescription("大模型名称")
+    private String model;
+
+    @JsonPropertyDescription("用户输入")
     private String userMessage;
+
+    @JsonPropertyDescription("系统消息")
+    private String systemMessage;
+
+    @JsonPropertyDescription("系统提示词")
+    private String defaultSystem;
+
+    @JsonPropertyDescription("对话记忆的唯一标识")
+    private String conversantId;
 
     @JsonPropertyDescription("是否使用对话记忆")
     private Boolean enableMemory = true;
@@ -38,8 +51,12 @@ public class ChatInput implements Serializable {
     @JsonPropertyDescription("是否深度思考")
     private Boolean enableThink = false;
 
-    public ChatRequest convertRequest() {
-        ChatRequest chatRequest = ChatRequest.builder()
+    public ChatParams convertParams() {
+        ChatParams chatParams = ChatParams.builder()
+                .provider(provider)
+                .model(model)
+                .defaultSystem(defaultSystem)
+                .sessionId(conversantId)
                 .enableMemory(enableMemory)
                 .enableStream(enableStream)
                 .enableWeb(enableWeb)
@@ -48,7 +65,8 @@ public class ChatInput implements Serializable {
                 .enableAgent(false)
                 .build();
 
-        chatRequest.addUserMessage(userMessage);
-        return chatRequest;
+        chatParams.addUserMessage(userMessage);
+        chatParams.addSystemMessage(systemMessage);
+        return chatParams;
     }
 }
