@@ -24,6 +24,7 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.mcp.AsyncMcpToolCallbackProvider;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.resolution.ToolCallbackResolver;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,31 +49,30 @@ import java.util.Optional;
 @Tag(name = "节点图控制器", description = "节点图控制器")
 public class GraphController {
 
-    //@Resource
     private ChatService chatService;
 
     private ToolCallbackResolver resolver;
 
     @Resource
-    private List<McpAsyncClient> mcpAsyncClients;
+    ToolCallbackProvider asyncMcpToolCallbackProvider;
 
     @Resource(name = "expanderTranslateGraph")
     private StateGraph expanderTranslateGraph;
 
     @Resource(name = "documentProcessingChain")
-    private StateGraph documentProcessingChain;
+    private CompiledGraph documentProcessingChain;
 
     @Resource(name = "marketAnalysisParallel")
-    private StateGraph marketAnalysisParallel;
+    private CompiledGraph marketAnalysisParallel;
 
     @Resource(name = "customerServiceRouting")
-    private StateGraph customerServiceRouting;
+    private CompiledGraph customerServiceRouting;
 
     @Resource(name = "projectOrchestrator")
-    private StateGraph projectOrchestrator;
+    private CompiledGraph projectOrchestrator;
 
     @Resource(name = "contentOptimization")
-    private StateGraph contentOptimization;
+    private CompiledGraph contentOptimization;
 
 
     @Resource(name = "customerFeedbackGraph")
@@ -117,18 +117,20 @@ public class GraphController {
 
     @GetMapping(value = "/document-processing")
     @Operation(summary = "链式工作流-文档处理", description = "返回处理结果")
-    public Map<String, Object> documentProcessingChain(@RequestParam(value = "input", defaultValue = "车厘子价格持续下降", required = false) String input,
+    public String documentProcessingChain(@RequestParam(value = "input", defaultValue = "车厘子价格持续下降", required = false) String input,
                                                       @RequestParam(value = "thread_id", defaultValue = "", required = false) String threadId) throws GraphStateException, GraphRunnerException {
         RunnableConfig runnableConfig = GraphUtil.getRunnableConfig(threadId);
         Map<String, Object> objectMap = new HashMap<>();
-        objectMap.put("market_change", input);
+        objectMap.put("input", input);
 
-        CompiledGraph compiledGraph = documentProcessingChain.compile();
-        Optional<OverAllState> invoke = compiledGraph.invoke(objectMap, runnableConfig);
+        Optional<OverAllState> result = documentProcessingChain.invoke(objectMap, runnableConfig);
 
-        var messages = invoke.get().value("messages").orElse(Lists.newArrayList());
+        //return result.map(OverAllState::data).orElse(new HashMap<>());
 
-        return invoke.map(OverAllState::data).orElse(new HashMap<>());
+        List<Message> messages = (List<Message>) result.get().value("messages").orElse(Lists.newArrayList());
+
+        return messages.stream().filter(msg -> msg.getMessageType() == MessageType.ASSISTANT)
+                .reduce((first, second) -> second).map(Message::getText).orElseThrow();
     }
 
     @GetMapping(value = "/market-analysis")
@@ -139,8 +141,7 @@ public class GraphController {
         Map<String, Object> objectMap = new HashMap<>();
         objectMap.put("market_change", input);
 
-        CompiledGraph compiledGraph = marketAnalysisParallel.compile();
-        Optional<OverAllState> invoke = compiledGraph.invoke(objectMap, runnableConfig);
+        Optional<OverAllState> invoke = marketAnalysisParallel.invoke(objectMap, runnableConfig);
 
         var messages = invoke.get().value("messages").orElse(Lists.newArrayList());
 
@@ -149,14 +150,13 @@ public class GraphController {
 
     @GetMapping(value = "/customer-service")
     @Operation(summary = "路由工作流-客服服务", description = "返回处理结果")
-    public Map<String, Object> customerServiceRouting(@RequestParam(value = "input", defaultValue = "请帮我写一篇介绍杭州的文章", required = false) String input,
+    public Map<String, Object> customerServiceRouting(@RequestParam(value = "input", defaultValue = "查询最近一个月的账单信息", required = false) String input,
                                                     @RequestParam(value = "threadId", defaultValue = "", required = false) String threadId) throws GraphStateException, GraphRunnerException {
         RunnableConfig runnableConfig = GraphUtil.getRunnableConfig(threadId);
         Map<String, Object> objectMap = new HashMap<>();
         objectMap.put("input", input);
 
-        CompiledGraph compiledGraph = customerServiceRouting.compile();
-        Optional<OverAllState> invoke = compiledGraph.invoke(objectMap, runnableConfig);
+        Optional<OverAllState> invoke = customerServiceRouting.invoke(objectMap, runnableConfig);
 
         var messages = invoke.get().value("messages").orElse(Lists.newArrayList());
 
@@ -171,8 +171,7 @@ public class GraphController {
         Map<String, Object> objectMap = new HashMap<>();
         objectMap.put("task_description", input);
 
-        CompiledGraph compiledGraph = projectOrchestrator.compile();
-        Optional<OverAllState> invoke = compiledGraph.invoke(objectMap, runnableConfig);
+        Optional<OverAllState> invoke = projectOrchestrator.invoke(objectMap, runnableConfig);
 
         var messages = invoke.get().value("messages").orElse(Lists.newArrayList());
 
@@ -187,8 +186,7 @@ public class GraphController {
         Map<String, Object> objectMap = new HashMap<>();
         objectMap.put("task", input);
 
-        CompiledGraph compiledGraph = contentOptimization.compile();
-        Optional<OverAllState> invoke = compiledGraph.invoke(objectMap, runnableConfig);
+        Optional<OverAllState> invoke = contentOptimization.invoke(objectMap, runnableConfig);
 
         var messages = invoke.get().value("messages").orElse(Lists.newArrayList());
 
@@ -254,14 +252,12 @@ public class GraphController {
 
     private CompiledGraph getTravelGraph(String threadId) throws GraphStateException {
 
-        AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
-
         ChatParams chatParams = ChatParams.builder()
                 .enableMemory(true)
                 .enableStream(false)
                 .sessionId(threadId)
                 .defaultToolNames(Lists.newArrayList("getWeatherService","tavilySearchService"))
-                .defaultToolCallbackProviders(Lists.newArrayList(toolCallbackProvider))
+                .defaultToolCallbackProviders(Lists.newArrayList(asyncMcpToolCallbackProvider))
                 .build();
         ChatClient chatClient= chatService.getChatClient(chatParams);
 

@@ -19,7 +19,7 @@
         <module>research-agent-springai/research-agent-springai-mcp</module>
         <module>research-agent-langchain</module>
         <module>research-agent-plugin</module>
-        <module>web</module>
+        <module>research-agent-main</module>
     </modules>
 
     <properties>

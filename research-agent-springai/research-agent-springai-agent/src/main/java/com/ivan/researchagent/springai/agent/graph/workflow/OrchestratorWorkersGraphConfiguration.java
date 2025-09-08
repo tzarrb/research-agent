@@ -1,13 +1,11 @@
 package com.ivan.researchagent.springai.agent.graph.workflow;
 
-import com.alibaba.cloud.ai.graph.GraphRepresentation;
-import com.alibaba.cloud.ai.graph.OverAllState;
-import com.alibaba.cloud.ai.graph.OverAllStateFactory;
-import com.alibaba.cloud.ai.graph.StateGraph;
+import com.alibaba.cloud.ai.graph.*;
 import com.alibaba.cloud.ai.graph.action.AsyncNodeAction;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.alibaba.cloud.ai.graph.node.LlmNode;
 import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
+import com.ivan.researchagent.springai.agent.graph.core.GraphUtil;
 import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +32,7 @@ import static com.alibaba.cloud.ai.graph.StateGraph.START;
 public class OrchestratorWorkersGraphConfiguration {
 
     @Bean
-    public StateGraph projectOrchestrator(ChatService chatService) throws GraphStateException {
+    public CompiledGraph projectOrchestrator(ChatService chatService) throws GraphStateException {
         ChatParams chatParams = ChatParams.builder().build();
         ChatClient chatClient= chatService.getChatClient(chatParams);
 
@@ -159,6 +157,6 @@ public class OrchestratorWorkersGraphConfiguration {
         log.info(representation.content());
         log.info("==================================\n");
 
-        return stateGraph;
+        return stateGraph.compile(GraphUtil.getCompileConfig());
     }
 }

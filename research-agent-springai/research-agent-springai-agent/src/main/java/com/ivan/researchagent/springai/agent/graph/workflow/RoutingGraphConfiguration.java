@@ -1,9 +1,6 @@
 package com.ivan.researchagent.springai.agent.graph.workflow;
 
-import com.alibaba.cloud.ai.graph.GraphRepresentation;
-import com.alibaba.cloud.ai.graph.OverAllState;
-import com.alibaba.cloud.ai.graph.OverAllStateFactory;
-import com.alibaba.cloud.ai.graph.StateGraph;
+import com.alibaba.cloud.ai.graph.*;
 import com.alibaba.cloud.ai.graph.action.AsyncEdgeAction;
 import com.alibaba.cloud.ai.graph.action.AsyncNodeAction;
 import com.alibaba.cloud.ai.graph.action.EdgeAction;
@@ -11,6 +8,7 @@ import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.alibaba.cloud.ai.graph.node.LlmNode;
 import com.alibaba.cloud.ai.graph.node.QuestionClassifierNode;
 import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
+import com.ivan.researchagent.springai.agent.graph.core.GraphUtil;
 import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import jakarta.annotation.Resource;
@@ -41,7 +39,7 @@ public class RoutingGraphConfiguration {
     private ChatService chatService;
 
     @Bean
-    public StateGraph customerServiceRouting() throws GraphStateException {
+    public CompiledGraph customerServiceRouting() throws GraphStateException {
         ChatParams chatParams = ChatParams.builder().build();
         ChatClient chatClient= chatService.getChatClient(chatParams);
 
@@ -60,8 +58,7 @@ public class RoutingGraphConfiguration {
                 .inputTextKey("input")
                 .outputKey("classifier_output")
                 .categories(List.of("billing", "technical", "general"))
-                .classificationInstructions(List.of(
-                        "分析客户问题类型：账单问题、技术支持还是一般咨询"))
+                .classificationInstructions(List.of("分析客户问题并返回最合适的类别名称, 返回结果为String类型，不要多余的标记或格式。 正确返回结果: billing "))
                 .build();
 
         // 专业处理节点 - 使用LlmNode
@@ -120,6 +117,6 @@ public class RoutingGraphConfiguration {
         log.info(representation.content());
         log.info("==================================\n");
 
-        return stateGraph;
+        return stateGraph.compile(GraphUtil.getCompileConfig());
     }
 }

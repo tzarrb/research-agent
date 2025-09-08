@@ -1,4 +1,4 @@
-package com.ivan.researchagent.springai.agent.graph.manus.tool;
+package com.ivan.researchagent.springai.agent.graph.agent.manus.tool;
 
 import com.ivan.researchagent.springai.llm.model.tool.ToolExecuteResult;
 import lombok.extern.slf4j.Slf4j;

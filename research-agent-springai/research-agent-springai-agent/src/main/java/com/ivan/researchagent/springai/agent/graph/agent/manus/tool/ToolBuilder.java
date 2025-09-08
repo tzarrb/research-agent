@@ -1,4 +1,4 @@
-package com.ivan.researchagent.springai.agent.graph.manus.tool;
+package com.ivan.researchagent.springai.agent.graph.agent.manus.tool;
 
 import com.ivan.researchagent.springai.llm.tools.browser.BrowserUseTool;
 import com.ivan.researchagent.springai.llm.tools.execute.PythonExecuteTool;

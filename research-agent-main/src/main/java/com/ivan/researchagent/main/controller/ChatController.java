@@ -49,11 +49,6 @@ public class ChatController {
     @Resource
     private ChatService chatService;
 
-    // @Resource
-    // private List<McpSyncClient> mcpSyncClients;  // For sync client
-    //@Resource
-    //private List<McpAsyncClient> mcpAsyncClients;
-
     @Resource
     private List<ToolCallbackProvider> toolCallbackProviders;
 
@@ -90,10 +85,8 @@ public class ChatController {
         chatParams.setEnableAgent(false);
         chatParams.setEnableLocal(true);
 
-        //SyncMcpToolCallbackProvider toolCallbackProvider = new SyncMcpToolCallbackProvider(mcpSyncClients);
-        //AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
-        //chatParams.setToolCallbackProviders(Lists.newArrayList(toolCallbackProvider));
-        chatParams.setToolCallbackProviders(toolCallbackProviders);
+        //chatParams.setToolCallbackProviders(toolCallbackProviders);
+        chatParams.setToolCallbackProviders(Lists.newArrayList(commonToolCallbackProvider, asyncMcpToolCallbackProvider));
 
         String sessionId = request.getHeader(Constant.SESSION_ID);
         chatParams.setSessionId(sessionId);
@@ -111,10 +104,8 @@ public class ChatController {
         String sessionId = request.getHeader(Constant.SESSION_ID);
         chatParams.setSessionId(sessionId);
 
-        //SyncMcpToolCallbackProvider toolCallbackProvider = new SyncMcpToolCallbackProvider(mcpSyncClients);
-        //AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
-        //chatParams.setToolCallbackProviders(Lists.newArrayList(toolCallbackProvider));
-        chatParams.setToolCallbackProviders(toolCallbackProviders);
+        //chatParams.setToolCallbackProviders(toolCallbackProviders);
+        chatParams.setToolCallbackProviders(Lists.newArrayList(commonToolCallbackProvider, asyncMcpToolCallbackProvider));
 
         log.info("开始调用ChatService.steam方法，sessionId: {}", sessionId);
         Flux<ChatResult> chatResult = chatService.steam(chatParams);
@@ -140,10 +131,8 @@ public class ChatController {
         chatParams.setEnableStream(true);
         chatParams.setEnableAgent(false);
 
-        //SyncMcpToolCallbackProvider toolCallbackProvider = new SyncMcpToolCallbackProvider(mcpSyncClients);
-        //AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
-        //chatParams.setToolCallbackProviders(Lists.newArrayList(toolCallbackProvider));
-        chatParams.setToolCallbackProviders(toolCallbackProviders);
+        //chatParams.setToolCallbackProviders(toolCallbackProviders);
+        chatParams.setToolCallbackProviders(Lists.newArrayList(commonToolCallbackProvider, asyncMcpToolCallbackProvider));
 
         String sessionId = request.getHeader(Constant.SESSION_ID);
         chatParams.setSessionId(sessionId);
@@ -168,11 +157,8 @@ public class ChatController {
         String sessionId = request.getHeader(Constant.SESSION_ID);
         chatParams.setSessionId(sessionId);
 
-//        chatRequest.setToolNames(Lists.newArrayList("tavilySearchService"));
-
-        //SyncMcpToolCallbackProvider toolCallbackProvider = new SyncMcpToolCallbackProvider(mcpSyncClients);
-        //AsyncMcpToolCallbackProvider toolCallbackProvider = new AsyncMcpToolCallbackProvider(mcpAsyncClients);
-        //chatParams.setToolCallbackProviders(Lists.newArrayList(toolCallbackProvider));
+        //chatParams.setToolNames(Lists.newArrayList("tavilySearchService"));
+        //chatParams.setToolCallbackProviders(toolCallbackProviders);
         chatParams.setToolCallbackProviders(Lists.newArrayList(commonToolCallbackProvider, asyncMcpToolCallbackProvider));
 
         SseEmitter sseEmitter = chatService.sseChat(chatParams);
