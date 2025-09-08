@@ -1,19 +1,18 @@
 package com.ivan.researchagent.springai.agent.graph.workflow;
 
-import com.alibaba.cloud.ai.graph.GraphRepresentation;
-import com.alibaba.cloud.ai.graph.OverAllState;
-import com.alibaba.cloud.ai.graph.OverAllStateFactory;
-import com.alibaba.cloud.ai.graph.StateGraph;
+import com.alibaba.cloud.ai.graph.*;
 import com.alibaba.cloud.ai.graph.action.AsyncEdgeAction;
 import com.alibaba.cloud.ai.graph.action.AsyncNodeAction;
 import com.alibaba.cloud.ai.graph.action.EdgeAction;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.alibaba.cloud.ai.graph.node.LlmNode;
 import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
+import com.ivan.researchagent.springai.agent.graph.core.GraphUtil;
 import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -40,7 +39,7 @@ public class EvaluatorOptimizerGraphConfiguration {
     private int iterationNum = 3;
 
     @Bean
-    public StateGraph contentOptimization(ChatService chatService) throws GraphStateException {
+    public CompiledGraph contentOptimization(ChatService chatService) throws GraphStateException {
         ChatParams chatParams = ChatParams.builder().build();
         ChatClient chatClient= chatService.getChatClient(chatParams);
 
@@ -115,11 +114,21 @@ public class EvaluatorOptimizerGraphConfiguration {
         EdgeAction routingEdge = new EdgeAction() {
             @Override
             public String apply(OverAllState state) throws Exception {
-                String evaluation= (String) state.value("evaluation_result", StateGraph.END);
-                Integer iterationCount= (Integer) state.value("iteration_count", 1);
+                Integer iterationCount = (Integer) state.value("iteration_count", 1);
+                Object evaluation = state.value("evaluation_result");
+                if (evaluation == null) {
+                    return "END";
+                }
+
+                String evaluationResult = "";
+                if (evaluation instanceof AssistantMessage) {
+                    evaluationResult = ((AssistantMessage) evaluation).getText();
+                } else {
+                    evaluationResult = evaluation.toString();
+                }
 
                 // 如果已批准或达到最大迭代次数，结束流程
-                if (evaluation.contains("APPROVED") || (iterationCount != null && iterationCount >= iterationNum)) {
+                if (evaluationResult.contains("APPROVED") || (iterationCount != null && iterationCount >= iterationNum)) {
                     return"END";
                 } else {
                     state.updateState(Map.of("iteration_count", iterationCount + 1));
@@ -147,6 +156,6 @@ public class EvaluatorOptimizerGraphConfiguration {
         log.info(representation.content());
         log.info("==================================\n");
 
-        return stateGraph;
+        return stateGraph.compile(GraphUtil.getCompileConfig());
     }
 }

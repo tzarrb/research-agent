@@ -1,10 +1,10 @@
-package com.ivan.researchagent.springai.agent.graph.manus;
+package com.ivan.researchagent.springai.agent.graph.agent.manus;
 
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
 import com.alibaba.fastjson.JSON;
-import com.ivan.researchagent.springai.agent.graph.manus.tool.Plan;
-import com.ivan.researchagent.springai.agent.graph.manus.tool.PlanningTool;
+import com.ivan.researchagent.springai.agent.graph.agent.manus.tool.Plan;
+import com.ivan.researchagent.springai.agent.graph.agent.manus.tool.PlanningTool;
 
 import java.util.Map;
 import java.util.Optional;

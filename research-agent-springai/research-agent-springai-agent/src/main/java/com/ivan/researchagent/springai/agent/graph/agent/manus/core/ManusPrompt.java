@@ -1,4 +1,4 @@
-package com.ivan.researchagent.springai.agent.graph.manus.core;
+package com.ivan.researchagent.springai.agent.graph.agent.manus.core;
 
 /**
  * Copyright (c) 2024 research-agent.

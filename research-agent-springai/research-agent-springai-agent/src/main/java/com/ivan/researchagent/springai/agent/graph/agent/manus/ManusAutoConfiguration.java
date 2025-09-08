@@ -1,4 +1,4 @@
-package com.ivan.researchagent.springai.agent.graph.manus;
+package com.ivan.researchagent.springai.agent.graph.agent.manus;
 
 import com.alibaba.cloud.ai.graph.*;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
@@ -9,9 +9,9 @@ import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.alibaba.cloud.ai.graph.node.HumanNode;
 import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
 import com.ivan.researchagent.springai.agent.graph.core.GraphSerializer;
-import com.ivan.researchagent.springai.agent.graph.manus.core.ManusPrompt;
-import com.ivan.researchagent.springai.agent.graph.manus.tool.PlanningTool;
-import com.ivan.researchagent.springai.agent.graph.manus.tool.ToolBuilder;
+import com.ivan.researchagent.springai.agent.graph.agent.manus.core.ManusPrompt;
+import com.ivan.researchagent.springai.agent.graph.agent.manus.tool.PlanningTool;
+import com.ivan.researchagent.springai.agent.graph.agent.manus.tool.ToolBuilder;
 import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +51,7 @@ public class ManusAutoConfiguration {
     public ManusAutoConfiguration(ChatService chatService) {
 
         ChatParams planningChatParams = ChatParams.builder()
-                .enableMemory( false)
+                .enableMemory(false)
                 .enableStream(false)
                 .defaultSystem(ManusPrompt.PLANNING_SYSTEM_PROMPT)
                 .toolCallBacks(ToolBuilder.getPlanningToolCalls())
@@ -59,7 +59,7 @@ public class ManusAutoConfiguration {
         this.planningClient = chatService.getChatClient(planningChatParams);
 
         ChatParams stepChatParams = ChatParams.builder()
-                .enableMemory( false)
+                .enableMemory(false)
                 .enableStream(false)
                 .defaultSystem(ManusPrompt.STEP_SYSTEM_PROMPT)
                 .toolCallBacks(ToolBuilder.getManusAgentToolCalls())
