@@ -49,7 +49,7 @@ public class DoctorAgentController {
 
         ChatResult chatResult = doctorOperateAgent.call(chatParams);
 
-        response.setHeader("sessionId", chatResult.getSessionId());
+        response.setHeader("sessionId", chatResult.getConversantId());
         return chatResult.getContent();
     }
 
@@ -65,8 +65,8 @@ public class DoctorAgentController {
         Flux<ChatResult> chatResult = doctorOperateAgent.stream(chatParams);
 
         return chatResult.map(result -> {
-            log.info("sessionId:{}, streamChat result:{}", result.getSessionId(), result.getContent());
-            response.setHeader("sessionId", result.getSessionId());
+            log.info("sessionId:{}, streamChat result:{}", result.getConversantId(), result.getContent());
+            response.setHeader("sessionId", result.getConversantId());
             return result.getContent();
         });
     }

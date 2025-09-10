@@ -58,6 +58,8 @@ public class GoogleSearchTool implements BiFunction<String, ToolContext, ToolExe
 
     private static final String SERP_API_KEY = System.getenv("spring.ai.alibaba.toolcalling.serpapisearch.api-key");
 
+    private static final GoogleSearchTool INSTANCE = new GoogleSearchTool();
+
     public GoogleSearchTool() {
         service = new SerpApieService(new SerpApiProperties(SERP_API_KEY));
     }
@@ -73,7 +75,7 @@ public class GoogleSearchTool implements BiFunction<String, ToolContext, ToolExe
     }
 
     public static FunctionToolCallback getFunctionToolCallback() {
-        return FunctionToolCallback.builder(name, new GoogleSearchTool())
+        return FunctionToolCallback.builder(name, INSTANCE)
                 .description(description)
                 .inputSchema(PARAMETERS)
                 .inputType(String.class)

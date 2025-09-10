@@ -23,7 +23,14 @@ public class LLMConfig {
     @Value("${research.agent.llm.provider:dashscope}")
     private String defaultProvider;
 
-    @Value("${research.agent.llm.model:qwen-max}")
+    //@Value("${research.agent.llm.model:qwen-max}")
+    @Value("${spring.ai.dashscope.chat.options.model:qwen-max}")
     private String defaultModel;
+
+    @Value("${spring.ai.dashscope.multi.options.model:qwen-vl-max-latest}")
+    private String defaultMultiModel;
+
+    @Value("${research.agent.llm.think.model:deepseek-r1}")
+    private String defaultThinkModel;
 
 }

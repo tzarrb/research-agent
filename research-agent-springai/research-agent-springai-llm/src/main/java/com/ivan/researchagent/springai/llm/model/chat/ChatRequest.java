@@ -1,10 +1,16 @@
-package com.ivan.researchagent.main.model.chat;
+package com.ivan.researchagent.springai.llm.model.chat;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
+import com.ivan.researchagent.common.utils.MediaUtil;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Copyright (c) 2024 research-agent.
@@ -51,6 +57,12 @@ public class ChatRequest implements Serializable {
     @JsonPropertyDescription("是否深度思考")
     private Boolean enableThink = false;
 
+    @JsonPropertyDescription("对话的媒体链接")
+    private List<String> mediaUrls;
+
+    @JsonPropertyDescription("对话的媒体文件")
+    private MultipartFile mediaFile;
+
     public ChatParams convertParams() {
         ChatParams chatParams = ChatParams.builder()
                 .provider(provider)
@@ -65,8 +77,22 @@ public class ChatRequest implements Serializable {
                 .enableAgent(false)
                 .build();
 
-        chatParams.addUserMessage(userMessage);
+        chatParams.addUserMessage(userMessage, mediaUrls, mediaFile);
         chatParams.addSystemMessage(systemMessage);
+
+        if (CollectionUtils.isNotEmpty(mediaUrls) || Objects.nonNull(mediaFile)) {
+            chatParams.setEnableMulti(true);
+            if (CollectionUtils.isNotEmpty(mediaUrls)) {
+                chatParams.setMessageType(MediaUtil.getContentType(mediaUrls.get(0)).name());
+            }
+            if (Objects.nonNull(mediaFile)) {
+                chatParams.setMessageType(MediaUtil.getContentType(mediaFile).name());
+            }
+        }
+
+        if (BooleanUtils.isTrue(enableThink) && StringUtils.isAllBlank(provider, model)) {
+            chatParams.setProvider("dashscope");
+        }
         return chatParams;
     }
 }

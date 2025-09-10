@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ivan.researchagent.common.constant.Constant;
+import com.ivan.researchagent.common.enumerate.MessageTypeEnum;
 import com.ivan.researchagent.common.utils.IdUtil;
 import com.ivan.researchagent.core.model.ModelOptions;
 import com.ivan.researchagent.springai.llm.advisors.ChatMemoryAdvisorSpec;
@@ -20,6 +21,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -110,7 +112,13 @@ public class ChatService implements InitializingBean {
             chatParams.setProvider(llmConfig.getDefaultProvider());
         }
         if (StringUtils.isBlank(chatParams.getModel())) {
-            chatParams.setModel(llmConfig.getDefaultModel());
+            if (MessageTypeEnum.isMedia(chatParams.getMessageType())) {
+                chatParams.setModel(llmConfig.getDefaultMultiModel());
+            } else if (BooleanUtils.isTrue(chatParams.getEnableThink())) {
+                chatParams.setModel(llmConfig.getDefaultThinkModel());
+            } else {
+                chatParams.setModel(llmConfig.getDefaultModel());
+            }
         }
         modelOptionsBuilder
                 .provider(chatParams.getProvider())
@@ -122,6 +130,7 @@ public class ChatService implements InitializingBean {
                 .conversantId(chatParams.getSessionId())
                 .enableMemory(chatParams.getEnableMemory())
                 .enableStream(chatParams.getEnableStream())
+                .enableMulti(chatParams.getEnableMulti())
                 .enableSearch(chatParams.getEnableWeb())
                 .formatType(chatParams.getFormatType())
                 .defaultTools(chatParams.getDefaultTools())
@@ -147,13 +156,6 @@ public class ChatService implements InitializingBean {
             chatParams.setSessionId(sessionId);
             log.info("生成新的sessionId:{}", sessionId);
         }
-        
-        // 确保流式配置正确设置
-        if (chatParams.getEnableStream() == null) {
-            chatParams.setEnableStream(true);
-            log.warn("enableStream为null，强制设置为true，sessionId: {}", sessionId);
-        }
-        log.info("构建请求规格，sessionId: {}, enableStream: {}", sessionId, chatParams.getEnableStream());
 
         List<Message> messages = ChatMessageUtil.buildMessages(chatParams);
         Prompt prompt = new Prompt(messages);
@@ -183,10 +185,9 @@ public class ChatService implements InitializingBean {
             requestSpec.advisors(webSearchRagAdvisor);
         }
 
-        //
+        // 深度思考增强
         if (chatParams.getEnableThink()) {
-            // 深度思考增强
-            requestSpec.advisors(reasoningContentAdvisor);
+            //requestSpec.advisors(reasoningContentAdvisor);
         }
 
         //tool call
@@ -253,22 +254,12 @@ public class ChatService implements InitializingBean {
         ChatResponse response = requestSpec.call().chatResponse();
         AssistantMessage assistantMessage = response.getResult().getOutput();
         ChatResult chatResult = new ChatResult();
-        chatResult.setSessionId(chatParams.getSessionId());
-        chatResult.setChatResponse(response);
+        chatResult.setConversantId(chatParams.getSessionId());
+        //chatResult.setChatResponse(response);
         chatResult.setContent(assistantMessage.getText());
-        if (REASONER_MODEL.contains(chatParams.getModel())) {
-            DeepSeekAssistantMessage deepSeekAssistantMessage = (DeepSeekAssistantMessage) assistantMessage;
-            chatResult.setReasoningContent(deepSeekAssistantMessage.getReasoningContent());
-            log.info("sessionId:{}, chat reasoning model content: {}, response: {}",
-                    chatParams.getSessionId(), deepSeekAssistantMessage.getReasoningContent(), JSON.toJSONString(response));
-        }
-        if (BooleanUtils.isTrue(chatParams.getEnableWeb())) {
-            Object searchResult = assistantMessage.getMetadata().get("search_info");
-            chatResult.setSearchResult(searchResult);
-            log.info("sessionId:{}, chat search info: {}, response: {}",
-                    chatParams.getSessionId(), JSON.toJSON(searchResult), JSON.toJSONString(response));
-        }
-        log.info("sessionId:{}, chat content：{}, response: {}", chatParams.getSessionId(), chatResult.getContent(), response);
+        chatResult.setReasoningContent(getReasoningContent(chatParams, assistantMessage));
+        chatResult.setSearchResult(getSearchInfo(chatParams, assistantMessage));
+        log.info("Chat result: sessionId:{}, content：{}, response: {}", chatParams.getSessionId(), chatResult.getContent(), response);
         return chatResult;
     }
 
@@ -295,9 +286,10 @@ public class ChatService implements InitializingBean {
                log.info("开始订阅流式响应，sessionId: {}", chatParams.getSessionId());
            })
            .map(chatResponse -> {
+               log.debug("大模型返回结果，sessionId: {}, response:{}", chatParams.getSessionId(), chatResponse);
                ChatResult chatResult = new ChatResult();
-               chatResult.setSessionId(chatParams.getSessionId());
-               chatResult.setChatResponse(chatResponse);
+               chatResult.setConversantId(chatParams.getSessionId());
+               //chatResult.setChatResponse(chatResponse);
 
                String content = "";
                Generation generation = chatResponse.getResult();
@@ -305,20 +297,15 @@ public class ChatService implements InitializingBean {
                    AssistantMessage assistantMessage = generation.getOutput();
                    if (Objects.nonNull(assistantMessage)) {
                        content = assistantMessage.getText();
-                       log.debug("从generation中提取内容，sessionId: {}, content: {}", chatParams.getSessionId(), content);
+                       // 推理内容
+                       String reasoningContent = getReasoningContent(chatParams, assistantMessage);
+                       chatResult.setReasoningContent(reasoningContent);
+                       // 搜索结构
+                       Object searchResult = getSearchInfo(chatParams, assistantMessage);
+                       chatResult.setSearchResult(searchResult);
 
-                       if (REASONER_MODEL.contains(chatParams.getModel())) {
-                           DeepSeekAssistantMessage deepSeekAssistantMessage = (DeepSeekAssistantMessage) assistantMessage;
-                           chatResult.setReasoningContent(deepSeekAssistantMessage.getReasoningContent());
-                           log.info("sessionId:{}, stream chat reasoning model content: {}, response: {}",
-                                   chatParams.getSessionId(), deepSeekAssistantMessage.getReasoningContent(), JSON.toJSONString(chatResponse));
-                       }
-                       if (BooleanUtils.isTrue(chatParams.getEnableWeb())) {
-                           Object searchResult = assistantMessage.getMetadata().get("search_info");
-                           chatResult.setSearchResult(searchResult);
-                           log.info("sessionId:{}, stream chat search info: {}, response: {}",
-                                   chatParams.getSessionId(), JSON.toJSON(searchResult), JSON.toJSONString(chatResponse));
-                       }
+                       log.debug("Stream chat result: sessionId: {}, content: {}, reasoningContent:{}, searchResult:{}",
+                               chatParams.getSessionId(), content, reasoningContent, searchResult);
                    } else {
                        content = "模型返回的结果没有AI助手信息!!!";
                        log.warn("sessionId:{}, Generation存在但Output为空", chatParams.getSessionId());
@@ -328,14 +315,7 @@ public class ChatService implements InitializingBean {
                    log.warn("sessionId:{}, stream request received null generation", chatParams.getSessionId());
                }
 
-               if (ObjectUtils.isEmpty(content)) {
-                   content = "模型无内容生成!!!"; // 根据业务需求设置默认内容
-                   log.warn("sessionId:{}, Received null content, using default content", chatParams.getSessionId());
-               }
-               log.info("sessionId:{}, stream chat content：{}", chatParams.getSessionId(), content);
-
                chatResult.setContent(content);
-
                return chatResult;
            })
            .doOnError(error -> {
@@ -347,7 +327,7 @@ public class ChatService implements InitializingBean {
            .onErrorResume(error -> {
                log.error("sessionId:{}, Error in stream chat: ", chatParams.getSessionId(), error);
                ChatResult chatResult = new ChatResult();
-               chatResult.setSessionId(chatParams.getSessionId());
+               chatResult.setConversantId(chatParams.getSessionId());
                chatResult.setContent("发生错误: " + error.getMessage());
 
                return Mono.just(chatResult);
@@ -368,6 +348,7 @@ public class ChatService implements InitializingBean {
                 .subscribe(
                         chunk -> {
                             try {
+                                log.debug("大模型返回结果，sessionId: {}, response:{}", chatParams.getSessionId(), chunk);
                                 Map<String, Object> result = new HashMap<String, Object>();
                                 result.put("sessionId", chatParams.getSessionId());
 
@@ -375,31 +356,22 @@ public class ChatService implements InitializingBean {
                                 if (Objects.nonNull(generation)) {
                                     AssistantMessage assistantMessage = generation.getOutput();
                                     String content = assistantMessage.getText();
-                                    if (StringUtils.isNotBlank(content)) {
-                                        result.put("content", content);
-                                        log.info("sessionId:{}, sse chat content: {}, response: {}",
-                                                chatParams.getSessionId(), content, JSON.toJSONString(chunk));
+                                    if (StringUtils.isEmpty(content)) {
+                                        content = "";
                                     }
+                                    result.put("content", content);
 
-                                    Object reasoningContent = assistantMessage.getMetadata().get("reasoningContent");
-                                    if (Objects.nonNull(reasoningContent)) {
-                                        result.put("reasoningContent", String.valueOf(reasoningContent));
-                                        log.info("sessionId:{}, sse chat reasoning content: {}, response: {}",
-                                                chatParams.getSessionId(), reasoningContent, JSON.toJSONString(chunk));
-                                    }
+                                    log.info("sessionId:{}, sse chat content: {}, response: {}",
+                                            chatParams.getSessionId(), content, JSON.toJSONString(chunk));
 
-                                    if (REASONER_MODEL.contains(chatParams.getModel())) {
-                                        DeepSeekAssistantMessage deepSeekAssistantMessage = (DeepSeekAssistantMessage) assistantMessage;
-                                        result.put("reasoningContent", deepSeekAssistantMessage.getReasoningContent());
-                                        log.info("sessionId:{}, sse chat reasoning model content: {}, response: {}",
-                                                chatParams.getSessionId(), deepSeekAssistantMessage.getReasoningContent(), JSON.toJSONString(chunk));
-                                    }
-                                    if (BooleanUtils.isTrue(chatParams.getEnableWeb())) {
-                                        Object searchResult = assistantMessage.getMetadata().get("search_info");
-                                        result.put("searchResult", searchResult);
-                                        log.info("sessionId:{}, sse chat search info: {}, response: {}",
-                                                chatParams.getSessionId(), JSON.toJSON(searchResult), JSON.toJSONString(chunk));
-                                    }
+                                    String reasoningContent = getReasoningContent(chatParams, assistantMessage);
+                                    result.put("reasoningContent", reasoningContent);
+
+                                    Object searchResult = getSearchInfo(chatParams, assistantMessage);
+                                    result.put("searchResult", searchResult);
+
+                                    log.debug("SSE chat result: sessionId: {}, content: {}, reasoningContent:{}, searchResult:{}",
+                                            chatParams.getSessionId(), content, reasoningContent, searchResult);
                                 } else  {
                                     result.put("content", "模型无结果返回!!!");
                                     log.warn("sessionId:{}, sse request received null generation", chatParams.getSessionId());
@@ -471,4 +443,33 @@ public class ChatService implements InitializingBean {
                 .entity(new ParameterizedTypeReference<List<T>>() {});
     }
 
+    private String getReasoningContent(ChatParams chatParams, AssistantMessage assistantMessage) {
+        if (!REASONER_MODEL.contains(chatParams.getModel())) {
+            return "";
+        }
+
+        String reasoningContent = "";
+        if (assistantMessage instanceof DeepSeekAssistantMessage) {
+            DeepSeekAssistantMessage deepSeekAssistantMessage = (DeepSeekAssistantMessage) assistantMessage;
+            reasoningContent = deepSeekAssistantMessage.getReasoningContent();
+        } else {
+            reasoningContent = String.valueOf(assistantMessage.getMetadata().get("reasoningContent"));
+        }
+
+        log.info("sessionId:{}, chat reasoning model content: {}, message: {}",
+                chatParams.getSessionId(), reasoningContent, JSON.toJSONString(assistantMessage));
+
+        return reasoningContent;
+    }
+
+    private Object getSearchInfo(ChatParams chatParams, AssistantMessage assistantMessage) {
+        if (!BooleanUtils.isTrue(chatParams.getEnableWeb())) {
+            return "";
+        }
+
+        Object searchResult = assistantMessage.getMetadata().get("search_info");
+        log.info("sessionId:{}, sse chat search info: {}, message: {}",
+                chatParams.getSessionId(), JSON.toJSON(searchResult), JSON.toJSONString(assistantMessage));
+        return searchResult;
+    }
 }

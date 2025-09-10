@@ -87,7 +87,7 @@ public class ObservationAutoConfiguration {
                 Prompt request = context.getRequest();
                 AiOperationMetadata operationMetadata = context.getOperationMetadata();
                 log.info("🤖ChatModelObservation start: request : {}, operationMetadata:{}",
-                        JSON.toJSONString(request), JSON.toJSONString(operationMetadata));
+                        request, JSON.toJSONString(operationMetadata));
             }
 
             @Override
@@ -118,7 +118,7 @@ public class ObservationAutoConfiguration {
                 AiOperationMetadata operationMetadata = context.getOperationMetadata();
                 boolean stream = context.isStream();
                 log.info("💬ChatClientObservation start: request : {}, operationMetadata:{}, advisors : {}, stream : {}",
-                        JSON.toJSONString(request), JSON.toJSONString(operationMetadata), advisors, stream);
+                        request, JSON.toJSONString(operationMetadata), advisors, stream);
             }
 
             @Override

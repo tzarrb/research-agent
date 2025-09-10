@@ -1,5 +1,6 @@
 package com.ivan.researchagent.main.controller;
 
+import com.ivan.researchagent.springai.llm.model.image.ImageRequest;
 import com.ivan.researchagent.springai.llm.service.ImageService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,9 +29,9 @@ public class ImageController {
     @Resource
     private ImageService imageService;
 
-    @GetMapping("")
-    public void image(@RequestParam("input") String input, HttpServletResponse response) {
-        String imageUrl = imageService.image(input);
+    @PostMapping("")
+    public void image(@RequestBody ImageRequest input, HttpServletResponse response) {
+        String imageUrl = imageService.genImage(input);
 
         try {
             URL url = new URL(imageUrl);
@@ -44,9 +45,9 @@ public class ImageController {
         }
     }
 
-    @GetMapping("/url")
-    public String imageUrl(@RequestParam("input") String input) {
-        String imageUrl = imageService.image(input);
+    @PostMapping("/url")
+    public String imageUrl(@RequestBody ImageRequest input) {
+        String imageUrl = imageService.genImage(input);
         return imageUrl;
     }
 }

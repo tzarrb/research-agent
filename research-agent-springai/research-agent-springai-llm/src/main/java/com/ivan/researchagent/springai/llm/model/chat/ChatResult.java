@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.ai.chat.model.ChatResponse;
 
 /**
  * Copyright (c) 2024 Ivan, Inc.
@@ -21,6 +20,12 @@ import org.springframework.ai.chat.model.ChatResponse;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatResult {
+
+    /**
+     * 对话会话ID，也是对话记忆的唯一标识
+     */
+    private String conversantId;
+
     /**
      * 大模型回复内容
      */
@@ -37,13 +42,8 @@ public class ChatResult {
     private Object searchResult;
 
     /**
-     * 对话会话ID，也是对话记忆的唯一标识
-     */
-    private String sessionId;
-
-    /**
      * 大模型回复信息
      */
-    private ChatResponse chatResponse;
+    //private ChatResponse chatResponse;
 
 }

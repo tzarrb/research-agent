@@ -1,6 +1,7 @@
 package com.ivan.researchagent.springai.llm.service;
 
 import com.ivan.researchagent.common.enumerate.ChunkingTypeEnum;
+import com.ivan.researchagent.common.exception.BizException;
 import com.ivan.researchagent.springai.llm.model.rag.VectorStoreData;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
@@ -9,6 +10,7 @@ import org.apache.commons.collections.MapUtils;
 import org.elasticsearch.client.RestClient;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.MetadataMode;
+import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -26,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -117,13 +120,15 @@ public class VectorStoreService {
         try {
             // file verification 文件校验
             if (file == null || file.isEmpty()) {
-                throw new IllegalArgumentException("必须上传非空的文件");
+                throw new BizException("必须上传非空的文件");
             }
-            // parse files 穿换成文档列表
+
+//            // parse files 穿换成文档列表
 //            // 创建临时文件
-//            Path tempFile = Files.createTempFile("upload_", "_" + file.getOriginalFilename());
-//            Files.copy(file.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
 //            String fileName = file.getOriginalFilename();
+//            Path tempFile = Files.createTempFile("upload_", fileName);
+//            Files.copy(file.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
+//
 //            List<Document> documents;
 //            if (fileName.toLowerCase().endsWith(".pdf")) {
 //                // 使用PDF读取器
