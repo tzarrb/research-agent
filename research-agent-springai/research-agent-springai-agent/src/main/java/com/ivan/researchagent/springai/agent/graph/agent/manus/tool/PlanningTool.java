@@ -1,23 +1,19 @@
-package com.ivan.researchagent.springai.agent.graph.manus.tool;
+package com.ivan.researchagent.springai.agent.graph.agent.manus.tool;
 
 import com.alibaba.cloud.ai.graph.OverAllState;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
 import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.ivan.researchagent.springai.agent.graph.manus.core.PlanStateEnum;
-import com.ivan.researchagent.springai.agent.graph.manus.model.PlanToolExecuteResult;
+import com.ivan.researchagent.springai.agent.graph.agent.manus.core.PlanStateEnum;
+import com.ivan.researchagent.springai.agent.graph.agent.manus.model.PlanToolExecuteResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.openai.api.OpenAiApi;
-import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.ai.tool.function.FunctionToolCallback;
 import org.springframework.ai.tool.metadata.ToolMetadata;
-import org.springframework.ai.util.json.schema.JsonSchemaGenerator;
 
 import java.util.*;
 import java.util.function.BiFunction;

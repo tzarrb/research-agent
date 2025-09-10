@@ -1,5 +1,6 @@
 package com.ivan.researchagent.springai.llm.configuration.vectorstore;
 
+import com.alibaba.cloud.ai.dashscope.embedding.DashScopeEmbeddingModel;
 import org.elasticsearch.client.RestClient;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.embedding.TokenCountBatchingStrategy;
@@ -25,7 +26,7 @@ public class ElasticsearchVectorStoreConfig {
 
     @Bean(name = "elasticsearchVectorStore")
     public ElasticsearchVectorStore elasticsearchVectorStore(RestClient restClient,
-                                                             EmbeddingModel embeddingModel,
+                                                             DashScopeEmbeddingModel embeddingModel,
                                                              ElasticsearchVectorStoreProperties properties) {
         ElasticsearchVectorStoreOptions options = new ElasticsearchVectorStoreOptions();
         options.setIndexName(properties.getIndexName());    // Optional: defaults to "spring-ai-document-index"

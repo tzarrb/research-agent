@@ -1,6 +1,6 @@
-package com.ivan.researchagent.springai.agent.graph.manus.model;
+package com.ivan.researchagent.springai.agent.graph.agent.manus.model;
 
-import com.ivan.researchagent.springai.agent.graph.manus.tool.Plan;
+import com.ivan.researchagent.springai.agent.graph.agent.manus.tool.Plan;
 import com.ivan.researchagent.springai.llm.model.tool.ToolExecuteResult;
 import lombok.Data;
 

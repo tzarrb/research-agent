@@ -31,6 +31,11 @@
             <artifactId>research-agent-core</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-freemarker</artifactId>
+        </dependency>
+
         <!-- spring ai依赖项... start -->
         <dependency>
             <groupId>org.springframework.ai</groupId>

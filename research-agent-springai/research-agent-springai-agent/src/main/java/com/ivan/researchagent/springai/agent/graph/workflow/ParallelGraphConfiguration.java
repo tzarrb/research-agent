@@ -1,12 +1,10 @@
 package com.ivan.researchagent.springai.agent.graph.workflow;
 
-import com.alibaba.cloud.ai.graph.GraphRepresentation;
-import com.alibaba.cloud.ai.graph.OverAllState;
-import com.alibaba.cloud.ai.graph.OverAllStateFactory;
-import com.alibaba.cloud.ai.graph.StateGraph;
+import com.alibaba.cloud.ai.graph.*;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.alibaba.cloud.ai.graph.node.LlmNode;
 import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
+import com.ivan.researchagent.springai.agent.graph.core.GraphUtil;
 import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.service.ChatService;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +32,7 @@ import static com.alibaba.cloud.ai.graph.action.AsyncNodeAction.node_async;
 public class ParallelGraphConfiguration {
 
     @Bean
-    public StateGraph marketAnalysisParallel(ChatService chatService) throws GraphStateException {
+    public CompiledGraph marketAnalysisParallel(ChatService chatService) throws GraphStateException {
         ChatParams chatParams = ChatParams.builder().build();
         ChatClient chatClient= chatService.getChatClient(chatParams);
 
@@ -119,9 +117,8 @@ public class ParallelGraphConfiguration {
                 .addNode("employee_analysis", node_async(employeeAnalysisNode))
                 .addNode("investor_analysis", node_async(investorAnalysisNode))
                 .addNode("supplier_analysis", node_async(supplierAnalysisNode))
-                .addNode("summary",
+                .addNode("summary",node_async(summaryNode))  // 汇总节点不需要异步，等待所有并行节点完成
 
-                         node_async(summaryNode))  // 汇总节点不需要异步，等待所有并行节点完成
                 // 所有分析节点从START开始（并行执行）
                 .addEdge(START, "customer_analysis")
                 .addEdge(START, "employee_analysis")
@@ -141,6 +138,6 @@ public class ParallelGraphConfiguration {
         log.info(representation.content());
         log.info("==================================\n");
 
-        return stateGraph;
+        return stateGraph.compile(GraphUtil.getCompileConfig());
     }
 }

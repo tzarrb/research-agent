@@ -14,6 +14,7 @@ import com.ivan.researchagent.springai.llm.service.ChatService;
 import jakarta.annotation.Resource;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.resolution.ToolCallbackResolver;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +35,11 @@ public class TravelAutoconfiguration {
 
     @Resource
     private CommonTools commonTools;
+
+    @Resource
+    ToolCallbackProvider commonToolCallbackProvider;
+    @Resource
+    ToolCallbackProvider asyncMcpToolCallbackProvider;
 
     @Bean
     public ReactAgent travelAgent(ChatService chatService, ToolCallbackResolver resolver) throws GraphStateException {

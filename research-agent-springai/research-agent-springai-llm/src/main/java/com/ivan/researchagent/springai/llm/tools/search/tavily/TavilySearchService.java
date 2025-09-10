@@ -27,7 +27,6 @@ import static com.alibaba.cloud.ai.toolcalling.common.CommonToolCallConstants.DE
  * @since: 2025/6/25/周三
  **/
 @Slf4j
-//@Service
 public class TavilySearchService extends WebSearchService {
 
     private final String URL = "https://api.tavily.com/search";

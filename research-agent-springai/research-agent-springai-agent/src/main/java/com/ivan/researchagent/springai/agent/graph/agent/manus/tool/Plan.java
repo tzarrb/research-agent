@@ -1,4 +1,4 @@
-package com.ivan.researchagent.springai.agent.graph.manus.tool;
+package com.ivan.researchagent.springai.agent.graph.agent.manus.tool;
 
 import org.springframework.ai.chat.prompt.PromptTemplate;
 

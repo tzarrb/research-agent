@@ -47,7 +47,8 @@ public class CustomerFeedbackAutoConfiguration {
                 .chatClient(chatClient)
                 .inputTextKey("input")
                 .outputKey("classifier_output")
-                .categories(List.of("positive feedback", "negative feedback"))
+                .categories(List.of("positive", "negative"))
+                .classificationInstructions(List.of("分析客户问题并返回最合适的类别名称, 返回结果String类型，不要多余的标记或格式。 正确返回结果: positive "))
                 .build();
 
         // 问题细分器 - 对负面评价进行细分
@@ -56,6 +57,7 @@ public class CustomerFeedbackAutoConfiguration {
                 .inputTextKey("input")
                 .outputKey("classifier_output")
                 .categories(List.of("after-sale service", "transportation", "product quality", "others"))
+                .classificationInstructions(List.of("分析客户问题并返回最合适的类别名称, 返回结果String类型，不要多余的标记或格式。 正确返回结果: transportation "))
                 .build();
 
         // 路由决策器
@@ -74,6 +76,7 @@ public class CustomerFeedbackAutoConfiguration {
             strategies.put("solution", new ReplaceStrategy());
             return strategies;
         };
+
         // 构建工作流 - 声明式API
         StateGraph stateGraph = new StateGraph("客户服务评价处理", stateFactory)
                 .addNode("feedback_classifier", node_async(feedbackClassifier))

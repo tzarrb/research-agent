@@ -274,9 +274,9 @@ public class ModelFactory {
             //初始化对话记忆
             builder.defaultAdvisors(customPromptChatMemoryAdvisor);
 
-//            if (StringUtils.isNotBlank(modelOptions.getConversantId())) {
-//                builder.defaultAdvisors(new ChatMemoryAdvisorSpec(modelOptions.getConversantId()));
-//            }
+            if (StringUtils.isNotBlank(modelOptions.getConversantId())) {
+                builder.defaultAdvisors(new ChatMemoryAdvisorSpec(modelOptions.getConversantId()));
+            }
         }
         if (BooleanUtils.isTrue(modelOptions.getEnableLogging())) {
             //启用日志记录，org.springframework.ai.chat.client.advisor=DEBUG

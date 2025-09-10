@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
  * @since: 2025/6/25/周三
  **/
 @Configuration
-//@EnableConfigurationProperties(TavilySearchProperties.class)
 @ConditionalOnProperty(prefix = TavilySearchProperties.TAVILY_SEARCH_PREFIX, name = "enabled", havingValue = "true")
 public class TavilySearchAutoConfiguration {
 
