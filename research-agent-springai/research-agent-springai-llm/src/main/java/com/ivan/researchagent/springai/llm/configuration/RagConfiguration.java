@@ -254,10 +254,4 @@ public class RagConfiguration {
         return retrievalRerankAdvisor;
     }
 
-    @Bean(name = "reasoningContentAdvisor")
-    public ReasoningContentAdvisor reasoningContentAdvisor() {
-        // 深度搜索的推理内容顾问
-        ReasoningContentAdvisor reasoningContentAdvisor = new ReasoningContentAdvisor(1);
-        return reasoningContentAdvisor;
-    }
 }

@@ -1,5 +1,6 @@
 package com.ivan.researchagent.springai.llm.configuration;
 
+import com.ivan.researchagent.springai.llm.advisors.ReasoningContentAdvisor;
 import com.ivan.researchagent.springai.llm.memory.database.DatabaseChatMemory;
 import com.ivan.researchagent.springai.llm.memory.database.DatabaseChatMemoryRepository;
 import okhttp3.OkHttpClient;
@@ -59,6 +60,13 @@ public class LLMConfiguration {
     @Bean
     public PromptChatMemoryAdvisor customPromptChatMemoryAdvisor(ChatMemory customChatMemory) {
         return PromptChatMemoryAdvisor.builder(customChatMemory).build();
+    }
+
+    @Bean(name = "reasoningContentAdvisor")
+    public ReasoningContentAdvisor reasoningContentAdvisor() {
+        // 深度搜索的推理内容顾问
+        ReasoningContentAdvisor reasoningContentAdvisor = new ReasoningContentAdvisor(1);
+        return reasoningContentAdvisor;
     }
 
 //    @Bean

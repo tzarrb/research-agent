@@ -134,7 +134,7 @@ public class BrowserUseTool  implements Function<String, ToolExecuteResult> {
 			}
 			""";
 
-    private static final BrowserUseTool browserUseTool = new BrowserUseTool();
+    private static final BrowserUseTool INSTANCE = new BrowserUseTool();
 
     public BrowserUseTool() {
         ChromeOptions options = new ChromeOptions();
@@ -155,7 +155,7 @@ public class BrowserUseTool  implements Function<String, ToolExecuteResult> {
     }
 
     public static FunctionToolCallback getFunctionToolCallback() {
-        return FunctionToolCallback.builder(name, browserUseTool)
+        return FunctionToolCallback.builder(name, INSTANCE)
                 .description(description)
                 .inputSchema(PARAMETERS)
                 .inputType(String.class)

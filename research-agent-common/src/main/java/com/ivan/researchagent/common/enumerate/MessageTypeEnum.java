@@ -25,9 +25,23 @@ public enum MessageTypeEnum {
     /**
      * video format
      */
-    VIDEO;
+    VIDEO,
+
+    /**
+     * audio format
+     */
+    AUDIO
+    ;
 
     public static boolean isMedia(String type) {
+        return IMAGE.name().equals(type) || VIDEO.name().equals(type) || AUDIO.name().equals(type);
+    }
+
+    public static boolean isImageOrVideo(String type) {
         return IMAGE.name().equals(type) || VIDEO.name().equals(type);
+    }
+
+    public static boolean isAudio(String type) {
+        return AUDIO.name().equals(type);
     }
 }

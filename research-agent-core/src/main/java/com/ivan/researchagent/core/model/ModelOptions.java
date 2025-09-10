@@ -42,6 +42,9 @@ public class ModelOptions {
     @JsonPropertyDescription("是否使用对话记忆")
     private Boolean enableMemory = true;
 
+    @JsonPropertyDescription("是否支持多模态")
+    private Boolean enableMulti = false;
+
     @JsonPropertyDescription("是否启用日志记录")
     private Boolean enableLogging = true;
 

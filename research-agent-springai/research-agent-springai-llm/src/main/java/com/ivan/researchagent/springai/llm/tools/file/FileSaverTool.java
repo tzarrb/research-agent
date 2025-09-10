@@ -52,6 +52,8 @@ public class FileSaverTool  implements Function<String, ToolExecuteResult> {
 			}
 			""";
 
+    private static final FileSaverTool INSTANCE = new FileSaverTool();
+
     public static OpenAiApi.FunctionTool getToolDefinition() {
         OpenAiApi.FunctionTool.Function function = new OpenAiApi.FunctionTool.Function(description, name, PARAMETERS);
         OpenAiApi.FunctionTool functionTool = new OpenAiApi.FunctionTool(function);
@@ -59,7 +61,7 @@ public class FileSaverTool  implements Function<String, ToolExecuteResult> {
     }
 
     public static FunctionToolCallback getFunctionToolCallback() {
-        return FunctionToolCallback.builder(name, new FileSaverTool())
+        return FunctionToolCallback.builder(name, INSTANCE)
                 .description(description)
                 .inputSchema(PARAMETERS)
                 .inputType(String.class)

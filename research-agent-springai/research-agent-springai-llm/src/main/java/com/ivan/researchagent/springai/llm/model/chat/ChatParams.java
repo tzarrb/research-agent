@@ -8,10 +8,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
 import java.util.List;
@@ -45,6 +45,9 @@ public class ChatParams implements Serializable {
 
     @JsonPropertyDescription("是否流式对话方法")
     private Boolean enableStream = true;
+
+    @JsonPropertyDescription("是否支持多模态")
+    private Boolean enableMulti = false;
 
     @JsonPropertyDescription("是否使用智能体")
     private Boolean enableAgent = false;
@@ -91,7 +94,7 @@ public class ChatParams implements Serializable {
     @JsonPropertyDescription("智能体")
     private String agent;
 
-    @JsonPropertyDescription("对话输入信息类型，如：TEXT,IMAGE,VIDEO")
+    @JsonPropertyDescription("对话信息媒体类型，如：TEXT,IMAGE,VIDEO,AUDIO")
     private String messageType = "TEXT";
 
     @JsonPropertyDescription("系统提示词")
@@ -133,12 +136,22 @@ public class ChatParams implements Serializable {
     }
 
     public void addUserMessage(String userInput) {
+        addUserMessage(userInput, null, null);
+    }
+
+    public void addUserMessage(String userInput, List<String> mediaUrls, MultipartFile mediaFile) {
         if (StringUtils.isBlank(userInput)) {
             return;
         }
 
+        ChatRoleMessage userMessage = ChatRoleMessage.builder()
+                .role(MessageType.USER.getValue())
+                .content(userInput)
+                .mediaUrls(mediaUrls)
+                .mediaFile(mediaFile)
+                .build();
         if (Objects.isNull(this.messages)) {
-            this.messages = Lists.newArrayList(ChatRoleMessage.builder().role(MessageType.USER.getValue()).content(userInput).build());
+            this.messages = Lists.newArrayList(userMessage);
         } else {
 //            ChatRoleMessage userMessage = this.messages.stream()
 //                    .filter(message -> MessageType.USER.getValue().equals(message.getRole()))
@@ -150,7 +163,7 @@ public class ChatParams implements Serializable {
             this.messages = this.messages.stream()
                     .filter(message -> !MessageType.USER.getValue().equals(message.getRole()))
                     .collect(Collectors.toList());
-            this.messages.add(ChatRoleMessage.builder().role(MessageType.USER.getValue()).content(userInput).build());
+            this.messages.add(userMessage);
         }
     }
 

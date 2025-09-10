@@ -25,7 +25,7 @@ import java.util.Objects;
  * @since: 2025/6/24/周二
  **/
 @Slf4j
-public class ReasoningContentAdvisor  implements BaseAdvisor {
+public class ReasoningContentAdvisor implements BaseAdvisor {
 
     private final int order;
 
@@ -51,7 +51,7 @@ public class ReasoningContentAdvisor  implements BaseAdvisor {
             return chatClientResponse;
         }
 
-        log.debug("Advisor metadata output: {}", resp.getResults().get(0).getOutput().getMetadata());
+        log.debug("Reasoning content advisor metadata output: {}", resp.getResults().get(0).getOutput().getMetadata());
         String reasoningContent = String.valueOf(resp.getResults().get(0).getOutput().getMetadata().get("reasoningContent"));
         if (StringUtils.isEmpty(reasoningContent)) {
             log.debug("No reasoning content found, skipping reasoning content processing.");
@@ -68,7 +68,7 @@ public class ReasoningContentAdvisor  implements BaseAdvisor {
                             output.getToolCalls(),
                             output.getMedia()
                     );
-                    return new Generation(output, generation.getMetadata());
+                    return new Generation(thinkAssistantMessage, generation.getMetadata());
                 }).toList();
 
         ChatResponse thinkChatResp = ChatResponse.builder().from(resp).generations(thinkGenerations).build();

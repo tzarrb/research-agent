@@ -1,6 +1,6 @@
 package com.ivan.researchagent.main.controller;
 
-import com.ivan.researchagent.main.model.chat.ChatRequest;
+import com.ivan.researchagent.springai.llm.model.chat.ChatRequest;
 import com.ivan.researchagent.springai.agent.agentic.routerassistant.RoutingAgent;
 import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.model.chat.ChatResult;
@@ -48,7 +48,7 @@ public class AgentController {
 
         ChatResult chatResult = routingAgent.call(chatParams);
 
-        response.setHeader("sessionId", chatResult.getSessionId());
+        response.setHeader("sessionId", chatResult.getConversantId());
         return chatResult.getContent();
     }
 
@@ -68,7 +68,7 @@ public class AgentController {
 
         ChatResult chatResult = routingAgent.call(chatParams);
 
-        response.setHeader("sessionId", chatResult.getSessionId());
+        response.setHeader("sessionId", chatResult.getConversantId());
         return chatResult.getContent();
     }
 
@@ -86,8 +86,8 @@ public class AgentController {
         Flux<ChatResult> chatResult = routingAgent.stream(chatParams);
 
         return chatResult.map(result -> {
-            log.info("sessionId:{}, streamChat result:{}", result.getSessionId(), result.getContent());
-            response.setHeader("sessionId", result.getSessionId());
+            log.info("sessionId:{}, streamChat result:{}", result.getConversantId(), result.getContent());
+            response.setHeader("sessionId", result.getConversantId());
             return result.getContent();
         });
     }
@@ -110,8 +110,8 @@ public class AgentController {
         Flux<ChatResult> chatResult = routingAgent.stream(chatParams);
 
         return chatResult.map(result -> {
-            log.info("sessionId:{}, streamChat result:{}", result.getSessionId(), result.getContent());
-            response.setHeader("sessionId", result.getSessionId());
+            log.info("sessionId:{}, streamChat result:{}", result.getConversantId(), result.getContent());
+            response.setHeader("sessionId", result.getConversantId());
             return result.getContent();
         });
     }

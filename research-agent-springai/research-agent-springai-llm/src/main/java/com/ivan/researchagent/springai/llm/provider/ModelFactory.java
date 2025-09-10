@@ -110,10 +110,11 @@ public class ModelFactory {
                 if (StringUtils.isNotBlank(modelOptions.getModel())) {
                     dashScopeChatOptions.setModel(modelOptions.getModel());
                 }
-                if(MessageTypeEnum.isMedia(modelOptions.getMessageType())) {
+                if(BooleanUtils.isTrue(modelOptions.getEnableMulti())) {
                     //多模态
                     dashScopeChatOptions.setModel(multiModel);
                     dashScopeChatOptions.setMultiModel(true);
+                    dashScopeChatOptions.setVlHighResolutionImages(true);
                 }
                 //设置流式对话
                 dashScopeChatOptions.setStream(modelOptions.getEnableStream());

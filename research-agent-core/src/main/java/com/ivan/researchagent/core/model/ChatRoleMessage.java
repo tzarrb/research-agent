@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
 import java.util.List;
@@ -35,6 +36,9 @@ public class ChatRoleMessage implements Serializable {
     @JsonPropertyDescription("对话的媒体链接")
     private List<String> mediaUrls;
 
+    @JsonPropertyDescription("对话的媒体文件")
+    private MultipartFile mediaFile;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -45,6 +49,6 @@ public class ChatRoleMessage implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(role);
+        return Objects.hash(role, content);
     }
 }
