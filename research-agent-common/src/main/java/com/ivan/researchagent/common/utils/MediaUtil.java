@@ -81,14 +81,14 @@ public class MediaUtil {
             }
 
             int totalFrames = grabber.getLengthInFrames();
-            int step = totalFrames / frameCount; // 计算帧间隔
+            int step = Math.max(1, totalFrames / frameCount); // 计算帧间隔
 
             Java2DFrameConverter converter = new Java2DFrameConverter();
             for (int i = 0; i < frameCount; i++) {
                 int frameNumber = i * step; // 计算当前帧位置
                 grabber.setFrameNumber(frameNumber);
                 Frame frame = grabber.grabImage();
-                if (frame.image == null) {
+                if (frame == null || frame.image == null) {
                     continue;
                 }
 

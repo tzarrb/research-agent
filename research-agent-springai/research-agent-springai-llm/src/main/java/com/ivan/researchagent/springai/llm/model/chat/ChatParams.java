@@ -62,7 +62,7 @@ public class ChatParams implements Serializable {
     private Boolean enableThink = false;
 
     @JsonPropertyDescription("对话会话ID，也是对话记忆的唯一标识")
-    private String sessionId;
+    private String conversantId;
 
     @JsonPropertyDescription("聊天对话调用工具")
     private List<Object> tools;

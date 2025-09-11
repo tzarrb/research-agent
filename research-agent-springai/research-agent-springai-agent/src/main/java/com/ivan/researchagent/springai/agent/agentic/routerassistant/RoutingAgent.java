@@ -164,7 +164,7 @@ public class RoutingAgent {
         //Flux<ChatResult> distributionResult = streamDistributionAgent(chatMessage);
         Flux<ChatResult> distributionResult =  chatService.steam(chatParams)
                 .flatMap(chatResult -> {
-                    log.info("sessionId:{}, agent router action stream request:{}, result：{}", chatParams.getSessionId(), chatParams.findUserMessage(), chatResult.getContent());
+                    log.info("sessionId:{}, agent router action stream request:{}, result：{}", chatParams.getConversantId(), chatParams.findUserMessage(), chatResult.getContent());
                     return Flux.just(chatResult);
                 });
 
@@ -185,10 +185,10 @@ public class RoutingAgent {
             chatParams.setAgent(agentRequest.getTargetAgent());
             chatParams.addUserMessage(agentRequest.getOriginalInput());
 
-            log.info("sessionId:{}, agent router distribution request:{}, result：{}", chatParams.getSessionId(), chatParams.findUserMessage(), distributionContent);
+            log.info("sessionId:{}, agent router distribution request:{}, result：{}", chatParams.getConversantId(), chatParams.findUserMessage(), distributionContent);
             return distributionAgent(chatParams);
         } else {
-            log.info("sessionId:{}, agent router action request:{}, result：{}", chatParams.getSessionId(), chatParams.findUserMessage(), distributionResult.getContent());
+            log.info("sessionId:{}, agent router action request:{}, result：{}", chatParams.getConversantId(), chatParams.findUserMessage(), distributionResult.getContent());
             return distributionResult;
         }
     }
@@ -207,10 +207,10 @@ public class RoutingAgent {
                         chatParams.setAgent(agentRequest.get().getTargetAgent());
                         chatParams.addUserMessage(agentRequest.get().getOriginalInput());
 
-                        log.info("sessionId:{}, agent router distribution stream request:{}, result：{}", chatParams.getSessionId(), chatParams.findUserMessage(), distributionContent);
+                        log.info("sessionId:{}, agent router distribution stream request:{}, result：{}", chatParams.getConversantId(), chatParams.findUserMessage(), distributionContent);
                         return streamDistributionAgent(chatParams);
                     } else {
-                        log.info("sessionId:{}, agent router action stream request:{}, result：{}", chatParams.getSessionId(), chatParams.findUserMessage(), chatResult.getContent());
+                        log.info("sessionId:{}, agent router action stream request:{}, result：{}", chatParams.getConversantId(), chatParams.findUserMessage(), chatResult.getContent());
                         return Flux.just(chatResult);
                     }
                 });

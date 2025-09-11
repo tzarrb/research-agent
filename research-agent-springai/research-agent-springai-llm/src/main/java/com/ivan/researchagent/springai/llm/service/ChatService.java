@@ -21,7 +21,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -127,7 +126,7 @@ public class ChatService implements InitializingBean {
         ModelOptions modelOptions = modelOptionsBuilder
                 .defaultSystem(chatParams.getDefaultSystem())
                 ///.defaultUser(chatRequest.findUserMessage())
-                .conversantId(chatParams.getSessionId())
+                .conversantId(chatParams.getConversantId())
                 .enableMemory(chatParams.getEnableMemory())
                 .enableStream(chatParams.getEnableStream())
                 .enableMulti(chatParams.getEnableMulti())
@@ -150,10 +149,10 @@ public class ChatService implements InitializingBean {
      */
     private ChatClient.ChatClientRequestSpec buildRequestSpec(ChatParams chatParams) {
         //对话会话的唯一标识
-        String sessionId = chatParams.getSessionId();
+        String sessionId = chatParams.getConversantId();
         if (StringUtils.isBlank(sessionId)) {
             sessionId = IdUtil.nextId().toString();
-            chatParams.setSessionId(sessionId);
+            chatParams.setConversantId(sessionId);
             log.info("生成新的sessionId:{}", sessionId);
         }
 
@@ -165,7 +164,7 @@ public class ChatService implements InitializingBean {
 
         if (chatParams.getEnableMemory()) {
             //对话记忆的唯一标识
-            String conversantId = chatParams.getSessionId();
+            String conversantId = chatParams.getConversantId();
 
             //对话增强，默认使用 MemoryAdvisor
             requestSpec.advisors(new ChatMemoryAdvisorSpec(conversantId));
@@ -254,12 +253,12 @@ public class ChatService implements InitializingBean {
         ChatResponse response = requestSpec.call().chatResponse();
         AssistantMessage assistantMessage = response.getResult().getOutput();
         ChatResult chatResult = new ChatResult();
-        chatResult.setConversantId(chatParams.getSessionId());
+        chatResult.setConversantId(chatParams.getConversantId());
         //chatResult.setChatResponse(response);
         chatResult.setContent(assistantMessage.getText());
         chatResult.setReasoningContent(getReasoningContent(chatParams, assistantMessage));
         chatResult.setSearchResult(getSearchInfo(chatParams, assistantMessage));
-        log.info("Chat result: sessionId:{}, content：{}, response: {}", chatParams.getSessionId(), chatResult.getContent(), response);
+        log.info("sessionId:{}, Chat result content：{}, response: {}", chatParams.getConversantId(), chatResult.getContent(), response);
         return chatResult;
     }
 
@@ -275,20 +274,16 @@ public class ChatService implements InitializingBean {
     }
 
     public Flux<ChatResult> steam(ChatParams chatParams) {
-       log.info("开始执行流式聊天，sessionId: {}, provider: {}, model: {}, enableStream: {}",
-               chatParams.getSessionId(), chatParams.getProvider(), chatParams.getModel(), chatParams.getEnableStream());
-       
        ChatClient.ChatClientRequestSpec requestSpec = buildRequestSpec(chatParams);
-       log.info("构建请求规格完成，sessionId: {}", chatParams.getSessionId());
        
        return requestSpec.stream().chatResponse()
            .doOnSubscribe(subscription -> {
-               log.info("开始订阅流式响应，sessionId: {}", chatParams.getSessionId());
+               log.debug("sessionId: {}, Stream Chat start", chatParams.getConversantId());
            })
            .map(chatResponse -> {
-               log.debug("大模型返回结果，sessionId: {}, response:{}", chatParams.getSessionId(), chatResponse);
+               log.debug("sessionId: {}, Stream Chat response:{}", chatParams.getConversantId(), chatResponse);
                ChatResult chatResult = new ChatResult();
-               chatResult.setConversantId(chatParams.getSessionId());
+               chatResult.setConversantId(chatParams.getConversantId());
                //chatResult.setChatResponse(chatResponse);
 
                String content = "";
@@ -304,30 +299,30 @@ public class ChatService implements InitializingBean {
                        Object searchResult = getSearchInfo(chatParams, assistantMessage);
                        chatResult.setSearchResult(searchResult);
 
-                       log.debug("Stream chat result: sessionId: {}, content: {}, reasoningContent:{}, searchResult:{}",
-                               chatParams.getSessionId(), content, reasoningContent, searchResult);
+                       log.debug("sessionId: {}, Stream Chat result, content: {}, reasoningContent:{}, searchResult:{}",
+                               chatParams.getConversantId(), content, reasoningContent, searchResult);
                    } else {
                        content = "模型返回的结果没有AI助手信息!!!";
-                       log.warn("sessionId:{}, Generation存在但Output为空", chatParams.getSessionId());
+                       log.warn("sessionId:{}, Stream Chat received null Generation Output", chatParams.getConversantId());
                    }
                } else {
                    content = "模型无结果返回!!!";
-                   log.warn("sessionId:{}, stream request received null generation", chatParams.getSessionId());
+                   log.warn("sessionId:{}, Stream Chat received null Generation", chatParams.getConversantId());
                }
 
                chatResult.setContent(content);
                return chatResult;
            })
            .doOnError(error -> {
-               log.error("流式聊天过程中发生错误，sessionId: {}, error: ", chatParams.getSessionId(), error);
+               log.error("sessionId: {}, Stream Chat error: ", chatParams.getConversantId(), error);
            })
            .doOnComplete(() -> {
-               log.info("流式聊天完成，sessionId: {}", chatParams.getSessionId());
+               log.info("sessionId: {}, Stream Chat complete", chatParams.getConversantId());
            })
            .onErrorResume(error -> {
-               log.error("sessionId:{}, Error in stream chat: ", chatParams.getSessionId(), error);
+               log.error("sessionId:{}, Error in stream chat: ", chatParams.getConversantId(), error);
                ChatResult chatResult = new ChatResult();
-               chatResult.setConversantId(chatParams.getSessionId());
+               chatResult.setConversantId(chatParams.getConversantId());
                chatResult.setContent("发生错误: " + error.getMessage());
 
                return Mono.just(chatResult);
@@ -348,9 +343,9 @@ public class ChatService implements InitializingBean {
                 .subscribe(
                         chunk -> {
                             try {
-                                log.debug("大模型返回结果，sessionId: {}, response:{}", chatParams.getSessionId(), chunk);
-                                Map<String, Object> result = new HashMap<String, Object>();
-                                result.put("sessionId", chatParams.getSessionId());
+                                log.debug("sessionId: {}, SSE Chat response:{}", chatParams.getConversantId(), chunk);
+                                ChatResult chatResult = new ChatResult();
+                                chatResult.setConversantId(chatParams.getConversantId());
 
                                 Generation generation = chunk.getResult();
                                 if (Objects.nonNull(generation)) {
@@ -359,27 +354,27 @@ public class ChatService implements InitializingBean {
                                     if (StringUtils.isEmpty(content)) {
                                         content = "";
                                     }
-                                    result.put("content", content);
+                                    chatResult.setContent(content);
 
-                                    log.info("sessionId:{}, sse chat content: {}, response: {}",
-                                            chatParams.getSessionId(), content, JSON.toJSONString(chunk));
+                                    log.debug("sessionId:{}, SSE Chat content: {}, message: {}",
+                                            chatParams.getConversantId(), content, JSON.toJSONString(assistantMessage));
 
                                     String reasoningContent = getReasoningContent(chatParams, assistantMessage);
-                                    result.put("reasoningContent", reasoningContent);
+                                    chatResult.setReasoningContent(reasoningContent);
 
                                     Object searchResult = getSearchInfo(chatParams, assistantMessage);
-                                    result.put("searchResult", searchResult);
+                                    chatResult.setSearchResult(searchResult);
 
-                                    log.debug("SSE chat result: sessionId: {}, content: {}, reasoningContent:{}, searchResult:{}",
-                                            chatParams.getSessionId(), content, reasoningContent, searchResult);
+                                    log.info("sessionId: {}, SSE Chat result, content: {}, reasoningContent:{}, searchResult:{}",
+                                            chatParams.getConversantId(), content, reasoningContent, searchResult);
                                 } else  {
-                                    result.put("content", "模型无结果返回!!!");
-                                    log.warn("sessionId:{}, sse request received null generation", chatParams.getSessionId());
+                                    chatResult.setContent("模型无结果返回!!!");
+                                    log.warn("sessionId:{}, SSE Chat received null generation", chatParams.getConversantId());
                                 }
 
                                 // 发送消息到客户端
                                 // 注意这里，我们直接发送 JSON 字符串，让 SseEmitter 自动添加 data: 前缀
-                                sseEmitter.send(result);
+                                sseEmitter.send(chatResult);
                             } catch (IOException e) {
                                 sseEmitter.completeWithError(e);
                             }
@@ -387,7 +382,7 @@ public class ChatService implements InitializingBean {
                         error -> {
                             try {
                                 sseEmitter.send(Map.of("content", "发生错误: " + error.getMessage()));
-                                log.error("sessionId:{}, Error in stream chat: ", chatParams.getSessionId(), error);
+                                log.error("sessionId:{}, Error in sse chat: ", chatParams.getConversantId(), error);
                             } catch (IOException e) {
                                 sseEmitter.completeWithError(e);
                             } finally {
@@ -456,20 +451,20 @@ public class ChatService implements InitializingBean {
             reasoningContent = String.valueOf(assistantMessage.getMetadata().get("reasoningContent"));
         }
 
-        log.info("sessionId:{}, chat reasoning model content: {}, message: {}",
-                chatParams.getSessionId(), reasoningContent, JSON.toJSONString(assistantMessage));
+        log.debug("sessionId:{}, chat reasoning model content: {}, message: {}",
+                chatParams.getConversantId(), reasoningContent, JSON.toJSONString(assistantMessage));
 
         return reasoningContent;
     }
 
     private Object getSearchInfo(ChatParams chatParams, AssistantMessage assistantMessage) {
-        if (!BooleanUtils.isTrue(chatParams.getEnableWeb())) {
+        if (BooleanUtils.isNotTrue(chatParams.getEnableWeb())) {
             return "";
         }
 
         Object searchResult = assistantMessage.getMetadata().get("search_info");
-        log.info("sessionId:{}, sse chat search info: {}, message: {}",
-                chatParams.getSessionId(), JSON.toJSON(searchResult), JSON.toJSONString(assistantMessage));
+        log.debug("sessionId:{}, chat search info: {}, message: {}",
+                chatParams.getConversantId(), JSON.toJSON(searchResult), JSON.toJSONString(assistantMessage));
         return searchResult;
     }
 }

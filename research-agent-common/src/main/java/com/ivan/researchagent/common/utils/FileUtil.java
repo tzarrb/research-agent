@@ -1,5 +1,6 @@
 package com.ivan.researchagent.common.utils;
 
+import com.ivan.researchagent.common.exception.BizException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -21,9 +22,8 @@ public class FileUtil {
      * save file to tmp folder
      */
     public static String saveFile(MultipartFile file, String path) throws IOException {
-
         if (file == null || file.isEmpty()) {
-            throw new BindException("File is null or empty");
+            throw new BizException("File is null or empty");
         }
 
         // 将文件保存到文件夹下

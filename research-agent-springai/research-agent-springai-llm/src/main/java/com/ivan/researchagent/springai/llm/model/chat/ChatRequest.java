@@ -68,7 +68,7 @@ public class ChatRequest implements Serializable {
                 .provider(provider)
                 .model(model)
                 .defaultSystem(defaultSystem)
-                .sessionId(conversantId)
+                .conversantId(conversantId)
                 .enableMemory(enableMemory)
                 .enableStream(enableStream)
                 .enableWeb(enableWeb)

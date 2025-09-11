@@ -41,10 +41,10 @@ public class DoctorAgentController {
     @GetMapping("")
     public String chat(@RequestBody ChatParams chatParams, HttpServletRequest request, HttpServletResponse response) {
 
-        String sessionId = chatParams.getSessionId();
+        String sessionId = chatParams.getConversantId();
         if (StringUtils.isBlank(sessionId)) {
             sessionId = request.getHeader("sessionId");
-            chatParams.setSessionId(sessionId);
+            chatParams.setConversantId(sessionId);
         }
 
         ChatResult chatResult = doctorOperateAgent.call(chatParams);
@@ -56,10 +56,10 @@ public class DoctorAgentController {
     @GetMapping("/stream")
     public Flux<String> streamChat(@RequestBody ChatParams chatParams, HttpServletRequest request, HttpServletResponse response) {
 
-        String sessionId = chatParams.getSessionId();
+        String sessionId = chatParams.getConversantId();
         if (StringUtils.isBlank(sessionId)) {
             sessionId = request.getHeader("sessionId");
-            chatParams.setSessionId(sessionId);
+            chatParams.setConversantId(sessionId);
         }
 
         Flux<ChatResult> chatResult = doctorOperateAgent.stream(chatParams);
@@ -74,15 +74,15 @@ public class DoctorAgentController {
     @GetMapping(value = "/graph", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> graphChat(@RequestBody ChatParams chatParams, HttpServletRequest request, HttpServletResponse response) throws GraphRunnerException {
 
-        String sessionId = chatParams.getSessionId();
+        String sessionId = chatParams.getConversantId();
         if (StringUtils.isBlank(sessionId)) {
             sessionId = request.getHeader("sessionId");
-            chatParams.setSessionId(sessionId);
+            chatParams.setConversantId(sessionId);
         }
 
         Flux<ServerSentEvent<String>> chatResult = doctorGraphAgent.sseChat(chatParams);
-        response.setHeader("sessionId", chatParams.getSessionId());
-        log.info("sessionId:{}, sseChat result:{}", chatParams.getSessionId(), chatResult);
+        response.setHeader("sessionId", chatParams.getConversantId());
+        log.info("sessionId:{}, sseChat result:{}", chatParams.getConversantId(), chatResult);
         return chatResult;
     }
 

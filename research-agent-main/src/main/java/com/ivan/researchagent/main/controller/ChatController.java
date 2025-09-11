@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
@@ -62,10 +63,10 @@ public class ChatController {
     public ChatResult chat(@RequestBody ChatRequest chatRequest, HttpServletRequest request, HttpServletResponse response) {
         ChatParams chatParams = chatRequest.convertParams();
 
-        String sessionId = chatParams.getSessionId();
+        String sessionId = chatParams.getConversantId();
         if (StringUtils.isBlank(sessionId)) {
             sessionId = request.getHeader("sessionId");
-            chatParams.setSessionId(sessionId);
+            chatParams.setConversantId(sessionId);
         }
 
         chatParams.setToolCallbackProviders(Lists.newArrayList(commonToolCallbackProvider, asyncMcpToolCallbackProvider));
@@ -90,7 +91,7 @@ public class ChatController {
         chatParams.setToolCallbackProviders(Lists.newArrayList(commonToolCallbackProvider, asyncMcpToolCallbackProvider));
 
         String sessionId = request.getHeader(Constant.SESSION_ID);
-        chatParams.setSessionId(sessionId);
+        chatParams.setConversantId(sessionId);
 
         ChatResult chatResult = chatService.chat(chatParams);
         response.setHeader(Constant.SESSION_ID, chatResult.getConversantId());
@@ -103,13 +104,13 @@ public class ChatController {
         ChatParams chatParams = chatRequest.convertParams();
 
         String sessionId = request.getHeader(Constant.SESSION_ID);
-        chatParams.setSessionId(sessionId);
+        chatParams.setConversantId(sessionId);
 
         chatParams.setToolCallbackProviders(Lists.newArrayList(commonToolCallbackProvider, asyncMcpToolCallbackProvider));
 
         log.info("开始调用ChatService.steam方法，sessionId: {}", sessionId);
         Flux<ChatResult> chatResult = chatService.steam(chatParams);
-        response.setHeader(Constant.SESSION_ID, chatParams.getSessionId());
+        response.setHeader(Constant.SESSION_ID, chatParams.getConversantId());
 
 //        return chatResult.map(result -> {
 //            log.info("sessionId:{}, streamChat result:{}", result.getSessionId(), result.getContent());
@@ -134,12 +135,12 @@ public class ChatController {
         chatParams.setEnableAgent(false);
 
         String sessionId = request.getHeader(Constant.SESSION_ID);
-        chatParams.setSessionId(sessionId);
+        chatParams.setConversantId(sessionId);
 
         chatParams.setToolCallbackProviders(Lists.newArrayList(commonToolCallbackProvider, asyncMcpToolCallbackProvider));
 
         Flux<ChatResult> chatResult = chatService.steam(chatParams);
-        response.setHeader(Constant.SESSION_ID, chatParams.getSessionId());
+        response.setHeader(Constant.SESSION_ID, chatParams.getConversantId());
 
 //        return chatResult.map(result -> {
 //            log.info("sessionId:{}, streamChat result:{}", result.getSessionId(), result.getContent());
@@ -152,19 +153,23 @@ public class ChatController {
 
     @PostMapping("/sse/chat")
     @Operation(summary = "SSE流式聊天", description = "返回流式聊天消息")
-    public SseEmitter sseChatGet(@RequestBody ChatRequest chatRequest, HttpServletRequest request, HttpServletResponse response) {
+    public SseEmitter sseChatGet(@RequestPart("chatRequest") ChatRequest chatRequest,
+                                 @RequestPart(name = "mediaFile", required = false) MultipartFile mediaFile,
+                                 @RequestHeader(name = "sessionId", required = false) String sessionId,
+                                 HttpServletRequest request, HttpServletResponse response) {
+        chatRequest.setMediaFile(mediaFile);
         ChatParams chatParams = chatRequest.convertParams();
         chatParams.addSystemMessage(systemPrompt);
 
-        String sessionId = request.getHeader(Constant.SESSION_ID);
-        chatParams.setSessionId(sessionId);
+        //String sessionId = request.getHeader(Constant.SESSION_ID);
+        chatParams.setConversantId(sessionId);
 
 //        chatRequest.setToolNames(Lists.newArrayList("tavilySearchService"));
 
         chatParams.setToolCallbackProviders(Lists.newArrayList(commonToolCallbackProvider, asyncMcpToolCallbackProvider));
 
         SseEmitter sseEmitter = chatService.sseChat(chatParams);
-        response.setHeader(Constant.SESSION_ID, chatParams.getSessionId());
+        response.setHeader(Constant.SESSION_ID, chatParams.getConversantId());
 
         return sseEmitter;
     }

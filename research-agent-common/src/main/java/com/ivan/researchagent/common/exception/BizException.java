@@ -62,6 +62,28 @@ public class BizException extends RuntimeException {
         };
     }
 
+    /**
+     * 构造通用异常
+     *
+     * @param detailedMessage 详细描述
+     * @param t               导火索
+     */
+    public BizException(final String detailedMessage,
+                        final Throwable t) {
+        super(detailedMessage, t);
+        this.errorInfo = new ErrorInfo() {
+            @Override
+            public Integer getCode() {
+                return -1;
+            }
+
+            @Override
+            public String getMessage() {
+                return detailedMessage;
+            }
+        };
+    }
+
 
     /**
      * 构造通用异常
