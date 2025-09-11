@@ -38,11 +38,11 @@ public class DoctorGraphAgent {
     public Flux<ServerSentEvent<String>> sseChat(ChatParams chatParams) throws GraphRunnerException {
         boolean isNewSession = false;
         //对话会话的唯一标识
-        String sessionId = chatParams.getSessionId();
+        String sessionId = chatParams.getConversantId();
         if (StringUtils.isBlank(sessionId)) {
             isNewSession = true;
             sessionId = UUID.randomUUID().toString();
-            chatParams.setSessionId(sessionId);
+            chatParams.setConversantId(sessionId);
             log.info("sessionId:{}", sessionId);
         }
 

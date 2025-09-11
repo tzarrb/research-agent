@@ -4,12 +4,16 @@ import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
 import com.alibaba.fastjson.support.config.FastJsonConfig;
 import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
+import com.google.common.collect.Lists;
 import org.springframework.ai.tool.resolution.ToolCallbackResolver;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -30,6 +34,10 @@ import java.util.List;
  **/
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
+    @Bean
+    public MultipartResolver multipartResolver() {
+        return new StandardServletMultipartResolver();
+    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -69,7 +77,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
         fastJsonConfig.setSerializeConfig(serializeConfig);
         fastJsonHttpMessageConverter.setFastJsonConfig(fastJsonConfig);
 
-        fastJsonHttpMessageConverter.setSupportedMediaTypes(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
+        fastJsonHttpMessageConverter.setSupportedMediaTypes(Lists.newArrayList(
+                MediaType.APPLICATION_JSON,
+                MediaType.MULTIPART_FORM_DATA,
+                MediaType.APPLICATION_OCTET_STREAM,
+                MediaType.APPLICATION_FORM_URLENCODED,
+                MediaType.TEXT_EVENT_STREAM));
         //放在最前面，优先级最高
         converters.add(0, fastJsonHttpMessageConverter);
     }
@@ -85,4 +98,5 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowedHeaders("*")
                 .allowCredentials(false).maxAge(3600);
     }
+
 }

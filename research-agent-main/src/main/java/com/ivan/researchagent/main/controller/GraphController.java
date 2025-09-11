@@ -10,10 +10,8 @@ import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.google.common.collect.Lists;
 import com.ivan.researchagent.common.utils.IdUtil;
 import com.ivan.researchagent.springai.agent.graph.core.GraphUtil;
-import com.ivan.researchagent.springai.agent.tool.CommonTools;
 import com.ivan.researchagent.springai.llm.model.chat.ChatParams;
 import com.ivan.researchagent.springai.llm.service.ChatService;
-import io.modelcontextprotocol.client.McpAsyncClient;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -23,7 +21,6 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.mcp.AsyncMcpToolCallbackProvider;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.resolution.ToolCallbackResolver;
 import org.springframework.web.bind.annotation.*;
@@ -255,7 +252,7 @@ public class GraphController {
         ChatParams chatParams = ChatParams.builder()
                 .enableMemory(true)
                 .enableStream(false)
-                .sessionId(threadId)
+                .conversantId(threadId)
                 .defaultToolNames(Lists.newArrayList("getWeatherService","tavilySearchService"))
                 .defaultToolCallbackProviders(Lists.newArrayList(asyncMcpToolCallbackProvider))
                 .build();

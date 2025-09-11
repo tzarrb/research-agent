@@ -40,10 +40,10 @@ public class AgentController {
     public String chat(@RequestBody ChatRequest chatRequest, HttpServletRequest request, HttpServletResponse response) {
         ChatParams chatParams = chatRequest.convertParams();
 
-        String sessionId = chatParams.getSessionId();
+        String sessionId = chatParams.getConversantId();
         if (StringUtils.isBlank(sessionId)) {
             sessionId = request.getHeader("sessionId");
-            chatParams.setSessionId(sessionId);
+            chatParams.setConversantId(sessionId);
         }
 
         ChatResult chatResult = routingAgent.call(chatParams);
@@ -64,7 +64,7 @@ public class AgentController {
         chatParams.setEnableAgent(true);
 
         String sessionId = request.getHeader("sessionId");
-        chatParams.setSessionId(sessionId);
+        chatParams.setConversantId(sessionId);
 
         ChatResult chatResult = routingAgent.call(chatParams);
 
@@ -77,10 +77,10 @@ public class AgentController {
     public Flux<String> streamChat(@RequestBody ChatRequest chatRequest, HttpServletRequest request, HttpServletResponse response) {
         ChatParams chatParams = chatRequest.convertParams();
 
-        String sessionId = chatParams.getSessionId();
+        String sessionId = chatParams.getConversantId();
         if (StringUtils.isBlank(sessionId)) {
             sessionId = request.getHeader("sessionId");
-            chatParams.setSessionId(sessionId);
+            chatParams.setConversantId(sessionId);
         }
 
         Flux<ChatResult> chatResult = routingAgent.stream(chatParams);
@@ -105,7 +105,7 @@ public class AgentController {
         chatParams.setEnableAgent(true);
 
         String sessionId = request.getHeader("sessionId");
-        chatParams.setSessionId(sessionId);
+        chatParams.setConversantId(sessionId);
 
         Flux<ChatResult> chatResult = routingAgent.stream(chatParams);
 

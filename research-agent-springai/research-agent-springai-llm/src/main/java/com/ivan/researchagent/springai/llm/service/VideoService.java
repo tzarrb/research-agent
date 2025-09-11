@@ -26,6 +26,12 @@ public class VideoService {
     @Resource
     private DashScopeVideoModel videoModel;
 
+    /**
+     * 生成视频
+     *
+     * @param prompt
+     * @return
+     */
     public String genVideo(String prompt) {
         if (StringUtils.isBlank(prompt)) {
             return "";

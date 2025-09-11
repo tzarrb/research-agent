@@ -44,47 +44,37 @@ public class AudioService {
             AudioTranscriptionModel transcriptionModel,
             SpeechSynthesisModel speechSynthesisModel
     ) {
-
         this.transcriptionModel = transcriptionModel;
         this.speechSynthesisModel = speechSynthesisModel;
     }
+
 
     /**
      * Convert text to speech
      */
     public byte[] text2audio(String prompt) {
-
-        Flux<SpeechSynthesisResponse> response = speechSynthesisModel.stream(
-                new SpeechSynthesisPrompt(prompt)
-        );
-
-        CountDownLatch latch = new CountDownLatch(1);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        try {
-            response.doFinally(
-                    signal -> latch.countDown()
-            ).subscribe(synthesisResponse -> {
-
-                ByteBuffer byteBuffer = synthesisResponse.getResult().getOutput().getAudio();
-                byte[] bytes = new byte[byteBuffer.remaining()];
-                byteBuffer.get(bytes);
-
-                try {
-                    outputStream.write(bytes);
-                }
-                catch (IOException e) {
-                    throw new BizException("Error writing to output stream " + e.getMessage());
-                }
-            });
-
-            latch.await();
-        }
-        catch (InterruptedException e) {
-            throw new BizException("Operation interrupted. " + e.getMessage());
-        }
-
-        return outputStream.toByteArray();
+        return speechSynthesisModel
+                .stream(new SpeechSynthesisPrompt(prompt))
+                // extract each chunk’s bytes
+                .map(resp -> {
+                    ByteBuffer buf = resp.getResult().getOutput().getAudio();
+                    byte[] bytes = new byte[buf.remaining()];
+                    buf.get(bytes);
+                    return bytes;
+                })
+                // accumulate into one ByteArrayOutputStream
+                .reduce(new ByteArrayOutputStream(), (out, chunk) -> {
+                    try {
+                        out.write(chunk);
+                        return out;
+                    } catch (IOException e) {
+                        throw new BizException("Error writing to stream: " + e.getMessage(), e);
+                    }
+                })
+                // convert to raw byte[]
+                .map(ByteArrayOutputStream::toByteArray)
+                // block until complete
+                .block();
     }
 
     /**

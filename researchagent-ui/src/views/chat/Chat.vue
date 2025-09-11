@@ -143,8 +143,19 @@
             <Sender v-model="sendValue" :loading="isLoad" @submit="sendSseRequest" @cancel="abortSseRequest" variant="updown" submit-type="enter" :auto-size="{ minRows: 2, maxRows: 5 }" clearable allow-speech placeholder="💌 给 ResearchAgent 发送消息">
               <template #prefix>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                  <el-button icon="Paperclip" round plain color="#626aef">
-                  </el-button>
+                  <el-upload
+                      v-model:file-list="fileList"
+                      ref="upload"
+                      class="upload-demo"
+                      action="#"
+                      :limit="1"
+                      :auto-upload="false"
+                      :on-change="handleChange"
+                      :on-exceed="handleExceed"
+                      :on-remove="handleRemove"
+                  >
+                    <el-button icon="Paperclip" round plain color="#626aef"></el-button>
+                  </el-upload>
 
                   <div :class="{ isThink }" style="display: flex; align-items: center; gap: 4px; padding: 2px 12px; border: 1px solid silver; border-radius: 15px; cursor: pointer; font-size: 12px;" @click="isThink = !isThink">
                     <el-icon><ElementPlus/></el-icon>
@@ -184,7 +195,7 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick, computed } from 'vue'
 // 导入组件
-import {ElMessage} from "element-plus";
+import {ElMessage, genFileId, UploadInstance, UploadProps, UploadUserFile} from "element-plus";
 import { useSend, XRequest } from 'vue-element-plus-x';
 
 import markdownItMermaid from '@jsonlee_12138/markdown-it-mermaid'
@@ -205,6 +216,8 @@ const mainStore = useMainStore();
 const mdPlugins = [markdownItMermaid({ delay: 100, forceLegacyMathML: true })]
 const highlight = usePrism()
 
+const uploadRef = ref<UploadInstance>()
+
 const avatarUser = ref('http://gips3.baidu.com/it/u=3886271102,3123389489&fm=3028&app=3028&f=JPEG&fmt=auto?w=1280&h=960')
 const avatarAi = ref('https://mdn.alipayobjects.com/huamei_iwk9zp/afts/img/A*s5sNRo5LjfQAAAAAAAAAAAAADgCCAQ/fmt.webp')
 
@@ -218,6 +231,28 @@ const isLoad = ref(false)
 const isThink = ref(false)
 const isLocal = ref(false)
 const isWeb = ref(false)
+
+const upload = ref<UploadInstance>()
+const fileList = ref([])
+const selectedFile = ref(null)
+
+const handleExceed: UploadProps['onExceed'] = (files) => {
+  upload.value!.clearFiles()
+
+  const file = files[0] as UploadRawFile
+  file.uid = genFileId()
+  upload.value!.handleStart(file)
+}
+
+const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
+  fileList.value = fileList.value.filter(file => file !== uploadFile.raw!)
+  selectedFile.value = null
+}
+
+const handleChange: UploadProps['onChange'] = (uploadFile, uploadFiles) => {
+  fileList.value.push(uploadFile.raw!)
+  selectedFile.value = uploadFile.raw!
+}
 
 // 会话记录 =============================================================================================================
 const conversationItems = ref([])
@@ -268,6 +303,11 @@ function handleMenuClick(menuKey: string, item: any) {
   }
 }
 
+// 刷新请求
+const uploadFile = async () => {
+
+}
+
 // 消息发送 =============================================================================================================
 // messages.push({
 //   key, // 唯一标识
@@ -286,142 +326,6 @@ function handleMenuClick(menuKey: string, item: any) {
 //   maxWidth: '500px', // 气泡最大宽度
 //   done: false, //流消息加载完成
 // })
-
-const sendHandler = () => {
-  if (!sendValue.value.trim() || isLoad.value) return
-
-  const message = sendValue.value
-  inputValue.value = message
-  sendValue.value = ''
-  isLoad.value = true
-
-  // 添加用户消息
-  messages.value.push({
-    key: `${conversationItems.value.length + 1}`,
-    role: 'user',
-    placement: 'end',
-    content: message,
-    isMarkdown: true
-  })
-
-  // 添加AI消息占位
-  messages.value.push({
-    key: `${conversationItems.value.length + 1}`,
-    role: 'ai',
-    content: '',
-    placement: 'start', // start | end 气泡位置,
-    isMarkdown: true, // 是否渲染为 markdown
-    isFog: true, // 是否开启打字雾化效果，该效果 v1.1.6 新增，且在 typing 为 true 时生效，该效果会覆盖 typing 的 suffix 属性
-    typing: true, // 是否开启打字器效果 { step: 5, interval: 35, suffix: '🍆' }
-    loading: true, // 当前气泡的加载状态
-    error: false, // 当前气泡的消息是否报错
-    done: false, // 当前气泡的流消息加载完成
-    thinkingStatus: isThink.value ? 'start' : '', // start | thinking | end | error
-    thinkingContent: '', // 推理内容
-  })
-
-  return message;
-}
-
-const httpRequest = async (message: string) => {
-  try {
-    const response = await fetch(`http://localhost:18080/research-agent/ai/chat/sse/chat?userMessage=${encodeURIComponent(message)}&enableLocal=${isLocal.value}&enableWeb=${isWeb.value}&enableThink=${isThink.value}`, {
-      headers: {
-        'Accept': 'text/event-stream',
-        'sessionId': conversantId.value
-      }
-    })
-
-    if (response.headers.has('sessionId')) {
-      conversantId.value = response.headers.get('sessionId');
-    }
-
-    const reader = response.body.getReader()
-    const decoder = new TextDecoder()
-    let buffer = '' // 添加缓冲区
-
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      if (!isLoad.value) break
-
-      const chunk = decoder.decode(value)
-      buffer += chunk // 将新数据添加到缓冲区
-
-      // 处理SSE格式的数据
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || '' // 保留最后一个不完整的行
-
-      for (const line of lines) {
-        if (!isLoad.value) break
-
-        if (line.startsWith('data:')) {
-          try {
-            const jsonStr = line.slice(5).trim()
-            if (jsonStr) {
-              const data = JSON.parse(jsonStr)
-              if (data.content) {
-                messages.value[messages.value.length - 1].loading = false
-                messages.value[messages.value.length - 1].content += data.content
-                await scrollToBottom()
-              }
-            }
-          } catch (e) {
-            console.error('Error parsing JSON:', e)
-          }
-        }
-      }
-    }
-
-    messages.value[messages.value.length - 1].error = false
-
-    //当content中出现"错误"，"失败"等字符串时，按错误处理
-    if (messages.value[messages.value.length - 1].content.includes('错误')
-        || messages.value[messages.value.length - 1].content.includes('失败')
-        || messages.value[messages.value.length - 1].content.includes('failed')) {
-      messages.value[messages.value.length - 1].error = true
-    }
-
-    //当content内容为空时
-    if (messages.value[messages.value.length - 1].content.trim() === '') {
-      messages.value[messages.value.length - 1].content = '抱歉，发生了错误，请稍后重试。'
-      messages.value[messages.value.length - 1].error = true
-    }
-  } catch (error) {
-    console.error('Error:', error)
-    // '抱歉，发生了错误，请稍后重试。'
-    messages.value[messages.value.length - 1].content += error
-    messages.value[messages.value.length - 1].error = true
-  } finally {
-    isLoad.value = false
-    messages.value[messages.value.length - 1].loading = false
-    // AI消息流式加载结束，done设为true
-    messages.value[messages.value.length - 1].done = true
-    await scrollToBottom()
-  }
-}
-
-const sendMessage = async () => {
-  const message = sendHandler()
-  if (!message.trim()) return
-
-  await httpRequest(message)
-}
-
-// 取消请求，此时服务器并未停止
-const abortMessage =  async() => {
-  isLoad.value = false
-  messages.value[messages.value.length - 1].done = true
-  messages.value[messages.value.length - 1].error = true
-  messages.value[messages.value.length - 1].loading = false
-  messages.value[messages.value.length - 1].content += "\n 请求已取消！！！"
-}
-
-// 刷新请求
-const refreshMessage = async () => {
-  messages.value[messages.value.length - 1].loading = true
-  await httpRequest(inputValue.value)
-}
 
 // Element X SSE 请求 ===============================================================================================
 const sseRequest = new XRequest({
@@ -447,8 +351,8 @@ const sseRequest = new XRequest({
     try {
       const data = JSON.parse(jsonStr)
 
-      if (data.sessionId) {
-        conversantId.value = data.sessionId
+      if (data.conversantId) {
+        conversantId.value = data.conversantId
       }
 
       // 更新气泡消息内容和状态
@@ -531,29 +435,31 @@ function sendSseRequest() {
     userMessage: encodeURIComponent(message),
     enableLocal: isLocal.value,
     enableWeb: isWeb.value,
-    enableThink: isThink.value
+    enableThink: isThink.value,
+    mediaFile: selectedFile.value
+  }
+
+  // 创建 FormData 对象
+  const formData = new FormData()
+  // formData.append('userMessage', encodeURIComponent(message))
+  // formData.append('enableLocal', isLocal.value)
+  // formData.append('enableWeb', isWeb.value)
+  // formData.append('enableThink', isThink.value)
+  formData.append('chatRequest', JSON.stringify(requestBody))
+
+  // 添加文件参数（mediaFile）
+  if (selectedFile.value) {
+    formData.append('mediaFile', selectedFile.value)
   }
 
   sseRequest.send(`/chat/sse/chat`, {
     method: 'POST', // GET POST PUT
     headers: {
       'Accept': 'text/event-stream',
-      'Content-Type': 'application/json',
       'sessionId': conversantId.value
     },
-    body: JSON.stringify(requestBody)
+    body: formData // body: JSON.stringify(requestBody)，body: formData
   })
-}
-
-function abortSseRequest() {
-  // 服务端请求取消
-  sseRequest.abort()
-
-  isLoad.value = false
-  messages.value[messages.value.length - 1].done = true
-  messages.value[messages.value.length - 1].error = true
-  messages.value[messages.value.length - 1].loading = false
-  messages.value[messages.value.length - 1].content += "\n 请求已取消！！！"
 }
 
 // 刷新请求
@@ -568,15 +474,34 @@ const refreshSseRequest = async () => {
     enableThink: isThink.value
   }
 
+  // 创建 FormData 对象
+  const formData = new FormData()
+  formData.append('chatRequest', JSON.stringify(requestBody))
+
+  // 添加文件参数（mediaFile）
+  if (selectedFile.value) {
+    formData.append('mediaFile', selectedFile.value)
+  }
+
   sseRequest.send(`/chat/sse/chat`, {
     method: 'POST', // GET POST PUT
     headers: {
       'Accept': 'text/event-stream',
-      'Content-Type': 'application/json',
       'sessionId': conversantId.value
     },
-    body: JSON.stringify(requestBody)
+    body: formData
   })
+}
+
+function abortSseRequest() {
+  // 服务端请求取消
+  sseRequest.abort()
+
+  isLoad.value = false
+  messages.value[messages.value.length - 1].done = true
+  messages.value[messages.value.length - 1].error = true
+  messages.value[messages.value.length - 1].loading = false
+  messages.value[messages.value.length - 1].content += "\n 请求已取消！！！"
 }
 
 // useSend 的 abort 和 finish 是一样的方法。

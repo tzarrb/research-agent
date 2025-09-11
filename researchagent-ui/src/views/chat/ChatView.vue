@@ -153,28 +153,45 @@ const scrollToBottom = async () => {
   }
 }
 
-const sendMessage = async () => {
-  if (!userInput.value.trim() || isLoading.value) return
+const sendHandler = () => {
+  if (!sendValue.value.trim() || isLoad.value) return
+
+  const message = sendValue.value
+  inputValue.value = message
+  sendValue.value = ''
+  isLoad.value = true
 
   // 添加用户消息
   messages.value.push({
-    type: 'user',
-    content: userInput.value
+    key: `${conversationItems.value.length + 1}`,
+    role: 'user',
+    placement: 'end',
+    content: message,
+    isMarkdown: true
   })
-
-  const message = userInput.value
-  userInput.value = ''
-  isLoading.value = true
 
   // 添加AI消息占位
   messages.value.push({
-    type: 'ai',
+    key: `${conversationItems.value.length + 1}`,
+    role: 'ai',
     content: '',
-    done: false
+    placement: 'start', // start | end 气泡位置,
+    isMarkdown: true, // 是否渲染为 markdown
+    isFog: true, // 是否开启打字雾化效果，该效果 v1.1.6 新增，且在 typing 为 true 时生效，该效果会覆盖 typing 的 suffix 属性
+    typing: true, // 是否开启打字器效果 { step: 5, interval: 35, suffix: '🍆' }
+    loading: true, // 当前气泡的加载状态
+    error: false, // 当前气泡的消息是否报错
+    done: false, // 当前气泡的流消息加载完成
+    thinkingStatus: isThink.value ? 'start' : '', // start | thinking | end | error
+    thinkingContent: '', // 推理内容
   })
 
+  return message;
+}
+
+const httpRequest = async (message) => {
   try {
-    const response = await fetch(`http://localhost:18080/research-agent/ai/chat/sse/chat?userMessage=${encodeURIComponent(message)}&enableLocal=${useLocal.value}&enableWeb=${useWeb.value}`, {
+    const response = await fetch(`http://localhost:18080/research-agent/ai/chat/sse/chat?userMessage=${encodeURIComponent(message)}&enableLocal=${isLocal.value}&enableWeb=${isWeb.value}&enableThink=${isThink.value}`, {
       headers: {
         'Accept': 'text/event-stream',
         'sessionId': conversantId.value
@@ -192,21 +209,25 @@ const sendMessage = async () => {
     while (true) {
       const { done, value } = await reader.read()
       if (done) break
+      if (!isLoad.value) break
 
       const chunk = decoder.decode(value)
       buffer += chunk // 将新数据添加到缓冲区
-      
+
       // 处理SSE格式的数据
       const lines = buffer.split('\n')
       buffer = lines.pop() || '' // 保留最后一个不完整的行
 
       for (const line of lines) {
+        if (!isLoad.value) break
+
         if (line.startsWith('data:')) {
           try {
             const jsonStr = line.slice(5).trim()
             if (jsonStr) {
               const data = JSON.parse(jsonStr)
               if (data.content) {
+                messages.value[messages.value.length - 1].loading = false
                 messages.value[messages.value.length - 1].content += data.content
                 await scrollToBottom()
               }
@@ -217,17 +238,57 @@ const sendMessage = async () => {
         }
       }
     }
-    // AI消息流式加载结束，done设为true
-    messages.value[messages.value.length - 1].done = true
+
+    messages.value[messages.value.length - 1].error = false
+
+    //当content中出现"错误"，"失败"等字符串时，按错误处理
+    if (messages.value[messages.value.length - 1].content.includes('错误')
+        || messages.value[messages.value.length - 1].content.includes('失败')
+        || messages.value[messages.value.length - 1].content.includes('failed')) {
+      messages.value[messages.value.length - 1].error = true
+    }
+
+    //当content内容为空时
+    if (messages.value[messages.value.length - 1].content.trim() === '') {
+      messages.value[messages.value.length - 1].content = '抱歉，发生了错误，请稍后重试。'
+      messages.value[messages.value.length - 1].error = true
+    }
   } catch (error) {
     console.error('Error:', error)
-    messages.value[messages.value.length - 1].content = '抱歉，发生了错误，请稍后重试。'
-    messages.value[messages.value.length - 1].done = true
+    // '抱歉，发生了错误，请稍后重试。'
+    messages.value[messages.value.length - 1].content += error
+    messages.value[messages.value.length - 1].error = true
   } finally {
-    isLoading.value = false
+    isLoad.value = false
+    messages.value[messages.value.length - 1].loading = false
+    // AI消息流式加载结束，done设为true
+    messages.value[messages.value.length - 1].done = true
     await scrollToBottom()
   }
 }
+
+const sendMessage = async () => {
+  const message = sendHandler()
+  if (!message.trim()) return
+
+  await httpRequest(message)
+}
+
+// 取消请求，此时服务器并未停止
+const abortMessage =  async() => {
+  isLoad.value = false
+  messages.value[messages.value.length - 1].done = true
+  messages.value[messages.value.length - 1].error = true
+  messages.value[messages.value.length - 1].loading = false
+  messages.value[messages.value.length - 1].content += "\n 请求已取消！！！"
+}
+
+// 刷新请求
+const refreshMessage = async () => {
+  messages.value[messages.value.length - 1].loading = true
+  await httpRequest(inputValue.value)
+}
+
 
 const copyMessage = async (content) => {
   try {

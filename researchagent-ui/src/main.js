@@ -1,9 +1,10 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia';
+
 import ElementPlus from 'element-plus';
-import 'element-plus/dist/index.css'
 import ElementPlusX from 'vue-element-plus-x'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+
 import App from './App.vue'
 import router from './router'
 // 同步全局的信息
@@ -11,6 +12,8 @@ import router from './router'
 
 //导入样式
 import './styles/main.css'
+import 'element-plus/dist/index.css'
+import 'element-plus/theme-chalk/src/index.scss'
 
 
 // 跳转前检查登录
